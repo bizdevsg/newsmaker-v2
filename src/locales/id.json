@@ -461,7 +461,63 @@
       ],
       "actions": {
         "economicCalendar": "Kalender Ekonomi",
-        "pivotFibonacci": "Pivot & Fibonacci"
+        "pivotFibonacci": "Pivot & Fibonacci",
+        "forex": "Proyeksi Forex",
+        "historic": "Analisis Historis"
+      }
+    }
+  },
+  "data": {
+    "quickView": {
+      "title": "Data Cepat",
+      "actions": {
+        "economicCalendar": "Kalender Ekonomi",
+        "marketData": "Data Pasar"
+      },
+      "table": [
+        {
+          "flag": "us",
+          "rate": "3.290%",
+          "description": "Imbal Hasil Obligasi AS 10-Tahun"
+        },
+        {
+          "flag": "id",
+          "rate": "6.000%",
+          "description": "Suku Bunga BI 7-Day Reverse Repo"
+        },
+        {
+          "flag": "eu",
+          "rate": "4.500%",
+          "description": "Suku Bunga Pembiayaan Utama ECB"
+        },
+        {
+          "flag": "gb",
+          "rate": "5.250%",
+          "description": "Suku Bunga Bank Sentral Inggris"
+        }
+      ]
+    }
+  },
+  "reportsMenu": {
+    "categories": {
+      "title": "Kategori Laporan",
+      "items": [
+        {
+          "icon": "calendar-days",
+          "label": "Laporan Ekonomi"
+        },
+        {
+          "icon": "chart-pie",
+          "label": "Analisis Sektor"
+        },
+        {
+          "icon": "book-open",
+          "label": "Riset Perusahaan"
+        }
+      ],
+      "featured": {
+        "title": "Prospek Kuartalan: Ketahanan Pasar",
+        "description": "Analisis komprehensif mengenai pasar ekuitas dan pendapatan tetap Indonesia di tengah ketidakpastian global. Unduh PDF lengkap untuk target sektor terperinci."
       }
     }
   }

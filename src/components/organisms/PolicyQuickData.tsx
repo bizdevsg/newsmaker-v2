@@ -52,7 +52,7 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                         <i className="fa-solid fa-chart-pie text-4xl"></i>
                     </div>
                     <span className="text-xs sm:text-sm font-semibold text-slate-700 group-hover:text-blue-900">
-                        Forex Forecast
+                        {quickData.actions.forex}
                     </span>
                 </button>
                 <button className="flex flex-col items-center justify-center rounded-md bg-slate-50/70 py-6 px-2 text-center shadow-sm border border-slate-100 transition hover:bg-white hover:shadow-md hover:border-blue-200 group">
@@ -60,7 +60,7 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                         <i className="fa-solid fa-chart-area text-4xl"></i>
                     </div>
                     <span className="text-xs sm:text-sm font-semibold text-slate-700 group-hover:text-blue-900">
-                        Historic Data
+                        {quickData.actions.historic}
                     </span>
                 </button>
             </div>

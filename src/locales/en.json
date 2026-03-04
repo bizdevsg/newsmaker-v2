@@ -461,7 +461,63 @@
       ],
       "actions": {
         "economicCalendar": "Economic Calendar",
-        "pivotFibonacci": "Pivot & Fibonacci"
+        "pivotFibonacci": "Pivot & Fibonacci",
+        "forex": "Forex & Forecast",
+        "historic": "Historic Data"
+      }
+    }
+  },
+  "data": {
+    "quickView": {
+      "title": "Quick Data",
+      "actions": {
+        "economicCalendar": "Economic Calendar",
+        "marketData": "Market Data"
+      },
+      "table": [
+        {
+          "flag": "us",
+          "rate": "3.290%",
+          "description": "US 10-Year Treasury Yield"
+        },
+        {
+          "flag": "id",
+          "rate": "6.000%",
+          "description": "BI 7-Day Reverse Repo Rate"
+        },
+        {
+          "flag": "eu",
+          "rate": "4.500%",
+          "description": "ECB Main Refinancing Rate"
+        },
+        {
+          "flag": "gb",
+          "rate": "5.250%",
+          "description": "BOE Official Bank Rate"
+        }
+      ]
+    }
+  },
+  "reportsMenu": {
+    "categories": {
+      "title": "Report Categories",
+      "items": [
+        {
+          "icon": "calendar-days",
+          "label": "Economic Reports"
+        },
+        {
+          "icon": "chart-pie",
+          "label": "Sector Analysis"
+        },
+        {
+          "icon": "book-open",
+          "label": "Company Research"
+        }
+      ],
+      "featured": {
+        "title": "Quarterly Outlook: Resilient Markets",
+        "description": "Comprehensive analysis of Indonesian equities and fixed income markets amidst global uncertainties. Download the full PDF for detailed sector targets."
       }
     }
   }
