@@ -403,5 +403,66 @@
         }
       ]
     }
+  },
+  "policy": {
+    "quickData": {
+      "title": "Data Cepat",
+      "tabs": [
+        {
+          "key": "calendar",
+          "label": "Kalender Ekonomi"
+        },
+        {
+          "key": "fibonacci",
+          "label": "Pivot & Fibonacci"
+        },
+        {
+          "key": "forex",
+          "label": "Proyeksi Forex"
+        },
+        {
+          "key": "historic",
+          "label": "Analisis Historis"
+        }
+      ],
+      "economicCalendar": [
+        {
+          "time": "1Q 2024",
+          "event": "PDB Riil YoY",
+          "actual": "5.11%",
+          "forecast": "5.00%",
+          "previous": "5.04%",
+          "flag": "id"
+        },
+        {
+          "time": "Apr 2024",
+          "event": "Tingkat Inflasi YoY",
+          "actual": "3.00%",
+          "forecast": "3.00%",
+          "previous": "3.05%",
+          "flag": "id"
+        },
+        {
+          "time": "Apr 2024",
+          "event": "Inflasi Inti YoY",
+          "actual": "1.82%",
+          "forecast": "1.80%",
+          "previous": "1.77%",
+          "flag": "id"
+        },
+        {
+          "time": "Mar 2024",
+          "event": "Ringkasan Neraca Perdagangan",
+          "actual": "$4.47B",
+          "forecast": "$1.50B",
+          "previous": "$0.87B",
+          "flag": "id"
+        }
+      ],
+      "actions": {
+        "economicCalendar": "Kalender Ekonomi",
+        "pivotFibonacci": "Pivot & Fibonacci"
+      }
+    }
   }
 }

@@ -17,13 +17,15 @@ export function SnapshotCard({
   meta,
 }: SnapshotCardProps) {
   return (
-    <div className="flex h-full gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm">
-      <IconBadge label={icon} />
-      <div className="space-y-1">
-        <p className="text-sm font-semibold text-slate-800">{title}</p>
-        <p className="text-xl font-semibold text-slate-800">{value}</p>
-        <p className="text-xs text-slate-500">{subtitle}</p>
-        <p className="text-xs text-slate-400">{meta}</p>
+    <div className="flex h-full gap-3 rounded border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="shrink-0">
+        <IconBadge label={icon} />
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <p className="text-sm font-semibold text-slate-800 truncate">{title}</p>
+        <p className="text-lg font-bold text-slate-800 leading-tight break-words hyphens-auto">{value}</p>
+        <p className="text-xs text-slate-500 break-words leading-snug">{subtitle}</p>
+        <p className="text-[11px] text-slate-400 mt-auto pt-1">{meta}</p>
       </div>
     </div>
   );

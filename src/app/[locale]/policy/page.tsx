@@ -1,7 +1,7 @@
-import { EquitiesPageTemplate } from "../../../components/templates/EquitiesPageTemplate";
+import { PolicyPageTemplate } from "../../../components/templates/PolicyPageTemplate";
 import { getMessages, type Locale } from "@/locales";
 
-export default async function EquitiesPage({
+export default async function PolicyPage({
     params,
 }: {
     params: Promise<{ locale?: string }>;
@@ -10,14 +10,13 @@ export default async function EquitiesPage({
     const locale: Locale = rawLocale === "en" ? "en" : "id";
     const messages = getMessages(locale);
 
-    // Override activeNavKey for Header
     const customMessages = {
         ...messages,
         header: {
             ...messages.header,
-            activeNavKey: "equities"
+            activeNavKey: "policy"
         }
     };
 
-    return <EquitiesPageTemplate locale={locale} messages={customMessages} />;
+    return <PolicyPageTemplate locale={locale} messages={customMessages} />;
 }
