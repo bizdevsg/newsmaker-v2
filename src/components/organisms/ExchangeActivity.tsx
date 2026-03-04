@@ -29,7 +29,7 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
               label={stat.label}
               value={stat.value}
               delta={stat.delta}
-              tone={stat.tone}
+              tone={stat.tone as "up" | "down" | "flat" | undefined}
             />
           ))}
         </div>

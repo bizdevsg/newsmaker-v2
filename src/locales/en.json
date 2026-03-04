@@ -6,15 +6,42 @@
   },
   "header": {
     "navItems": [
-      { "key": "home", "label": "Home" },
-      { "key": "insight", "label": "Insight" },
-      { "key": "markets", "label": "Markets" },
-      { "key": "commodities", "label": "Commodities" },
-      { "key": "equities", "label": "Equities" },
-      { "key": "policy", "label": "Policy" },
-      { "key": "indonesia-market", "label": "Indonesia Market" },
-      { "key": "data", "label": "Data" },
-      { "key": "reports", "label": "Reports" }
+      {
+        "key": "home",
+        "label": "Home"
+      },
+      {
+        "key": "insight",
+        "label": "Insight"
+      },
+      {
+        "key": "markets",
+        "label": "Markets"
+      },
+      {
+        "key": "commodities",
+        "label": "Commodities"
+      },
+      {
+        "key": "equities",
+        "label": "Equities"
+      },
+      {
+        "key": "policy",
+        "label": "Policy"
+      },
+      {
+        "key": "indonesia-market",
+        "label": "Indonesia Market"
+      },
+      {
+        "key": "data",
+        "label": "Data"
+      },
+      {
+        "key": "reports",
+        "label": "Reports"
+      }
     ],
     "activeNavKey": "indonesia-market",
     "reports": "Reports",
@@ -95,17 +122,53 @@
   "exchangeActivity": {
     "title": "Indonesia Exchange & Derivatives Activity",
     "tabs": [
-      { "key": "markets", "label": "Markets" },
-      { "key": "derivatives", "label": "Derivatives" },
-      { "key": "rates", "label": "Rates" },
-      { "key": "flows", "label": "Flows" }
+      {
+        "key": "markets",
+        "label": "Markets"
+      },
+      {
+        "key": "derivatives",
+        "label": "Derivatives"
+      },
+      {
+        "key": "rates",
+        "label": "Rates"
+      },
+      {
+        "key": "flows",
+        "label": "Flows"
+      }
     ],
     "activeTabKey": "markets",
     "stats": [
-      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up" },
-      { "key": "idr-usd", "label": "IDR/USD", "value": "15,680", "delta": "+0.04%", "tone": "up" },
-      { "key": "contracts", "label": "Contracts", "value": "132,000", "delta": "-0.22%", "tone": "down" },
-      { "key": "derivatives-vol", "label": "Derivatives Vol", "value": "1,254,000", "delta": "+1.30%", "tone": "up" }
+      {
+        "key": "ihsg",
+        "label": "IHSG",
+        "value": "7,150",
+        "delta": "+0.68%",
+        "tone": "up"
+      },
+      {
+        "key": "idr-usd",
+        "label": "IDR/USD",
+        "value": "15,680",
+        "delta": "+0.04%",
+        "tone": "up"
+      },
+      {
+        "key": "contracts",
+        "label": "Contracts",
+        "value": "132,000",
+        "delta": "-0.22%",
+        "tone": "down"
+      },
+      {
+        "key": "derivatives-vol",
+        "label": "Derivatives Vol",
+        "value": "1,254,000",
+        "delta": "+1.30%",
+        "tone": "up"
+      }
     ],
     "heatmapNote": "Intraday heatmap placeholder - shifted to data panels in full build."
   },
@@ -135,10 +198,38 @@
     "subtitle": "Quarterly institutional brief with policy and liquidity insights.",
     "ctaLabel": "View Report",
     "metrics": [
-      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up", "meta": "AS 04:44, 00024" },
-      { "key": "usd", "label": "USD", "value": "15,680", "delta": "+6.92%", "tone": "up", "meta": "USD/IDR 20" },
-      { "key": "gold", "label": "Gold", "value": "1,254,000", "delta": "+0.32%", "tone": "up", "meta": "FT 18:20" },
-      { "key": "oil", "label": "Oil", "value": "83.20", "delta": "-0.15%", "tone": "down", "meta": "FT 18:20" }
+      {
+        "key": "ihsg",
+        "label": "IHSG",
+        "value": "7,150",
+        "delta": "+0.68%",
+        "tone": "up",
+        "meta": "AS 04:44, 00024"
+      },
+      {
+        "key": "usd",
+        "label": "USD",
+        "value": "15,680",
+        "delta": "+6.92%",
+        "tone": "up",
+        "meta": "USD/IDR 20"
+      },
+      {
+        "key": "gold",
+        "label": "Gold",
+        "value": "1,254,000",
+        "delta": "+0.32%",
+        "tone": "up",
+        "meta": "FT 18:20"
+      },
+      {
+        "key": "oil",
+        "label": "Oil",
+        "value": "83.20",
+        "delta": "-0.15%",
+        "tone": "down",
+        "meta": "FT 18:20"
+      }
     ]
   },
   "recentAnalysis": {
@@ -161,18 +252,156 @@
     "brand": "NEWSMAKER 23",
     "reports": "Reports",
     "footerLinks": [
-      { "key": "about", "label": "About", "href": "#" },
-      { "key": "research", "label": "Research", "href": "#" },
-      { "key": "insights", "label": "Insights", "href": "#" },
-      { "key": "contact", "label": "Contact", "href": "#" },
-      { "key": "careers", "label": "Careers", "href": "#" }
+      {
+        "key": "about",
+        "label": "About",
+        "href": "#"
+      },
+      {
+        "key": "research",
+        "label": "Research",
+        "href": "#"
+      },
+      {
+        "key": "insights",
+        "label": "Insights",
+        "href": "#"
+      },
+      {
+        "key": "contact",
+        "label": "Contact",
+        "href": "#"
+      },
+      {
+        "key": "careers",
+        "label": "Careers",
+        "href": "#"
+      }
     ],
     "legalLinks": [
-      { "key": "privacy", "label": "Privacy", "href": "#" },
-      { "key": "terms", "label": "Terms", "href": "#" },
-      { "key": "disclaimer", "label": "Disclaimer", "href": "#" }
+      {
+        "key": "privacy",
+        "label": "Privacy",
+        "href": "#"
+      },
+      {
+        "key": "terms",
+        "label": "Terms",
+        "href": "#"
+      },
+      {
+        "key": "disclaimer",
+        "label": "Disclaimer",
+        "href": "#"
+      }
     ],
     "coverage": "Newsmaker Research · Indonesia Market Coverage",
     "copyright": "© 2026 Newsmaker Research. All rights reserved."
+  },
+  "equities": {
+    "marketOverview": {
+      "title": "Market Overview",
+      "tabs": [
+        {
+          "key": "ihsg",
+          "label": "IHSG"
+        },
+        {
+          "key": "idx30",
+          "label": "IDX30"
+        },
+        {
+          "key": "lq45",
+          "label": "LQ45"
+        },
+        {
+          "key": "issi",
+          "label": "ISSI"
+        },
+        {
+          "key": "idxhidiv20",
+          "label": "IDX HIDIV20"
+        }
+      ],
+      "table": {
+        "columns": [
+          "Emiten",
+          "Perusahaan",
+          "DI Bebas",
+          "Kapitalisasi",
+          "Rasio C/S",
+          "Val Transaksi"
+        ],
+        "rows": [
+          {
+            "sector": "BBCA",
+            "company": "Bank Central Asia Tbk.",
+            "freeFloat": "43.89%",
+            "marketCap": "1,143.08 Triliun",
+            "csRatio": "3.00",
+            "transVal": "1.05 Triliun"
+          },
+          {
+            "sector": "BBRI",
+            "company": "Bank Rakyat Indonesia Tbk.",
+            "freeFloat": "46.39%",
+            "marketCap": "860.68 Triliun",
+            "csRatio": "4.15",
+            "transVal": "850 Miliar"
+          },
+          {
+            "sector": "BMRI",
+            "company": "Bank Mandiri Tbk.",
+            "freeFloat": "40.00%",
+            "marketCap": "645.15 Triliun",
+            "csRatio": "2.80",
+            "transVal": "750 Miliar"
+          },
+          {
+            "sector": "TLKM",
+            "company": "Telkom Indonesia Tbk.",
+            "freeFloat": "47.90%",
+            "marketCap": "350.50 Triliun",
+            "csRatio": "1.50",
+            "transVal": "500 Miliar"
+          }
+        ],
+        "viewFullUpdates": "View Full Updates"
+      }
+    },
+    "keySectors": {
+      "title": "Key Sectors",
+      "viewAll": "View All",
+      "items": [
+        {
+          "key": "finance",
+          "title": "Finance Sector",
+          "description": "Banking stocks led the index rally amid sentiment over interest rate cuts.",
+          "indicators": "3.5k | 12.0000",
+          "image": "/assets/placeholder-finance.jpg"
+        },
+        {
+          "key": "energy",
+          "title": "Energy Sector",
+          "description": "Coal companies supported the sector's pace following the rise in commodity prices.",
+          "indicators": "2.1k | 10.200",
+          "image": "/assets/placeholder-energy.jpg"
+        },
+        {
+          "key": "consumer",
+          "title": "Consumer Sector",
+          "description": "Retail issuers recorded sales increases driven by domestic consumption.",
+          "indicators": "1.8k | 8.500",
+          "image": "/assets/placeholder-consumer.jpg"
+        },
+        {
+          "key": "infrastructure",
+          "title": "Infrastructure Sector",
+          "description": "The acceleration of national strategic project development boosted investor optimism.",
+          "indicators": "4.1k | 15.000",
+          "image": "/assets/placeholder-infrastructure.jpg"
+        }
+      ]
+    }
   }
 }
