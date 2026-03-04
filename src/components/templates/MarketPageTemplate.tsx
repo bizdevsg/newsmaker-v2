@@ -2,12 +2,19 @@
 import { SiteHeader } from "../organisms/SiteHeader";
 import { SiteFooter } from "../organisms/SiteFooter";
 import { StickyNav } from "../organisms/StickyNav";
+import type { Locale, Messages } from "@/locales";
 
 type MarketPageTemplateProps = {
   children: React.ReactNode;
+  locale: Locale;
+  messages: Messages;
 };
 
-export function MarketPageTemplate({ children }: MarketPageTemplateProps) {
+export function MarketPageTemplate({
+  children,
+  locale,
+  messages,
+}: MarketPageTemplateProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-100 to-white text-slate-800">
       <StickyNav>
@@ -22,7 +29,7 @@ export function MarketPageTemplate({ children }: MarketPageTemplateProps) {
           {children}
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter locale={locale} messages={messages} />
     </div>
   );
 }

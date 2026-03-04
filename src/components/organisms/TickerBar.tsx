@@ -1,13 +1,10 @@
 import React from "react";
 
-const ticks = [
-  "IHSG 7,150 +0.68%",
-  "USD 15,680 +0.04%",
-  "Gold 1,254,000 +0.32%",
-  "Oil 83.20 -0.15%",
-];
+type TickerBarProps = {
+  ticks: string[];
+};
 
-export function TickerBar() {
+export function TickerBar({ ticks }: TickerBarProps) {
   const tickStream = [...ticks, ...ticks, ...ticks];
   return (
     <div className="overflow-hidden rounded-md bg-slate-900 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/80 shadow-lg">

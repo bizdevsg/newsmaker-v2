@@ -1,0 +1,178 @@
+{
+  "common": {
+    "readFullInsight": "Baca Analisis Lengkap",
+    "readMore": "Baca Lainnya",
+    "viewReport": "Lihat Laporan"
+  },
+  "header": {
+    "navItems": [
+      { "key": "home", "label": "Beranda" },
+      { "key": "insight", "label": "Wawasan" },
+      { "key": "markets", "label": "Pasar" },
+      { "key": "commodities", "label": "Komoditas" },
+      { "key": "equities", "label": "Ekuitas" },
+      { "key": "policy", "label": "Kebijakan" },
+      { "key": "indonesia-market", "label": "Pasar Indonesia" },
+      { "key": "data", "label": "Data" },
+      { "key": "reports", "label": "Laporan" }
+    ],
+    "activeNavKey": "indonesia-market",
+    "reports": "Laporan",
+    "register": "Daftar",
+    "changeLanguageAria": "Ganti bahasa ke {locale}"
+  },
+  "hero": {
+    "title": "Pasar Indonesia",
+    "subtitle": "Pasar lokal. Perspektif institusi.",
+    "bannerTag": "Pantau Kebijakan",
+    "bannerTitle": "BI beri sinyal perubahan kebijakan jelang data inflasi",
+    "bannerSubtitle": "Perkembangan regulasi, moneter, dan nilai tukar yang membentuk lanskap keuangan Indonesia.",
+    "bannerCta": "Baca Analisis Lengkap"
+  },
+  "policySnapshot": {
+    "title": "Ringkasan Kebijakan Indonesia",
+    "ctaLabel": "Baca Analisis Lengkap >",
+    "items": [
+      {
+        "key": "bi-rate",
+        "icon": "BI",
+        "title": "Suku Bunga BI",
+        "value": "6.00%",
+        "subtitle": "24 Apr 2024",
+        "meta": "Tidak berubah - IDR 15,680"
+      },
+      {
+        "key": "ojk-update",
+        "icon": "OJK",
+        "title": "OJK",
+        "value": "Pembaruan Regulasi",
+        "subtitle": "Aturan margin derivatif diperketat",
+        "meta": "21 Apr 2024"
+      },
+      {
+        "key": "bappebti-circular",
+        "icon": "BB",
+        "title": "Surat Edaran Bappebti",
+        "value": "Revisi Kepatuhan",
+        "subtitle": "Penyesuaian pelaporan broker",
+        "meta": "23 Apr 2024"
+      },
+      {
+        "key": "bbj-activity",
+        "icon": "BBJ",
+        "title": "Aktivitas Volume BBJ",
+        "value": "+12.4%",
+        "subtitle": "Volume MoM",
+        "meta": "Rp 18.7T - 23 Apr 2024"
+      }
+    ]
+  },
+  "regulatoryWatch": {
+    "title": "Pantauan Regulasi & Institusi",
+    "ctaLabel": "Baca Lainnya",
+    "actionLabel": "Baca Lainnya",
+    "items": [
+      {
+        "key": "ojk-margin",
+        "title": "OJK perketat aturan margin derivatif",
+        "date": "21 Apr 2024",
+        "tag": "Regulasi"
+      },
+      {
+        "key": "bi-rate",
+        "title": "BI pertahankan suku bunga di 6.00%",
+        "date": "24 Apr 2024",
+        "tag": "Moneter"
+      },
+      {
+        "key": "bappebti",
+        "title": "Bappebti revisi kerangka kepatuhan broker",
+        "date": "23 Apr 2024",
+        "tag": "Tata Kelola"
+      }
+    ]
+  },
+  "exchangeActivity": {
+    "title": "Aktivitas Bursa & Derivatif Indonesia",
+    "tabs": [
+      { "key": "markets", "label": "Pasar" },
+      { "key": "derivatives", "label": "Derivatif" },
+      { "key": "rates", "label": "Suku Bunga" },
+      { "key": "flows", "label": "Arus" }
+    ],
+    "activeTabKey": "markets",
+    "stats": [
+      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up" },
+      { "key": "idr-usd", "label": "IDR/USD", "value": "15,680", "delta": "+0.04%", "tone": "up" },
+      { "key": "contracts", "label": "Kontrak", "value": "132,000", "delta": "-0.22%", "tone": "down" },
+      { "key": "derivatives-vol", "label": "Vol Derivatif", "value": "1,254,000", "delta": "+1.30%", "tone": "up" }
+    ],
+    "heatmapNote": "Placeholder heatmap intraday - dipindah ke panel data pada versi penuh."
+  },
+  "marketImpact": {
+    "title": "Dampak Pasar Indonesia",
+    "ctaLabel": "Baca Analisis Lengkap",
+    "items": [
+      {
+        "key": "rupiah-steady",
+        "title": "Rupiah Stabil, Implikasi Kebijakan BI?",
+        "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla quis est vestibulum fringilla. Mauris elementum tempus lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed non mauris bibendum, porta massa sit amet, mattis velit. Nullam vel eleifend nibh. Nulla sollicitudin arcu tellus.",
+        "date": "24 Apr 2024",
+        "imageLabel": "./assets/Screenshot-2024-10-29-at-11.27.48.png"
+      },
+      {
+        "key": "bbj-volume",
+        "title": "Volume BBJ Naik Pesat, Apa Faktor Utamanya?",
+        "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla quis est vestibulum fringilla. Mauris elementum tempus lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed non mauris bibendum, porta massa sit amet, mattis velit. Nullam vel eleifend nibh. Nulla sollicitudin arcu tellus.",
+        "date": "23 Apr 2024",
+        "imageLabel": "./assets/Screenshot-2024-10-29-at-11.27.48.png"
+      }
+    ]
+  },
+  "focusReport": {
+    "kicker": "Laporan Fokus Indonesia",
+    "title": "Prospek Pasar Indonesia 2026",
+    "subtitle": "Ringkasan kuartalan institusi dengan wawasan kebijakan dan likuiditas.",
+    "ctaLabel": "Lihat Laporan",
+    "metrics": [
+      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up", "meta": "AS 04:44, 00024" },
+      { "key": "usd", "label": "USD", "value": "15,680", "delta": "+6.92%", "tone": "up", "meta": "USD/IDR 20" },
+      { "key": "gold", "label": "Emas", "value": "1,254,000", "delta": "+0.32%", "tone": "up", "meta": "FT 18:20" },
+      { "key": "oil", "label": "Minyak", "value": "83.20", "delta": "-0.15%", "tone": "down", "meta": "FT 18:20" }
+    ]
+  },
+  "recentAnalysis": {
+    "title": "Analisis Terbaru",
+    "items": [
+      "Rupiah menguat di tengah ketidakpastian global.",
+      "Pelaku pasar sambut positif aturan derivatif baru.",
+      "IHSG tetap kuat, investor fokus pada data inflasi."
+    ]
+  },
+  "ticker": {
+    "ticks": [
+      "IHSG 7,150 +0.68%",
+      "USD 15,680 +0.04%",
+      "Emas 1,254,000 +0.32%",
+      "Minyak 83.20 -0.15%"
+    ]
+  },
+  "footer": {
+    "brand": "NEWSMAKER 23",
+    "reports": "Laporan",
+    "footerLinks": [
+      { "key": "about", "label": "Tentang", "href": "#" },
+      { "key": "research", "label": "Riset", "href": "#" },
+      { "key": "insights", "label": "Insight", "href": "#" },
+      { "key": "contact", "label": "Kontak", "href": "#" },
+      { "key": "careers", "label": "Karier", "href": "#" }
+    ],
+    "legalLinks": [
+      { "key": "privacy", "label": "Privasi", "href": "#" },
+      { "key": "terms", "label": "Ketentuan", "href": "#" },
+      { "key": "disclaimer", "label": "Disclaimer", "href": "#" }
+    ],
+    "coverage": "Newsmaker Research · Cakupan Pasar Indonesia",
+    "copyright": "© 2026 Newsmaker Research. Hak cipta dilindungi."
+  }
+}

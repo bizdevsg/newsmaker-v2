@@ -1,0 +1,178 @@
+{
+  "common": {
+    "readFullInsight": "Read Full Insight",
+    "readMore": "Read More",
+    "viewReport": "View Report"
+  },
+  "header": {
+    "navItems": [
+      { "key": "home", "label": "Home" },
+      { "key": "insight", "label": "Insight" },
+      { "key": "markets", "label": "Markets" },
+      { "key": "commodities", "label": "Commodities" },
+      { "key": "equities", "label": "Equities" },
+      { "key": "policy", "label": "Policy" },
+      { "key": "indonesia-market", "label": "Indonesia Market" },
+      { "key": "data", "label": "Data" },
+      { "key": "reports", "label": "Reports" }
+    ],
+    "activeNavKey": "indonesia-market",
+    "reports": "Reports",
+    "register": "Register",
+    "changeLanguageAria": "Change language to {locale}"
+  },
+  "hero": {
+    "title": "Indonesia Market",
+    "subtitle": "Local Market. Institutional Perspective.",
+    "bannerTag": "Policy Monitor",
+    "bannerTitle": "BI Signals Policy Shift Ahead of Inflation Data",
+    "bannerSubtitle": "Regulatory, monetary, and exchange developments shaping Indonesia's financial landscape.",
+    "bannerCta": "Read Full Insight"
+  },
+  "policySnapshot": {
+    "title": "Indonesia Policy Snapshot",
+    "ctaLabel": "Read Full Insight >",
+    "items": [
+      {
+        "key": "bi-rate",
+        "icon": "BI",
+        "title": "BI Rate",
+        "value": "6.00%",
+        "subtitle": "Apr 24, 2024",
+        "meta": "Unchanged - IDR 15,680"
+      },
+      {
+        "key": "ojk-update",
+        "icon": "OJK",
+        "title": "OJK",
+        "value": "Regulation Update",
+        "subtitle": "Derivative margin rules tightened",
+        "meta": "Apr 21, 2024"
+      },
+      {
+        "key": "bappebti-circular",
+        "icon": "BB",
+        "title": "Bappebti Circular",
+        "value": "Compliance Revision",
+        "subtitle": "Broker reporting adjustments",
+        "meta": "Apr 23, 2024"
+      },
+      {
+        "key": "bbj-activity",
+        "icon": "BBJ",
+        "title": "BBJ Volume Activity",
+        "value": "+12.4%",
+        "subtitle": "MoM Volume",
+        "meta": "Rp 18.7T - Apr 23, 2024"
+      }
+    ]
+  },
+  "regulatoryWatch": {
+    "title": "Regulatory & Institutional Watch",
+    "ctaLabel": "Read More",
+    "actionLabel": "Read More",
+    "items": [
+      {
+        "key": "ojk-margin",
+        "title": "OJK Tightens Margin Rules for Derivatives",
+        "date": "Apr 21, 2024",
+        "tag": "Regulation"
+      },
+      {
+        "key": "bi-rate",
+        "title": "BI Maintains Rate at 6.00%",
+        "date": "Apr 24, 2024",
+        "tag": "Monetary"
+      },
+      {
+        "key": "bappebti",
+        "title": "Bappebti Revises Broker Compliance Framework",
+        "date": "Apr 23, 2024",
+        "tag": "Governance"
+      }
+    ]
+  },
+  "exchangeActivity": {
+    "title": "Indonesia Exchange & Derivatives Activity",
+    "tabs": [
+      { "key": "markets", "label": "Markets" },
+      { "key": "derivatives", "label": "Derivatives" },
+      { "key": "rates", "label": "Rates" },
+      { "key": "flows", "label": "Flows" }
+    ],
+    "activeTabKey": "markets",
+    "stats": [
+      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up" },
+      { "key": "idr-usd", "label": "IDR/USD", "value": "15,680", "delta": "+0.04%", "tone": "up" },
+      { "key": "contracts", "label": "Contracts", "value": "132,000", "delta": "-0.22%", "tone": "down" },
+      { "key": "derivatives-vol", "label": "Derivatives Vol", "value": "1,254,000", "delta": "+1.30%", "tone": "up" }
+    ],
+    "heatmapNote": "Intraday heatmap placeholder - shifted to data panels in full build."
+  },
+  "marketImpact": {
+    "title": "Indonesia Market Impact",
+    "ctaLabel": "Read Full Insight",
+    "items": [
+      {
+        "key": "rupiah-steady",
+        "title": "Rupiah Steady, What Does BI Policy Imply?",
+        "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla quis est vestibulum fringilla. Mauris elementum tempus lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed non mauris bibendum, porta massa sit amet, mattis velit. Nullam vel eleifend nibh. Nulla sollicitudin arcu tellus.",
+        "date": "Apr 24, 2024",
+        "imageLabel": "./assets/Screenshot-2024-10-29-at-11.27.48.png"
+      },
+      {
+        "key": "bbj-volume",
+        "title": "BBJ Volume Surges, What Is Driving It?",
+        "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla quis est vestibulum fringilla. Mauris elementum tempus lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed non mauris bibendum, porta massa sit amet, mattis velit. Nullam vel eleifend nibh. Nulla sollicitudin arcu tellus.",
+        "date": "Apr 23, 2024",
+        "imageLabel": "./assets/Screenshot-2024-10-29-at-11.27.48.png"
+      }
+    ]
+  },
+  "focusReport": {
+    "kicker": "Indonesia Focus Report",
+    "title": "Indonesia Market Outlook 2026",
+    "subtitle": "Quarterly institutional brief with policy and liquidity insights.",
+    "ctaLabel": "View Report",
+    "metrics": [
+      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up", "meta": "AS 04:44, 00024" },
+      { "key": "usd", "label": "USD", "value": "15,680", "delta": "+6.92%", "tone": "up", "meta": "USD/IDR 20" },
+      { "key": "gold", "label": "Gold", "value": "1,254,000", "delta": "+0.32%", "tone": "up", "meta": "FT 18:20" },
+      { "key": "oil", "label": "Oil", "value": "83.20", "delta": "-0.15%", "tone": "down", "meta": "FT 18:20" }
+    ]
+  },
+  "recentAnalysis": {
+    "title": "Recent Analysis",
+    "items": [
+      "Rupiah firms amid global uncertainty.",
+      "Market participants welcome new derivatives rules.",
+      "IHSG remains resilient as investors track inflation data."
+    ]
+  },
+  "ticker": {
+    "ticks": [
+      "IHSG 7,150 +0.68%",
+      "USD 15,680 +0.04%",
+      "Gold 1,254,000 +0.32%",
+      "Oil 83.20 -0.15%"
+    ]
+  },
+  "footer": {
+    "brand": "NEWSMAKER 23",
+    "reports": "Reports",
+    "footerLinks": [
+      { "key": "about", "label": "About", "href": "#" },
+      { "key": "research", "label": "Research", "href": "#" },
+      { "key": "insights", "label": "Insights", "href": "#" },
+      { "key": "contact", "label": "Contact", "href": "#" },
+      { "key": "careers", "label": "Careers", "href": "#" }
+    ],
+    "legalLinks": [
+      { "key": "privacy", "label": "Privacy", "href": "#" },
+      { "key": "terms", "label": "Terms", "href": "#" },
+      { "key": "disclaimer", "label": "Disclaimer", "href": "#" }
+    ],
+    "coverage": "Newsmaker Research · Indonesia Market Coverage",
+    "copyright": "© 2026 Newsmaker Research. All rights reserved."
+  }
+}

@@ -1,16 +1,21 @@
 import React from "react";
 import { Button } from "../atoms/Button";
 import { Tag } from "../atoms/Tag";
+import type { Messages } from "@/locales";
 
-export function HeroSection() {
+type HeroSectionProps = {
+  messages: Messages;
+};
+
+export function HeroSection({ messages }: HeroSectionProps) {
   return (
     <section className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-800 md:text-4xl uppercase">
-          Indonesia Market
+          {messages.hero.title}
         </h1>
         <p className="text-base text-slate-500">
-          Local Market. Institutional Perspective.
+          {messages.hero.subtitle}
         </p>
       </div>
 
@@ -27,21 +32,20 @@ export function HeroSection() {
         <div className="relative flex min-h-[220px] flex-col gap-7 p-7 md:flex-row md:items-center">
           <div className="flex-1 space-y-3 max-w-xl">
             <Tag tone="slate" className="bg-white/15 text-white">
-              Policy Monitor
+              {messages.hero.bannerTag}
             </Tag>
             <h2 className="text-3xl font-semibold">
-              BI Signals Policy Shift Ahead of Inflation Data
+              {messages.hero.bannerTitle}
             </h2>
             <p className="text-base text-white/80">
-              Regulatory, monetary, and exchange developments shaping
-              Indonesia's financial landscape.
+              {messages.hero.bannerSubtitle}
             </p>
             <Button
               variant="outline"
               size="sm"
               className="border-white/60 text-white"
             >
-              Read Full Insight
+              {messages.hero.bannerCta}
             </Button>
           </div>
         </div>

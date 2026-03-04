@@ -1,6 +1,11 @@
 import React from "react";
 
-type ButtonVariant = "primary" | "outline" | "ghost";
+type ButtonVariant =
+  | "primary"
+  | "outline"
+  | "ghost"
+  | "primaryAlt"
+  | "secondaryAlt";
 type ButtonSize = "sm" | "md";
 
 type ButtonProps = {
@@ -13,7 +18,7 @@ type ButtonProps = {
 };
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+  "inline-flex items-center justify-center gap-2 font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
 
 const sizes: Record<ButtonSize, string> = {
   sm: "h-9 px-4 text-xs",
@@ -21,10 +26,12 @@ const sizes: Record<ButtonSize, string> = {
 };
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700",
+  primary: "rounded-full bg-blue-600 text-white hover:bg-blue-700",
   outline:
-    "border border-slate-200 text-blue-700 hover:bg-slate-100 hover:text-slate-800",
-  ghost: "text-blue-700 hover:bg-slate-100",
+    "rounded-full border border-slate-200 text-blue-700 hover:bg-slate-100 hover:text-slate-800",
+  ghost: "rounded-full text-blue-700 hover:bg-slate-100",
+  primaryAlt: "rounded bg-blue-800 text-blue-700 hover:bg-blue-700",
+  secondaryAlt: "rounded bg-blue-200 text-gray-800 hover:bg-blue-300",
 };
 
 export function Button({
@@ -51,5 +58,3 @@ export function Button({
     </button>
   );
 }
-
-

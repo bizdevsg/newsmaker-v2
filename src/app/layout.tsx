@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./globals.css";
+import { cookies } from "next/headers";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -14,13 +15,16 @@ export const metadata: Metadata = {
   description: "Institutional market dashboard mockup",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value ?? "id";
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${roboto.variable} antialiased`}>
         {children}
       </body>

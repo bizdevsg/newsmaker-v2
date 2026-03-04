@@ -1,61 +1,35 @@
 import React from "react";
 import { Button } from "../atoms/Button";
+import type { Messages } from "@/locales";
 
-const metrics = [
-  {
-    label: "IHSG",
-    value: "7,150",
-    delta: "+0.68%",
-    tone: "up" as const,
-    meta: "AS 04:44, 00024",
-  },
-  {
-    label: "USD",
-    value: "15,680",
-    delta: "+6.92%",
-    tone: "up" as const,
-    meta: "USD/IDR 20",
-  },
-  {
-    label: "Gold",
-    value: "1,254,000",
-    delta: "+0.32%",
-    tone: "up" as const,
-    meta: "FT 18:20",
-  },
-  {
-    label: "Oil",
-    value: "83.20",
-    delta: "-0.15%",
-    tone: "down" as const,
-    meta: "FT 18:20",
-  },
-];
+type FocusReportProps = {
+  messages: Messages;
+};
 
-export function FocusReport() {
+export function FocusReport({ messages }: FocusReportProps) {
   return (
     <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
       <div className="rounded-md bg-gradient-to-r from-blue-900 via-blue-700 to-blue-600 p-6 text-white shadow-lg">
         <p className="text-xs uppercase tracking-[0.3em] text-white/60">
-          Indonesia Focus Report
+          {messages.focusReport.kicker}
         </p>
         <h3 className="mt-3 text-2xl font-semibold">
-          Indonesia Market Outlook 2026
+          {messages.focusReport.title}
         </h3>
         <p className="mt-2 text-sm text-white/70">
-          Quarterly institutional brief with policy and liquidity insights.
+          {messages.focusReport.subtitle}
         </p>
         <Button
           variant="outline"
           size="sm"
           className="mt-4 border-white/40 text-white"
         >
-          View Report
+          {messages.focusReport.ctaLabel}
         </Button>
       </div>
       <div className="mt-4 overflow-hidden rounded-md border border-slate-200">
         <div className="divide-y divide-slate-200">
-          {metrics.map((metric) => {
+          {messages.focusReport.metrics.map((metric) => {
             const toneClass =
               metric.tone === "up"
                 ? "text-emerald-600"
@@ -73,7 +47,7 @@ export function FocusReport() {
 
             return (
               <div
-                key={metric.label}
+                key={metric.key}
                 className="flex items-center justify-between gap-4 bg-white px-4 py-3"
               >
                 <div className="flex items-center gap-3">

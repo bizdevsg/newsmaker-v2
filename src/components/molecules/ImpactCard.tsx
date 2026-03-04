@@ -5,6 +5,7 @@ type ImpactCardProps = {
   summary: string;
   date: string;
   imageLabel: string;
+  ctaLabel: string;
 };
 
 export function ImpactCard({
@@ -12,6 +13,7 @@ export function ImpactCard({
   summary,
   date,
   imageLabel,
+  ctaLabel,
 }: ImpactCardProps) {
   const isImage = imageLabel.startsWith("/") || imageLabel.startsWith("http");
 
@@ -36,7 +38,7 @@ export function ImpactCard({
             href="#"
             className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
           >
-            Read Full Insight
+            {ctaLabel}
           </a>
         </div>
       </div>
