@@ -26,10 +26,10 @@ const sizes: Record<ButtonSize, string> = {
 };
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "rounded-full bg-blue-600 text-white hover:bg-blue-700",
+  primary: "rounded-md bg-blue-600 text-white hover:bg-blue-700",
   outline:
-    "rounded-full border border-slate-200 text-blue-700 hover:bg-slate-100 hover:text-slate-800",
-  ghost: "rounded-full text-blue-700 hover:bg-slate-100",
+    "rounded-md border border-slate-200 text-blue-700 hover:bg-slate-100 hover:text-slate-800",
+  ghost: "rounded-md text-blue-700 hover:bg-slate-100",
   primaryAlt: "rounded bg-blue-800 text-blue-700 hover:bg-blue-700",
   secondaryAlt: "rounded bg-blue-200 text-gray-800 hover:bg-blue-300",
 };

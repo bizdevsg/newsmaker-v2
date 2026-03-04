@@ -462,8 +462,65 @@
       "actions": {
         "economicCalendar": "Economic Calendar",
         "pivotFibonacci": "Pivot & Fibonacci",
-        "forex": "Forex & Forecast",
-        "historic": "Historic Data"
+        "liveChart": "Live Chart",
+        "historic": "Historical Data"
+      }
+    },
+    "historicData": {
+      "title": "Historical Data",
+      "filters": {
+        "start": "Start",
+        "end": "End",
+        "filterBtn": "Filter",
+        "downloadBtn": "Download"
+      },
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "currencyValue": "Currency Value"
+    },
+    "pivotFibonacci": {
+      "tabs": {
+        "pivot": "Pivot",
+        "fibonacci": "Fibonacci"
+      },
+      "inputs": {
+        "open": "Open",
+        "high": "High",
+        "low": "Low",
+        "close": "Close",
+        "calculate": "Calculate"
+      },
+      "pivot": {
+        "columns": [
+          "Classic",
+          "Woodie",
+          "Camarilla"
+        ]
+      },
+      "fibonacci": {
+        "upTrend": "UP TREND",
+        "downTrend": "DOWN TREND",
+        "priceA": "Price (A)",
+        "priceB": "Price (B)",
+        "lowValue": "low value",
+        "highValue": "high value",
+        "retracement": "Retracement",
+        "projection": "Projection"
+      },
+      "historicalData": {
+        "columns": [
+          "Date",
+          "Open",
+          "High",
+          "Low",
+          "Close"
+        ],
+        "currencyValue": "Currency Value"
       }
     }
   },

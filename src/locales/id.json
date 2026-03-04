@@ -462,8 +462,65 @@
       "actions": {
         "economicCalendar": "Kalender Ekonomi",
         "pivotFibonacci": "Pivot & Fibonacci",
-        "forex": "Proyeksi Forex",
-        "historic": "Analisis Historis"
+        "liveChart": "Grafik Langsung",
+        "historic": "Data Historis"
+      }
+    },
+    "historicData": {
+      "title": "Data Historis",
+      "filters": {
+        "start": "Mulai",
+        "end": "Akhir",
+        "filterBtn": "Saring",
+        "downloadBtn": "Unduh"
+      },
+      "columns": [
+        "Tanggal",
+        "Buka",
+        "Tinggi",
+        "Rendah",
+        "Tutup"
+      ],
+      "currencyValue": "Nilai Mata Uang"
+    },
+    "pivotFibonacci": {
+      "tabs": {
+        "pivot": "Pivot",
+        "fibonacci": "Fibonacci"
+      },
+      "inputs": {
+        "open": "Buka",
+        "high": "Tinggi",
+        "low": "Rendah",
+        "close": "Tutup",
+        "calculate": "Kalkulasi"
+      },
+      "pivot": {
+        "columns": [
+          "Klasik",
+          "Woodie",
+          "Camarilla"
+        ]
+      },
+      "fibonacci": {
+        "upTrend": "TREN NAIK",
+        "downTrend": "TREN TURUN",
+        "priceA": "Harga (A)",
+        "priceB": "Harga (B)",
+        "lowValue": "nilai rendah",
+        "highValue": "nilai tinggi",
+        "retracement": "Retracement",
+        "projection": "Proyeksi"
+      },
+      "historicalData": {
+        "columns": [
+          "Tanggal",
+          "Buka",
+          "Tinggi",
+          "Rendah",
+          "Tutup"
+        ],
+        "currencyValue": "Nilai Mata Uang"
       }
     }
   },
