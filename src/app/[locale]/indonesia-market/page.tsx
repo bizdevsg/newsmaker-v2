@@ -7,6 +7,11 @@ import { ExchangeActivity } from "../../../components/organisms/ExchangeActivity
 import { FocusReport } from "../../../components/organisms/FocusReport";
 import { RecentAnalysis } from "../../../components/organisms/RecentAnalysis";
 import { getMessages, type Locale } from "@/locales";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Indonesia Market",
+};
 
 export default async function Home({
   params,

@@ -2,6 +2,7 @@
 import { SiteHeader } from "../organisms/SiteHeader";
 import { SiteFooter } from "../organisms/SiteFooter";
 import { StickyNav } from "../organisms/StickyNav";
+import { TickerBar } from "../organisms/TickerBar";
 import type { Locale, Messages } from "@/locales";
 
 type MarketPageTemplateProps = {
@@ -24,6 +25,11 @@ export function MarketPageTemplate({
           </div>
         </nav>
       </StickyNav>
+      <div className="px-4 pt-4">
+        <div className="mx-auto w-full max-w-7xl">
+          <TickerBar ticks={messages.ticker.ticks} />
+        </div>
+      </div>
       <main className="px-4 py-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
           {children}

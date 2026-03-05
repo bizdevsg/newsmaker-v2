@@ -1,4 +1,5 @@
 import React from "react";
+import { Card } from "../atoms/Card";
 import { ImpactCard } from "../molecules/ImpactCard";
 import type { Messages } from "@/locales";
 
@@ -8,7 +9,7 @@ type MarketImpactProps = {
 
 export function MarketImpact({ messages }: MarketImpactProps) {
   return (
-    <section className="rounded-md border border-slate-200 bg-white shadow-sm">
+    <Card as="section">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-6 py-4">
         <h3 className="text-lg font-semibold text-slate-800">
           {messages.marketImpact.title}
@@ -29,6 +30,6 @@ export function MarketImpact({ messages }: MarketImpactProps) {
           />
         ))}
       </div>
-    </section>
+    </Card>
   );
 }

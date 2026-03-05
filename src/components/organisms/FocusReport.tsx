@@ -1,4 +1,5 @@
 import React from "react";
+import { Card } from "../atoms/Card";
 import { Button } from "../atoms/Button";
 import type { Messages } from "@/locales";
 
@@ -8,7 +9,7 @@ type FocusReportProps = {
 
 export function FocusReport({ messages }: FocusReportProps) {
   return (
-    <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+    <Card as="section" className="p-6">
       <div className="rounded-md bg-gradient-to-r from-blue-900 via-blue-700 to-blue-600 p-6 text-white shadow-lg">
         <p className="text-xs uppercase tracking-[0.3em] text-white/60">
           {messages.focusReport.kicker}
@@ -74,7 +75,7 @@ export function FocusReport({ messages }: FocusReportProps) {
           })}
         </div>
       </div>
-    </section>
+    </Card>
   );
 }
 
