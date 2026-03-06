@@ -11,7 +11,10 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Newsmaker Indonesia Market",
+  title: {
+    default: "Newsmaker 23",
+    template: "%s - Newsmaker 23",
+  },
   description: "Institutional market dashboard mockup",
 };
 
@@ -25,11 +28,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${roboto.variable} antialiased`}>
-        {children}
-      </body>
+      <body className={`${roboto.variable} antialiased`}>{children}</body>
     </html>
   );
 }
-
-

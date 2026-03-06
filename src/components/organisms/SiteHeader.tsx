@@ -16,20 +16,27 @@ export function SiteHeader() {
     return segment === "en" ? "en" : "id";
   }, [pathname]);
 
-  const currentNavKey = useMemo(() => {
-    const segments = pathname.split("/").filter(Boolean);
-    if (segments.length <= 1) return "indonesia-market";
-    return segments[1];
-  }, [pathname]);
-
   const nextLocale = currentLocale === "en" ? "id" : "en";
   const localeLabel = currentLocale.toUpperCase();
   const nextLocaleLabel = nextLocale.toUpperCase();
   const messages = getMessages(currentLocale);
   const changeLanguageLabel = messages.header.changeLanguageAria.replace(
     "{locale}",
-    nextLocaleLabel
+    nextLocaleLabel,
   );
+
+  const buildNavHref = (key: string) =>
+    key === "home" ? `/${currentLocale}` : `/${currentLocale}/${key}`;
+  const normalizedPath = pathname.replace(/\/$/, "") || `/${currentLocale}`;
+  const isNavActive = (key: string) => {
+    const itemHref = buildNavHref(key);
+    if (key === "home") {
+      return normalizedPath === itemHref;
+    }
+    return (
+      normalizedPath === itemHref || normalizedPath.startsWith(`${itemHref}/`)
+    );
+  };
 
   const toggleLanguage = () => {
     const segments = pathname.split("/");
@@ -115,34 +122,48 @@ export function SiteHeader() {
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-2 pb-3">
-            {messages.header.navItems.map((item) => (
-              <Link
-                key={item.key}
-                href={`/${currentLocale}${item.key === 'indonesia-market' ? '' : `/${item.key}`}`}
-                className={`rounded-lg px-3 py-2 text-sm transition-colors ${item.key === currentNavKey
-                  ? "bg-white/15 text-white"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
-                  }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {messages.header.navItems.map((item) =>
+              (() => {
+                const itemHref = buildNavHref(item.key);
+                const isActive = isNavActive(item.key);
+                return (
+                  <Link
+                    key={item.key}
+                    href={itemHref}
+                    className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                      isActive
+                        ? "bg-white/15 text-white"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })(),
+            )}
           </div>
         </div>
 
         <nav className="hidden items-center gap-6 text-sm text-white/80 sm:flex sm:flex-wrap sm:justify-between">
-          {messages.header.navItems.map((item) => (
-            <Link
-              key={item.key}
-              href={`/${currentLocale}${item.key === 'indonesia-market' ? '' : `/${item.key}`}`}
-              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${item.key === currentNavKey
-                ? "text-white after:scale-x-100"
-                : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-                }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {messages.header.navItems.map((item) =>
+            (() => {
+              const itemHref = buildNavHref(item.key);
+              const isActive = isNavActive(item.key);
+              return (
+                <Link
+                  key={item.key}
+                  href={itemHref}
+                  className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${
+                    isActive
+                      ? "text-white after:scale-x-100"
+                      : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })(),
+          )}
         </nav>
       </div>
     </header>

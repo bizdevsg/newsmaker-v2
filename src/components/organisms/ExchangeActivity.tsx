@@ -1,4 +1,5 @@
 import React from "react";
+import { Card } from "../atoms/Card";
 import { Tabs } from "../molecules/Tabs";
 import { StatTile } from "../molecules/StatTile";
 import type { Messages } from "@/locales";
@@ -11,10 +12,18 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
   const tabs = messages.exchangeActivity.tabs;
   const activeTab =
     tabs.find((tab) => tab.key === messages.exchangeActivity.activeTabKey)
-      ?.label ?? tabs[0]?.label ?? "";
+      ?.label ??
+    tabs[0]?.label ??
+    "";
+  const normalizeTone = (tone?: string) => {
+    if (tone === "up" || tone === "down" || tone === "flat") {
+      return tone;
+    }
+    return "flat";
+  };
 
   return (
-    <section className="rounded-md border border-slate-200 bg-white shadow-sm">
+    <Card as="section">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-6 py-4">
         <h3 className="text-lg font-semibold text-slate-800">
           {messages.exchangeActivity.title}
@@ -37,8 +46,6 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
           {messages.exchangeActivity.heatmapNote}
         </div>
       </div>
-    </section>
+    </Card>
   );
 }
-
-

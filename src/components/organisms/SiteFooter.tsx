@@ -1,5 +1,4 @@
 import React from "react";
-import { TickerBar } from "./TickerBar";
 import type { Locale, Messages } from "@/locales";
 
 type SiteFooterProps = {
@@ -13,7 +12,6 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
   return (
     <footer className="px-4 pb-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <TickerBar ticks={messages.ticker.ticks} />
         <div className="rounded-md bg-gradient-to-r from-blue-900 via-blue-800 to-blue-600 text-white shadow-xl">
           <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
             <div className="text-lg font-semibold tracking-[0.2em]">
