@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import type { Messages } from "@/locales";
 import { PivotFibonacci } from "./PivotFibonacci";
 import { PolicyHistoricData } from "./PolicyHistoricData";
+import { Pagination } from "../molecules/Pagination";
 import TradingViewWidget from "./TradingViewWidget";
 
 type PolicyQuickDataProps = {
@@ -328,25 +329,12 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
 
                     {/* Pagination Controls */}
                     {totalCalendarPages > 1 && (
-                        <div className="flex justify-between items-center mt-4">
-                            <button
-                                onClick={() => setCalendarPage(p => Math.max(1, p - 1))}
-                                disabled={calendarPage === 1}
-                                className="px-3 py-1.5 text-xs font-semibold rounded border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition"
-                            >
-                                <i className="fa-solid fa-chevron-left mr-1"></i> Prev
-                            </button>
-                            <span className="text-xs font-semibold text-slate-500">
-                                Page <span className="text-slate-800">{calendarPage}</span> of <span className="text-slate-800">{totalCalendarPages}</span>
-                            </span>
-                            <button
-                                onClick={() => setCalendarPage(p => Math.min(totalCalendarPages, p + 1))}
-                                disabled={calendarPage === totalCalendarPages}
-                                className="px-3 py-1.5 text-xs font-semibold rounded border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition"
-                            >
-                                Next <i className="fa-solid fa-chevron-right ml-1"></i>
-                            </button>
-                        </div>
+                        <Pagination
+                            page={calendarPage}
+                            totalPages={totalCalendarPages}
+                            onPageChange={setCalendarPage}
+                            className="mt-4"
+                        />
                     )}
                 </div>
             )}

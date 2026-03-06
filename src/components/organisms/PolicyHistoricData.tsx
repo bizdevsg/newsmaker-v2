@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { Messages } from "@/locales";
 import { Button } from "../atoms/Button";
+import { Pagination } from "../molecules/Pagination";
 
 type PolicyHistoricDataProps = {
     messages: Messages;
@@ -10,8 +11,9 @@ type PolicyHistoricDataProps = {
 
 export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
     const data = messages.policy.historicData;
+    const [page, setPage] = useState(1);
 
-    const mockData = [
+    const allRows = [
         { d: "03 Mar 2026", o: "5324.92", h: "5379.73", l: "4996.60", c: "5089.40" },
         { d: "02 Mar 2026", o: "5343.70", h: "5418.75", l: "5260.90", c: "5332.33" },
         { d: "27 Feb 2026", o: "5185.55", h: "5265.22", l: "5166.58", c: "5262.21" },
@@ -20,7 +22,13 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         { d: "24 Feb 2026", o: "5226.94", h: "5249.81", l: "5093.69", c: "5155.34" },
         { d: "23 Feb 2026", o: "5109.58", h: "5237.37", l: "5102.53", c: "5229.86" },
         { d: "20 Feb 2026", o: "4998.50", h: "5098.70", l: "4982.04", c: "5097.68" },
+        { d: "19 Feb 2026", o: "4912.20", h: "4999.88", l: "4876.50", c: "4995.10" },
+        { d: "18 Feb 2026", o: "4875.30", h: "4930.11", l: "4852.00", c: "4910.45" },
     ];
+
+    const perPage = 5;
+    const totalPages = Math.ceil(allRows.length / perPage);
+    const rows = allRows.slice((page - 1) * perPage, page * perPage);
 
     return (
         <div className="mt-4 animate-in fade-in duration-500 space-y-6">
@@ -70,7 +78,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
                         </tr>
                     </thead>
                     <tbody>
-                        {mockData.map((row, idx) => (
+                        {rows.map((row, idx) => (
                             <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                                 <td className="py-3.5 px-4 font-medium">{row.d}</td>
                                 <td className="py-3.5 px-4 tabular-nums">{row.o}</td>
@@ -83,33 +91,8 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
                 </table>
             </div>
 
-            {/* Pagination Controls */}
-            <div className="flex justify-center items-center gap-2 py-4">
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white hover:bg-blue-800 transition">
-                    <i className="fa-solid fa-angles-left text-[10px]"></i>
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white hover:bg-blue-800 transition">
-                    <i className="fa-solid fa-angle-left text-[10px]"></i>
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white font-bold text-sm">
-                    1
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-700 border border-slate-200 font-bold hover:border-blue-600 transition text-sm">
-                    2
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-700 border border-slate-200 font-bold hover:border-blue-600 transition text-sm">
-                    3
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-700 border border-slate-200 font-bold hover:border-blue-600 transition text-sm">
-                    4
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-700 border border-slate-200 hover:border-blue-600 transition">
-                    <i className="fa-solid fa-angle-right text-[10px]"></i>
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-700 border border-slate-200 hover:border-blue-600 transition">
-                    <i className="fa-solid fa-angles-right text-[10px]"></i>
-                </button>
-            </div>
+            {/* Pagination */}
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} className="py-2" />
 
             {/* Currency Converter */}
             <div className="flex flex-wrap items-center gap-4 pt-4 mt-2">

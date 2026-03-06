@@ -1,7 +1,7 @@
 import React from "react";
 import { MarketPageTemplate } from "./MarketPageTemplate";
 import { EquitiesMarketOverview } from "../organisms/EquitiesMarketOverview";
-import { EquitiesKeySectors } from "../organisms/EquitiesKeySectors";
+import { NewsCategories } from "../organisms/NewsCategories";
 import type { Locale, Messages } from "@/locales";
 
 type EquitiesPageTemplateProps = {
@@ -16,7 +16,7 @@ export function EquitiesPageTemplate({
     return (
         <MarketPageTemplate locale={locale} messages={messages}>
             <EquitiesMarketOverview messages={messages} />
-            <EquitiesKeySectors messages={messages} />
+            <NewsCategories locale={locale} messages={messages} />
         </MarketPageTemplate>
     );
 }
