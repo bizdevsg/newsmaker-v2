@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import TradingViewWidget from "./TradingViewWidget";
 import type { Locale, Messages } from "@/locales";
 
 type CommoditiesMarketOverviewProps = {
@@ -16,6 +17,92 @@ export function CommoditiesMarketOverview({
 
     // Set default active tab to "Commodities" (which is index 1)
     const [activeTab, setActiveTab] = useState(marketOverview.tabs[1] || "Commodities");
+    const [liveStats, setLiveStats] = useState<any[]>([]);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchQuotes = async () => {
+            try {
+                const res = await fetch("https://endpoapi-production-3202.up.railway.app/api/live-quotes");
+                const json = await res.json();
+                if (json && json.data) {
+                    const mappedStats = json.data.map((item: any) => {
+                        let title = item.symbol;
+                        let subtitle = item.symbol;
+                        let icon = "fa-brands fa-bitcoin";
+                        let iconColor = "text-yellow-500";
+
+                        if (item.symbol === "XUL10") {
+                            title = "Gold Spot"; subtitle = "XAU/USD";
+                        } else if (item.symbol === "BCO10_BBJ") {
+                            title = "Brent Crude Oil"; subtitle = "BCO/USD";
+                            iconColor = "text-slate-800"; icon = "fa-solid fa-droplet";
+                        } else if (item.symbol === "HKK50_BBJ") {
+                            title = "Hang Seng"; subtitle = "HKK50";
+                            iconColor = "text-red-500"; icon = "fa-solid fa-chart-pie";
+                        } else if (item.symbol === "JPK50_BBJ") {
+                            title = "Nikkei"; subtitle = "JPK50";
+                            iconColor = "text-red-500"; icon = "fa-solid fa-chart-pie";
+                        } else if (item.symbol === "AU10F_BBJ") {
+                            title = "AUD/USD"; subtitle = "Forex";
+                            iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                        } else if (item.symbol === "EU10F_BBJ") {
+                            title = "EUR/USD"; subtitle = "Forex";
+                            iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                        } else if (item.symbol === "GU10F_BBJ") {
+                            title = "GBP/USD"; subtitle = "Forex";
+                            iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                        } else if (item.symbol === "UC10F_BBJ") {
+                            title = "USD/CHF"; subtitle = "Forex";
+                            iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                        } else if (item.symbol === "UJ10F_BBJ") {
+                            title = "USD/JPY"; subtitle = "Forex";
+                            iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                        }
+
+                        return {
+                            title,
+                            subtitle,
+                            value: item.price.toString(),
+                            change: `${item.percentChange > 0 ? "+" : ""}${item.percentChange.toFixed(2)}%`,
+                            isUp: item.percentChange >= 0,
+                            icon,
+                            iconColor
+                        };
+                    });
+
+                    if (mappedStats.length > 0) {
+                        setLiveStats(mappedStats);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch live quotes", err);
+            }
+        };
+        fetchQuotes();
+    }, []);
+
+    const scroll = (direction: "left" | "right") => {
+        if (scrollRef.current) {
+            const { scrollLeft, clientWidth } = scrollRef.current;
+            const scrollAmount = clientWidth * 0.8;
+            scrollRef.current.scrollTo({
+                left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+                behavior: "smooth",
+            });
+        }
+    };
+
+    const displayStats = liveStats.length > 0 ? liveStats : marketOverview.stats;
+
+    const getTradingViewSymbol = (tab: string) => {
+        const t = tab.toLowerCase();
+        if (t.includes("market") || t.includes("pasar")) return "IDX:COMPOSITE";
+        if (t.includes("equit") || t.includes("ekuit")) return "IDX:BBCA";
+        if (t.includes("forex")) return "FX:EURUSD";
+        if (t.includes("crypto") || t.includes("kripto")) return "BINANCE:BTCUSDT";
+        return "OANDA:XAUUSD"; // commodities default
+    };
 
     return (
         <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
@@ -25,62 +112,75 @@ export function CommoditiesMarketOverview({
                         {marketOverview.title}
                     </h2>
                 </div>
-                <div className="flex items-center gap-4 text-xs font-bold text-slate-500 transition mt-4 sm:mt-0 tracking-wider">
-                    {marketOverview.topLinks.map((link) => (
-                        <button key={link} type="button" className="hover:text-blue-700 transition">
-                            {link}
-                        </button>
-                    ))}
-                </div>
             </div>
 
-            {/* Render stats conditionally if needed in the future based on activeTab, but currently static */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-0 rounded-md border border-slate-200 mb-6 bg-white overflow-hidden divide-y md:divide-y-0 md:divide-x divide-slate-200 shadow-sm">
-                {marketOverview.stats.map((stat, idx) => (
-                    <div key={idx} className="p-4 flex flex-col justify-center">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                                {stat.icon ? (
-                                    <div
-                                        className={`flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 border border-slate-100 ${stat.iconColor}`}
-                                    >
-                                        <i className={`${stat.icon} text-lg`}></i>
+            {/* Render stats mapped as cards in an overarching scroll container */}
+            <div className="relative mb-6">
+                <div
+                    ref={scrollRef}
+                    className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 snap-x"
+                >
+                    {displayStats.map((stat: any, idx: number) => (
+                        <div key={idx} className="flex-none w-[260px] p-4 flex flex-col justify-center rounded-md border border-slate-200 bg-white shadow-sm snap-start">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    {stat.icon ? (
+                                        <div
+                                            className={`flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 border border-slate-100 ${stat.iconColor}`}
+                                        >
+                                            <i className={`${stat.icon} text-lg`}></i>
+                                        </div>
+                                    ) : (
+                                        <div />
+                                    )}
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-sm tracking-tight">
+                                            {stat.title}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 font-bold tracking-wide uppercase">
+                                            {stat.subtitle}
+                                        </p>
                                     </div>
-                                ) : (
-                                    <div />
-                                )}
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-sm tracking-tight">
-                                        {stat.title}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 font-bold tracking-wide uppercase">
-                                        {stat.subtitle}
-                                    </p>
                                 </div>
-                            </div>
-                            <div className="text-right">
-                                <div
-                                    className={`flex items-center justify-end gap-1 font-bold text-sm ${stat.isUp ? "text-emerald-600" : "text-rose-600"
-                                        }`}
-                                >
-                                    <i
-                                        className={`fa-solid ${stat.isUp ? "fa-caret-up" : "fa-caret-down"
+                                <div className="text-right flex flex-col items-end">
+                                    <div
+                                        className={`flex items-center gap-1 font-bold text-sm ${stat.isUp ? "text-emerald-600" : "text-rose-600"
                                             }`}
-                                    ></i>
-                                    {stat.value}
-                                </div>
-                                <div
-                                    className={`text-xs font-bold ${stat.change.startsWith("-")
+                                    >
+                                        {stat.value}
+                                    </div>
+                                    <div
+                                        className={`text-xs font-bold mt-1 ${stat.change.startsWith("-")
                                             ? "text-rose-600"
                                             : "text-emerald-600"
-                                        }`}
-                                >
-                                    {stat.change}
+                                            }`}
+                                    >
+                                        <i
+                                            className={`fa-solid ${stat.isUp ? "fa-caret-up" : "fa-caret-down"} mr-1`}
+                                        ></i>
+                                        {stat.change}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+
+                {/* Scroll controls */}
+                <div className="flex justify-end gap-2 mt-3">
+                    <button
+                        onClick={() => scroll("left")}
+                        className="h-8 w-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition shadow-sm"
+                    >
+                        <i className="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <button
+                        onClick={() => scroll("right")}
+                        className="h-8 w-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition shadow-sm"
+                    >
+                        <i className="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             <div className="mb-0 flex items-center justify-between border-b border-slate-200">
@@ -92,8 +192,8 @@ export function CommoditiesMarketOverview({
                                 onClick={() => setActiveTab(tab)}
                                 key={tab}
                                 className={`px-6 py-3 text-sm font-bold tracking-wide transition-colors whitespace-nowrap block ${activeTab === tab
-                                        ? "bg-blue-800 text-white rounded-t-md shadow-sm"
-                                        : "bg-slate-50 text-slate-600 hover:text-blue-800 hover:bg-slate-100 rounded-t-md border border-b-0 border-slate-200"
+                                    ? "bg-blue-800 text-white rounded-t-md shadow-sm"
+                                    : "bg-slate-50 text-slate-600 hover:text-blue-800 hover:bg-slate-100 rounded-t-md border border-b-0 border-slate-200"
                                     }`}
                             >
                                 {tab}
@@ -101,28 +201,15 @@ export function CommoditiesMarketOverview({
                         );
                     })}
                 </div>
-                <div className="flex gap-3 text-slate-400">
-                    <button className="hover:text-blue-700 transition"><i className="fa-solid fa-chevron-left text-xs"></i></button>
-                    <button className="hover:text-blue-700 transition"><i className="fa-solid fa-chevron-right text-xs"></i></button>
-                    <button className="ml-2 hover:text-blue-700 transition"><i className="fa-solid fa-expand-arrows-alt text-xs"></i></button>
+                <div className="flex gap-3 text-slate-400 items-center">
+                    <button className="ml-2 hover:text-blue-700 transition" title="Expand Chart"><i className="fa-solid fa-expand-arrows-alt text-sm"></i></button>
                 </div>
             </div>
 
             <div className="w-full h-[400px] border border-t-0 border-slate-200 bg-white rounded-b-md rounded-tr-md overflow-hidden p-0 shadow-sm relative group flex items-center justify-center">
-                {/* Placeholder changes based on active tab to show it's dynamic */}
-                {activeTab === marketOverview.tabs[1] ? (
-                    <>
-                        <img src="/assets/Screenshot-2024-10-29-at-11.27.48.png" className="w-full h-full object-cover opacity-80" alt="Chart Placeholder" />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/20 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="bg-blue-700 text-white px-6 py-2 rounded-md font-semibold shadow-lg hover:bg-blue-800 transform transition hover:-translate-y-1">View Interactive Chart</button>
-                        </div>
-                    </>
-                ) : (
-                    <div className="text-slate-500 font-semibold w-full h-full flex flex-col items-center justify-center bg-slate-50">
-                        <i className="fa-solid fa-chart-line text-4xl text-slate-300 mb-3"></i>
-                        <p>Data for {activeTab} is currently unavailable</p>
-                    </div>
-                )}
+                <div className="w-full h-full pb-8">
+                    <TradingViewWidget symbol={getTradingViewSymbol(activeTab)} />
+                </div>
             </div>
         </section>
     );
