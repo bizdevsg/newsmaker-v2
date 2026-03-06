@@ -524,6 +524,79 @@
       }
     }
   },
+  "commodities": {
+    "marketOverview": {
+      "title": "Market Overview",
+      "topLinks": [
+        "Home",
+        "Asia",
+        "Soy",
+        "State"
+      ],
+      "stats": [
+        {
+          "title": "Gold Spot",
+          "subtitle": "XAU/USD · 2oz",
+          "value": "0.129%",
+          "change": "-39.39$",
+          "isUp": true,
+          "icon": "fa-brands fa-bitcoin",
+          "iconColor": "text-yellow-500"
+        },
+        {
+          "title": "SGD / IDR",
+          "subtitle": "15,046 / USD",
+          "value": "0.33%",
+          "change": "-53.19%",
+          "isUp": true
+        },
+        {
+          "title": "COMPGSS",
+          "subtitle": "$84 USD · bbl",
+          "value": "0.23%",
+          "change": "$0.00$",
+          "isUp": true
+        }
+      ],
+      "tabs": [
+        "Markets",
+        "Commodities",
+        "Equities",
+        "Forex",
+        "Crypto"
+      ]
+    },
+    "recentAnalysis": {
+      "title": "Recent Analysis",
+      "seeAll": "See all >",
+      "items": [
+        {
+          "color": "text-orange-900",
+          "title": "Wheat American Produce will likely Surge",
+          "value1": "5.5 Mns >",
+          "value2": "SGD/USD: 15,046",
+          "value3": "19.3M",
+          "value4": "$0.00 (0.00%)"
+        },
+        {
+          "color": "text-blue-500",
+          "title": "Commodities Remain Resilient upon Context",
+          "value1": "3.3 Mns >",
+          "value2": "SGD/IDR: 5021.1 MN",
+          "value3": "03.3M",
+          "value4": "$4.56 (0.00%)"
+        },
+        {
+          "color": "text-slate-400",
+          "title": "Commodities Remain Resilient across sectors",
+          "value1": "5.0 Mns >",
+          "value2": "SGD/IDR: 5019.1 MN",
+          "value3": "-0.01M",
+          "value4": "$3.00 (0.00%)"
+        }
+      ]
+    }
+  },
   "data": {
     "quickView": {
       "title": "Quick Data",
