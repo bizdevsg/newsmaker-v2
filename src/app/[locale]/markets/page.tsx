@@ -4,7 +4,7 @@ import { MarketInsightHero } from "@/components/organisms/MarketInsightHero";
 import { MarketSnapshot } from "@/components/organisms/MarketSnapshot";
 import { LiveChartSection } from "@/components/organisms/LiveChartSection";
 import { SectionGridCard } from "@/components/organisms/SectionGridCard";
-import { SectionHomeOutlook } from "@/components/organisms/SectionHomeOutlook";
+import { MarketOutlookSection } from "@/components/organisms/MarketOutlookSection";
 import { MarketInsightSection } from "@/components/organisms/MarketInsightSection";
 import { getMessages, type Locale } from "@/locales";
 import CalenderEkonomiHome from "@/components/organisms/CalenderEkonomiHome";
@@ -12,9 +12,11 @@ import { TikTokEmbedCard } from "@/components/organisms/TikTokEmbedCard";
 import { DisclaimerCard } from "@/components/organisms/DisclaimerCard";
 import { NmAiStatementCard } from "@/components/organisms/NmAiStatementCard";
 import type { Metadata } from "next";
+import { RecentAnalysis } from "@/components/organisms/RecentAnalysis";
+import { MarketHighlightSection } from "@/components/organisms/MarketHighlightSection";
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: "Markets",
 };
 
 export default async function Home({
@@ -31,28 +33,16 @@ export default async function Home({
       <MarketBrief />
 
       <div className="grid lg:grid-cols-[1.95fr_1.05fr] gap-4">
-        <MarketInsightHero />
-
-        <MarketSnapshot />
-
         <LiveChartSection />
 
         <div className="space-y-4">
-          <SectionGridCard title="Market Quotes" items={6} />
-          <SectionGridCard title="Quick Access" items={3} />
+          <MarketSnapshot />
+
+          <RecentAnalysis messages={messages} />
         </div>
-
-        <SectionHomeOutlook />
-
-        <CalenderEkonomiHome />
-
-        <MarketInsightSection />
-
-        <TikTokEmbedCard />
       </div>
 
-      <DisclaimerCard />
-      <NmAiStatementCard />
+      <MarketHighlightSection />
     </MarketPageTemplate>
   );
 }

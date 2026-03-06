@@ -1,29 +1,27 @@
+import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import { LiveChartSection } from "@/components/organisms/LiveChartSection";
 import { getMessages, type Locale } from "@/locales";
-import { CommoditiesPageTemplate } from "@/components/templates/CommoditiesPageTemplate";
+import type { Metadata } from "next";
+import { RecentAnalysisTableSection } from "@/components/organisms/RecentAnalysisTableSection";
 
-type PageProps = {
-    params: {
-        locale: Locale;
-    };
+export const metadata: Metadata = {
+    title: "Markets",
 };
 
-export default async function CommoditiesPage({
+export default async function Home({
     params,
 }: {
     params: Promise<{ locale?: string }>;
 }) {
     const { locale: rawLocale } = await params;
     const locale: Locale = rawLocale === "en" ? "en" : "id";
-    const baseMessages = getMessages(locale);
+    const messages = getMessages(locale);
 
-    // Override activeNavKey for Header similar to Equities
-    const messages = {
-        ...baseMessages,
-        header: {
-            ...baseMessages.header,
-            activeNavKey: "commodities"
-        }
-    };
+    return (
+        <MarketPageTemplate locale={locale} messages={messages}>
+            <LiveChartSection />
 
-    return <CommoditiesPageTemplate locale={locale} messages={messages} />;
+            <RecentAnalysisTableSection />
+        </MarketPageTemplate>
+    );
 }

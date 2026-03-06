@@ -3,6 +3,7 @@ import { SiteHeader } from "../organisms/SiteHeader";
 import { SiteFooter } from "../organisms/SiteFooter";
 import { StickyNav } from "../organisms/StickyNav";
 import { TickerBar } from "../organisms/TickerBar";
+import { WorldTimeBar } from "../organisms/WorldTimeBar";
 import type { Locale, Messages } from "@/locales";
 
 type MarketPageTemplateProps = {
@@ -18,6 +19,7 @@ export function MarketPageTemplate({
 }: MarketPageTemplateProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-100 to-white text-slate-800">
+      <WorldTimeBar className="hidden md:block" />
       <StickyNav>
         <nav>
           <div className="mx-auto w-full">
@@ -31,7 +33,7 @@ export function MarketPageTemplate({
         </div>
       </div>
       <main className="px-4 py-8">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
           {children}
         </div>
       </main>
