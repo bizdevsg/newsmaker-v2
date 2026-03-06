@@ -23,22 +23,79 @@ type LiveQuotesResponse = {
   data?: LiveChartItem[];
 };
 
-const defaultIcon =
-  "/assets/189984778_403d4105-1b62-4ce1-b050-d4de12876a2b.svg";
-
 const symbolMeta: Record<
   string,
-  { name: string; iconSrc?: string; iconAlt: string }
+  {
+    title: string;
+    subtitle: string;
+    icon: string;
+    iconColor: string;
+    tvSymbol: string;
+  }
 > = {
-  XUL10: { name: "Gold", iconAlt: "Icon Gold" },
-  BCO10_BBJ: { name: "Oil", iconAlt: "Icon Oil" },
-  HKK50_BBJ: { name: "Hang Seng", iconAlt: "Icon HKK50" },
-  JPK50_BBJ: { name: "Nikkei", iconAlt: "Icon JPK50" },
-  AU10F_BBJ: { name: "AUD/USD", iconAlt: "Icon AU10F" },
-  EU10F_BBJ: { name: "EUR/USD", iconAlt: "Icon EU10F" },
-  GU10F_BBJ: { name: "GBP/USD", iconAlt: "Icon GU10F" },
-  UC10F_BBJ: { name: "USD/CHF", iconAlt: "Icon UC10F" },
-  UJ10F_BBJ: { name: "USD/JPY", iconAlt: "Icon UJ10F" },
+  XUL10: {
+    title: "Gold Spot",
+    subtitle: "XAU/USD",
+    icon: "fa-brands fa-bitcoin",
+    iconColor: "text-yellow-500",
+    tvSymbol: "OANDA:XAUUSD",
+  },
+  BCO10_BBJ: {
+    title: "Brent Crude Oil",
+    subtitle: "BCO/USD",
+    icon: "fa-solid fa-droplet",
+    iconColor: "text-slate-800",
+    tvSymbol: "TVC:UKOIL",
+  },
+  HKK50_BBJ: {
+    title: "Hang Seng",
+    subtitle: "HKK50",
+    icon: "fa-solid fa-chart-pie",
+    iconColor: "text-red-500",
+    tvSymbol: "HSI:HSI",
+  },
+  JPK50_BBJ: {
+    title: "Nikkei",
+    subtitle: "JPK50",
+    icon: "fa-solid fa-chart-pie",
+    iconColor: "text-red-500",
+    tvSymbol: "TVC:NI225",
+  },
+  AU10F_BBJ: {
+    title: "AUD/USD",
+    subtitle: "Forex",
+    icon: "fa-solid fa-coins",
+    iconColor: "text-blue-500",
+    tvSymbol: "FX:AUDUSD",
+  },
+  EU10F_BBJ: {
+    title: "EUR/USD",
+    subtitle: "Forex",
+    icon: "fa-solid fa-coins",
+    iconColor: "text-blue-500",
+    tvSymbol: "FX:EURUSD",
+  },
+  GU10F_BBJ: {
+    title: "GBP/USD",
+    subtitle: "Forex",
+    icon: "fa-solid fa-coins",
+    iconColor: "text-blue-500",
+    tvSymbol: "FX:GBPUSD",
+  },
+  UC10F_BBJ: {
+    title: "USD/CHF",
+    subtitle: "Forex",
+    icon: "fa-solid fa-coins",
+    iconColor: "text-blue-500",
+    tvSymbol: "FX:USDCHF",
+  },
+  UJ10F_BBJ: {
+    title: "USD/JPY",
+    subtitle: "Forex",
+    icon: "fa-solid fa-coins",
+    iconColor: "text-blue-500",
+    tvSymbol: "FX:USDJPY",
+  },
 };
 
 const formatPercent = (value: number) => {
@@ -67,6 +124,7 @@ export function LiveChartSection({
   const [serverTime, setServerTime] = useState<string | undefined>(
     initialServerTime,
   );
+  const [chartSymbol, setChartSymbol] = useState("OANDA:XAUUSD");
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const apiUrl =
     "https://endpoapi-production-3202.up.railway.app/api/live-quotes";
@@ -114,45 +172,66 @@ export function LiveChartSection({
           <div className="text-xs text-slate-500">Data belum tersedia.</div>
         ) : (
           <div
-            className="live-quote-track flex w-max gap-3"
+            className="live-quote-track-policy flex w-max gap-4"
             style={{ ["--duration" as never]: `${loopDuration}s` }}
           >
             {loopItems.map((item, index) => {
               const meta = symbolMeta[item.symbol];
-              const name = meta?.name ?? item.symbol;
-              const iconSrc = meta?.iconSrc ?? defaultIcon;
-              const iconAlt = meta?.iconAlt ?? `Icon ${item.symbol}`;
+              const title = meta?.title ?? item.symbol;
+              const subtitle = meta?.subtitle ?? item.symbol;
+              const icon = meta?.icon ?? "fa-solid fa-chart-line";
+              const iconColor = meta?.iconColor ?? "text-blue-600";
+              const tvSymbol = meta?.tvSymbol ?? "IDX:COMPOSITE";
               const change = formatPercent(item.percentChange);
+              const isUp = item.percentChange >= 0;
 
               return (
                 <div
                   key={`${item.symbol}-${index}`}
-                  className="min-w-[220px] rounded-lg border border-slate-200 bg-slate-50/70 p-3 transition hover:bg-white"
+                  onClick={() => setChartSymbol(tvSymbol)}
+                  className={`flex-none w-[260px] p-4 flex flex-col justify-center rounded-md border transition shadow-sm hover:shadow-md cursor-pointer ${
+                    chartSymbol === tvSymbol
+                      ? "bg-blue-50 border-blue-300 ring-1 ring-blue-100"
+                      : "bg-white border-slate-200"
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-11 w-11 place-items-center rounded-full bg-slate-200/80">
-                      <img src={iconSrc} alt={iconAlt} className="h-5" />
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 border border-slate-100 ${iconColor}`}
+                      >
+                        <i className={`${icon} text-lg`}></i>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-sm tracking-tight">
+                          {title}
+                        </h3>
+                        <p className="text-xs text-slate-500 font-bold tracking-wide uppercase">
+                          {subtitle}
+                        </p>
+                      </div>
                     </div>
-                    <div className="w-full">
-                      <h4 className="text-base font-semibold text-slate-900">
-                        {name}
-                      </h4>
-                      <p className="text-xs text-slate-500">
+                    <div className="text-right flex flex-col items-end">
+                      <div
+                        className={`flex items-center gap-1 font-bold text-sm ${
+                          isUp ? "text-emerald-600" : "text-rose-600"
+                        }`}
+                      >
                         {formatPrice(item.price)}
-                      </p>
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <p className="text-xs font-semibold text-blue-700">
-                          {item.symbol}
-                        </p>
-                        <p
-                          className={`text-xs font-semibold ${
-                            change.startsWith("-")
-                              ? "text-rose-600"
-                              : "text-emerald-600"
-                          }`}
-                        >
-                          {change}
-                        </p>
+                      </div>
+                      <div
+                        className={`text-xs font-bold mt-1 ${
+                          change.startsWith("-")
+                            ? "text-rose-600"
+                            : "text-emerald-600"
+                        }`}
+                      >
+                        <i
+                          className={`fa-solid ${
+                            isUp ? "fa-caret-up" : "fa-caret-down"
+                          } mr-1`}
+                        ></i>
+                        {change}
                       </div>
                     </div>
                   </div>
@@ -164,11 +243,16 @@ export function LiveChartSection({
       </div>
 
       <style jsx>{`
-        .live-quote-track {
-          animation: live-quote-scroll var(--duration, 16s) linear infinite;
+        .live-quote-track-policy {
+          animation: live-quote-scroll-policy var(--duration, 16s) linear
+            infinite;
         }
 
-        @keyframes live-quote-scroll {
+        .live-quote-track-policy:hover {
+          animation-play-state: paused;
+        }
+
+        @keyframes live-quote-scroll-policy {
           from {
             transform: translateX(0);
           }
@@ -180,7 +264,7 @@ export function LiveChartSection({
 
       <div className="border-t border-slate-100 bg-slate-950">
         <div className="h-[420px] w-full">
-          <TradingViewWidget />
+          <TradingViewWidget symbol={chartSymbol} />
         </div>
       </div>
     </section>

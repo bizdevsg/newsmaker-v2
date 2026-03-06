@@ -23,7 +23,7 @@ export function PolicyPageTemplate({
                     Policy Updates & Insights
                 </h3>
                 <div className="grid gap-6 grid-cols-1">
-                    <PolicySnapshot messages={messages} />
+                    <PolicySnapshot messages={messages} locale={locale} />
                     <RegulatoryWatch messages={messages} />
                 </div>
             </div>

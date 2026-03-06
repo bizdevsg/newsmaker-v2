@@ -160,14 +160,17 @@ export default async function Home({
         ? "down"
         : data?.direction === "up"
           ? "up"
-          : undefined;
+          : "flat";
     const meta = formatChangePoints(parseNumber(data?.change));
     return {
       key: key === "composite" ? "ihsg" : key,
       label,
       value: value ?? fallback?.value ?? "-",
       delta: delta ?? fallback?.delta ?? "-",
-      tone: (tone ?? fallback?.tone) as "up" | "down" | "flat" | undefined,
+      tone: (tone ?? fallback?.tone ?? "flat") as
+        | "up"
+        | "down"
+        | "flat",
       meta: meta ?? fallback?.meta,
     };
   };
@@ -189,10 +192,22 @@ export default async function Home({
       ...messages.exchangeActivity,
       stats: ihsgResponse?.indices
         ? [
-            buildIndexStat("composite", "IHSG", messages.exchangeActivity.stats[0]),
-            buildIndexStat("idx30", "IDX30", messages.exchangeActivity.stats[1]),
+            buildIndexStat(
+              "composite",
+              "IHSG",
+              messages.exchangeActivity.stats[0],
+            ),
+            buildIndexStat(
+              "idx30",
+              "IDX30",
+              messages.exchangeActivity.stats[1],
+            ),
             buildIndexStat("lq45", "LQ45", messages.exchangeActivity.stats[2]),
-            buildIndexStat("kompas100", "Kompas100", messages.exchangeActivity.stats[3]),
+            buildIndexStat(
+              "kompas100",
+              "Kompas100",
+              messages.exchangeActivity.stats[3],
+            ),
           ].map((stat) => ({
             key: stat.key,
             label: stat.label,
@@ -205,10 +220,10 @@ export default async function Home({
               return {
                 ...stat,
                 value: ihsgValue
-                  ? formatNumber(ihsgValue) ?? stat.value
+                  ? (formatNumber(ihsgValue) ?? stat.value)
                   : stat.value,
                 delta: ihsgDelta
-                  ? formatPercent(ihsgDelta) ?? stat.delta
+                  ? (formatPercent(ihsgDelta) ?? stat.delta)
                   : stat.delta,
                 tone: ihsgTone ?? stat.tone,
               };
@@ -226,10 +241,18 @@ export default async function Home({
       ...messages.focusReport,
       metrics: ihsgResponse?.indices
         ? [
-            buildIndexStat("composite", "IHSG", messages.focusReport.metrics[0]),
+            buildIndexStat(
+              "composite",
+              "IHSG",
+              messages.focusReport.metrics[0],
+            ),
             buildIndexStat("idx30", "IDX30", messages.focusReport.metrics[1]),
             buildIndexStat("lq45", "LQ45", messages.focusReport.metrics[2]),
-            buildIndexStat("kompas100", "Kompas100", messages.focusReport.metrics[3]),
+            buildIndexStat(
+              "kompas100",
+              "Kompas100",
+              messages.focusReport.metrics[3],
+            ),
           ].map((metric) => ({
             key: metric.key,
             label: metric.label,
@@ -243,10 +266,10 @@ export default async function Home({
               return {
                 ...metric,
                 value: ihsgValue
-                  ? formatNumber(ihsgValue) ?? metric.value
+                  ? (formatNumber(ihsgValue) ?? metric.value)
                   : metric.value,
                 delta: ihsgDelta
-                  ? formatPercent(ihsgDelta) ?? metric.delta
+                  ? (formatPercent(ihsgDelta) ?? metric.delta)
                   : metric.delta,
                 tone: ihsgTone ?? metric.tone,
                 meta: formatChangePoints(ihsgChange) ?? metric.meta,
@@ -266,7 +289,7 @@ export default async function Home({
   return (
     <MarketPageTemplate locale={locale} messages={hydratedMessages}>
       <HeroSection messages={hydratedMessages} />
-      <PolicySnapshot messages={hydratedMessages} />
+      <PolicySnapshot messages={hydratedMessages} locale={locale} />
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="space-y-6">
           <RegulatoryWatch messages={hydratedMessages} />
