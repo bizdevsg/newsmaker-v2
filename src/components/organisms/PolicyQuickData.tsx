@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import type { Messages } from "@/locales";
 import { PivotFibonacci } from "./PivotFibonacci";
 import { PolicyHistoricData } from "./PolicyHistoricData";
@@ -17,12 +17,18 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
     // Calendar State
     const [calendarTimeFrame, setCalendarTimeFrame] = useState<'today' | 'this-week' | 'previous-week' | 'next-week'>('this-week');
     const [calendarData, setCalendarData] = useState<any[]>([]);
+    const [calendarPage, setCalendarPage] = useState(1);
+    const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+    // Reset pagination and expanded row when timeframe changes
+    useEffect(() => {
+        setCalendarPage(1);
+        setExpandedRow(null);
+    }, [calendarTimeFrame]);
 
     // Live Chart State
     const [liveStats, setLiveStats] = useState<any[]>([]);
-    const scrollRef = useRef<HTMLDivElement>(null);
-
-    // Fetch Calendar
+    const [chartSymbol, setChartSymbol] = useState("OANDA:XAUUSD");
     useEffect(() => {
         if (activeTab === 'calendar') {
             const fetchCalendar = async () => {
@@ -53,38 +59,49 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                             let subtitle = item.symbol;
                             let icon = "fa-brands fa-bitcoin";
                             let iconColor = "text-yellow-500";
+                            let tvSymbol = "IDX:COMPOSITE";
 
                             if (item.symbol === "XUL10") {
                                 title = "Gold Spot"; subtitle = "XAU/USD";
+                                tvSymbol = "OANDA:XAUUSD";
                             } else if (item.symbol === "BCO10_BBJ") {
                                 title = "Brent Crude Oil"; subtitle = "BCO/USD";
                                 iconColor = "text-slate-800"; icon = "fa-solid fa-droplet";
+                                tvSymbol = "TVC:UKOIL";
                             } else if (item.symbol === "HKK50_BBJ") {
                                 title = "Hang Seng"; subtitle = "HKK50";
                                 iconColor = "text-red-500"; icon = "fa-solid fa-chart-pie";
+                                tvSymbol = "HSI:HSI";
                             } else if (item.symbol === "JPK50_BBJ") {
                                 title = "Nikkei"; subtitle = "JPK50";
                                 iconColor = "text-red-500"; icon = "fa-solid fa-chart-pie";
+                                tvSymbol = "TVC:NI225";
                             } else if (item.symbol === "AU10F_BBJ") {
                                 title = "AUD/USD"; subtitle = "Forex";
                                 iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                                tvSymbol = "FX:AUDUSD";
                             } else if (item.symbol === "EU10F_BBJ") {
                                 title = "EUR/USD"; subtitle = "Forex";
                                 iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                                tvSymbol = "FX:EURUSD";
                             } else if (item.symbol === "GU10F_BBJ") {
                                 title = "GBP/USD"; subtitle = "Forex";
                                 iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                                tvSymbol = "FX:GBPUSD";
                             } else if (item.symbol === "UC10F_BBJ") {
                                 title = "USD/CHF"; subtitle = "Forex";
                                 iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                                tvSymbol = "FX:USDCHF";
                             } else if (item.symbol === "UJ10F_BBJ") {
                                 title = "USD/JPY"; subtitle = "Forex";
                                 iconColor = "text-blue-500"; icon = "fa-solid fa-coins";
+                                tvSymbol = "FX:USDJPY";
                             }
 
                             return {
                                 title,
                                 subtitle,
+                                tvSymbol,
                                 value: item.price.toString(),
                                 change: `${item.percentChange > 0 ? "+" : ""}${item.percentChange.toFixed(2)}%`,
                                 isUp: item.percentChange >= 0,
@@ -105,16 +122,12 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
         }
     }, [activeTab]);
 
-    const scroll = (direction: "left" | "right") => {
-        if (scrollRef.current) {
-            const { scrollLeft, clientWidth } = scrollRef.current;
-            const scrollAmount = clientWidth * 0.8;
-            scrollRef.current.scrollTo({
-                left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
-                behavior: "smooth",
-            });
-        }
-    };
+    const loopItems = liveStats.length > 0 ? [...liveStats, ...liveStats] : [];
+    const loopDuration = Math.max(12, liveStats.length * 2.5);
+
+    const calendarItemsPerPage = 10;
+    const totalCalendarPages = Math.ceil(calendarData.length / calendarItemsPerPage);
+    const paginatedCalendarData = calendarData.slice((calendarPage - 1) * calendarItemsPerPage, calendarPage * calendarItemsPerPage);
 
     return (
         <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100 mb-8 mt-2 overflow-hidden min-w-0 w-full relative">
@@ -193,18 +206,18 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-slate-600">
+                        <table className="w-full table-fixed text-left text-sm text-slate-600 min-w-[700px]">
                             <thead>
                                 <tr className="border-b border-slate-200">
-                                    <th className="py-3 px-2 text-xs font-bold text-slate-800">Date</th>
-                                    <th className="py-3 px-2 text-xs font-bold text-slate-800">Time</th>
-                                    <th className="py-3 px-2 text-xs font-bold text-slate-800">Country</th>
-                                    <th className="py-3 px-2 text-xs font-bold text-slate-800 text-center">Impact</th>
-                                    <th className="py-3 px-2 text-xs font-bold text-slate-800">Figures</th>
+                                    <th className="py-3 px-2 text-xs font-bold text-slate-800 w-[15%]">Date</th>
+                                    <th className="py-3 px-2 text-xs font-bold text-slate-800 w-[10%]">Time</th>
+                                    <th className="py-3 px-2 text-xs font-bold text-slate-800 w-[10%]">Country</th>
+                                    <th className="py-3 px-2 text-xs font-bold text-slate-800 text-center w-[15%]">Impact</th>
+                                    <th className="py-3 px-2 text-xs font-bold text-slate-800 w-[50%]">Figures</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {calendarData.map((item, idx) => {
+                                {paginatedCalendarData.map((item, idx) => {
                                     let dateStr = "";
                                     let timeStr = item.time;
                                     if (item.time && item.time.includes(" ")) {
@@ -215,34 +228,126 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                                         dateStr = item.details.history[0].date.split("-").reverse().join("-");
                                     }
 
+                                    const isExpanded = expandedRow === idx;
+
                                     return (
-                                        <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition align-top">
-                                            <td className="py-4 px-2 text-[13px]">{dateStr}</td>
-                                            <td className="py-4 px-2 text-[13px]">{timeStr}</td>
-                                            <td className="py-4 px-2 text-[13px]">{item.currency}</td>
-                                            <td className="py-4 px-2 text-center text-[13px]">
-                                                <span className="text-emerald-500 text-[10px] space-x-0.5">
-                                                    {item.impact === "★★★" && <><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i></>}
-                                                    {item.impact === "★★" && <><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i></>}
-                                                    {item.impact === "★" && <i className="fa-solid fa-star"></i>}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-2 text-[13px]">
-                                                <div className="font-bold text-slate-800 mb-1">{item.event}</div>
-                                                <div className="text-xs text-slate-500 font-semibold gap-1 inline-flex">
-                                                    <span>Previous: <span className="text-slate-700 font-medium">{item.previous || '-'}</span></span>
-                                                    <span className="mx-1">|</span>
-                                                    <span>Forecast: <span className="text-slate-700 font-medium">{item.forecast || '-'}</span></span>
-                                                    <span className="mx-1">|</span>
-                                                    <span className="flex items-center gap-1">Actual: <span className={`font-bold ${item.actual?.includes("-") ? 'text-rose-500' : 'text-emerald-500'}`}>{item.actual || '-'}</span></span>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <React.Fragment key={idx}>
+                                            <tr
+                                                onClick={() => setExpandedRow(isExpanded ? null : idx)}
+                                                className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition align-top cursor-pointer ${isExpanded ? 'bg-slate-50' : ''}`}
+                                            >
+                                                <td className="py-4 px-2 text-[13px]">{dateStr}</td>
+                                                <td className="py-4 px-2 text-[13px]">{timeStr}</td>
+                                                <td className="py-4 px-2 text-[13px]">{item.currency}</td>
+                                                <td className="py-4 px-2 text-center text-[13px]">
+                                                    <span className="text-[10px] space-x-0.5">
+                                                        {item.impact === "★★★" && <span className="text-rose-500"><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i></span>}
+                                                        {item.impact === "★★" && <span className="text-amber-500"><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i></span>}
+                                                        {item.impact === "★" && <span className="text-emerald-500"><i className="fa-solid fa-star"></i></span>}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-2 text-[13px]">
+                                                    <div className="font-bold text-slate-800 mb-1">{item.event}</div>
+                                                    <div className="text-xs text-slate-500 font-semibold gap-1 inline-flex">
+                                                        <span>Previous: <span className="text-slate-700 font-medium">{item.previous || '-'}</span></span>
+                                                        <span className="mx-1">|</span>
+                                                        <span>Forecast: <span className="text-slate-700 font-medium">{item.forecast || '-'}</span></span>
+                                                        <span className="mx-1">|</span>
+                                                        <span className="flex items-center gap-1">Actual: <span className={`font-bold ${item.actual?.includes("-") ? 'text-rose-500' : 'text-emerald-500'}`}>{item.actual || '-'}</span></span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {isExpanded && item.details && (
+                                                <tr className="bg-slate-50/50">
+                                                    <td colSpan={5} className="p-4 border-b border-slate-200">
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                            {/* Details Card */}
+                                                            <div className="border border-blue-200 bg-blue-50/30 rounded-md p-4 space-y-3">
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Sources</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.sources || '-'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Measures</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.measures || '-'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Usual Effect</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.usualEffect || '-'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Frequency</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.frequency || '-'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Next Released</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.nextRelease || '-'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Notes</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.notes || '-'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-slate-800 text-[13px]">Why Trader Care</div>
+                                                                    <div className="text-slate-600 text-xs">{item.details.whyCare || '-'}</div>
+                                                                </div>
+                                                            </div>
+                                                            {/* History Table */}
+                                                            <div>
+                                                                <table className="w-full text-left text-xs">
+                                                                    <thead>
+                                                                        <tr className="border-b border-slate-200">
+                                                                            <th className="py-2 px-1 font-bold text-slate-800 text-center">History</th>
+                                                                            <th className="py-2 px-1 font-bold text-slate-800 text-center">Previous</th>
+                                                                            <th className="py-2 px-1 font-bold text-slate-800 text-center">Forecast</th>
+                                                                            <th className="py-2 px-1 font-bold text-slate-800 text-center">Actual</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {item.details.history?.map((hist: any, hIdx: number) => (
+                                                                            <tr key={hIdx} className="border-b border-slate-100 last:border-0">
+                                                                                <td className="py-2 px-1 text-slate-600 text-center">{hist.date}</td>
+                                                                                <td className="py-2 px-1 text-slate-600 text-center">{hist.previous || '-'}</td>
+                                                                                <td className="py-2 px-1 text-slate-600 text-center">{hist.forecast || '-'}</td>
+                                                                                <td className="py-2 px-1 text-slate-600 text-center">{hist.actual || '-'}</td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
                                     );
                                 })}
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalCalendarPages > 1 && (
+                        <div className="flex justify-between items-center mt-4">
+                            <button
+                                onClick={() => setCalendarPage(p => Math.max(1, p - 1))}
+                                disabled={calendarPage === 1}
+                                className="px-3 py-1.5 text-xs font-semibold rounded border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                            >
+                                <i className="fa-solid fa-chevron-left mr-1"></i> Prev
+                            </button>
+                            <span className="text-xs font-semibold text-slate-500">
+                                Page <span className="text-slate-800">{calendarPage}</span> of <span className="text-slate-800">{totalCalendarPages}</span>
+                            </span>
+                            <button
+                                onClick={() => setCalendarPage(p => Math.min(totalCalendarPages, p + 1))}
+                                disabled={calendarPage === totalCalendarPages}
+                                className="px-3 py-1.5 text-xs font-semibold rounded border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                            >
+                                Next <i className="fa-solid fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -252,14 +357,33 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
 
             {activeTab === "liveChart" && (
                 <div className="animate-in fade-in duration-500 w-full overflow-hidden min-w-0">
-                    {/* Render stats mapped as cards in an overarching scroll container */}
-                    <div className="relative mb-6 max-w-full">
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
+                        .live-quote-track-policy {
+                            animation: live-quote-scroll-policy var(--duration, 16s) linear infinite;
+                        }
+
+                        .live-quote-track-policy:hover {
+                            animation-play-state: paused;
+                        }
+
+                        @keyframes live-quote-scroll-policy {
+                            from { transform: translateX(0); }
+                            to { transform: translateX(-50%); }
+                        }
+                    `}} />
+
+                    <div className="overflow-hidden mb-6 py-2">
                         <div
-                            ref={scrollRef}
-                            className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 snap-x w-full"
+                            className="live-quote-track-policy flex w-max gap-4"
+                            style={{ ["--duration" as never]: `${loopDuration}s` }}
                         >
-                            {liveStats.map((stat: any, idx: number) => (
-                                <div key={idx} className="flex-none w-[260px] p-4 flex flex-col justify-center rounded-md border border-slate-200 bg-white shadow-sm snap-start">
+                            {loopItems.map((stat: any, idx: number) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => setChartSymbol(stat.tvSymbol)}
+                                    className={`flex-none w-[260px] p-4 flex flex-col justify-center rounded-md border cursor-pointer transition shadow-sm hover:shadow-md ${chartSymbol === stat.tvSymbol ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-100' : 'bg-white border-slate-200'}`}
+                                >
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-3">
                                             {stat.icon ? (
@@ -303,27 +427,11 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                                 </div>
                             ))}
                         </div>
-
-                        {/* Scroll controls */}
-                        <div className="flex justify-end gap-2 mt-3">
-                            <button
-                                onClick={() => scroll("left")}
-                                className="h-8 w-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition shadow-sm"
-                            >
-                                <i className="fa-solid fa-chevron-left text-xs"></i>
-                            </button>
-                            <button
-                                onClick={() => scroll("right")}
-                                className="h-8 w-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition shadow-sm"
-                            >
-                                <i className="fa-solid fa-chevron-right text-xs"></i>
-                            </button>
-                        </div>
                     </div>
 
                     <div className="w-full h-[400px] border border-slate-200 bg-white rounded-md overflow-hidden p-0 shadow-sm relative group flex items-center justify-center">
                         <div className="w-full h-full pb-8">
-                            <TradingViewWidget symbol="IDX:COMPOSITE" />
+                            <TradingViewWidget symbol={chartSymbol} />
                         </div>
                     </div>
                 </div>
