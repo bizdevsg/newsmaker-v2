@@ -5,23 +5,23 @@ import type { Metadata } from "next";
 import { RecentAnalysisTableSection } from "@/components/organisms/RecentAnalysisTableSection";
 
 export const metadata: Metadata = {
-  title: "Markets",
+    title: "Markets",
 };
 
 export default async function Home({
-  params,
+    params,
 }: {
-  params: Promise<{ locale?: string }>;
+    params: Promise<{ locale?: string }>;
 }) {
-  const { locale: rawLocale } = await params;
-  const locale: Locale = rawLocale === "en" ? "en" : "id";
-  const messages = getMessages(locale);
+    const { locale: rawLocale } = await params;
+    const locale: Locale = rawLocale === "en" ? "en" : "id";
+    const messages = getMessages(locale);
 
-  return (
-    <MarketPageTemplate locale={locale} messages={messages}>
-      <LiveChartSection />
+    return (
+        <MarketPageTemplate locale={locale} messages={messages}>
+            <LiveChartSection />
 
-      <RecentAnalysisTableSection />
-    </MarketPageTemplate>
-  );
+            <RecentAnalysisTableSection />
+        </MarketPageTemplate>
+    );
 }

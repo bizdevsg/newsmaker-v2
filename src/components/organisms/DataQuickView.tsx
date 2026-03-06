@@ -1,61 +1,102 @@
 "use client";
 
-import React from "react";
-import type { Messages } from "@/locales";
+import React, { useState, useEffect } from "react";
+import type { Messages, Locale } from "@/locales";
+import Link from "next/link";
 
 type DataQuickViewProps = {
+    locale: Locale | string;
     messages: Messages;
 };
 
-export function DataQuickView({ messages }: DataQuickViewProps) {
-    const { quickView } = messages.data;
+export function DataQuickView({ locale, messages }: DataQuickViewProps) {
+    const [calendarData, setCalendarData] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchCalendar = async () => {
+            try {
+                const res = await fetch("https://endpoapi-production-3202.up.railway.app/api/calendar/today");
+                const json = await res.json();
+                if (json && json.data) {
+                    setCalendarData(json.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch calendar", error);
+            }
+        };
+        fetchCalendar();
+    }, []);
 
     return (
-        <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
-            <div className="mb-6 flex flex-0 items-end justify-between border-b border-slate-200">
-                <div className="border-b-2 border-blue-700 pb-3 mb-[-1px] px-1">
-                    <h2 className="text-xl font-bold text-blue-900 tracking-tight">
-                        {quickView.title}
-                    </h2>
+        <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100 flex flex-col h-[500px]">
+            <div className="flex items-center justify-between mb-4 border-b border-white pb-1">
+                <div className="px-3 font-bold py-1.5 text-[15px] font-semibold rounded-sm">
+                    Economic Calendar
                 </div>
+                <Link href={`/${locale}/policy`} className="text-sm font-semibold text-blue-700 hover:text-blue-800 transition">
+                    View More
+                </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pb-6 mb-6 border-b border-slate-200">
-                <button className="flex flex-col items-center justify-center rounded-md bg-slate-50/70 p-6 text-center shadow-sm border border-slate-100 transition hover:bg-white hover:shadow-md hover:border-blue-200 group">
-                    <div className="mb-4 text-blue-600/80 group-hover:text-blue-600 group-hover:scale-110 transition-all duration-300">
-                        <i className="fa-solid fa-list-check text-4xl"></i>
-                    </div>
-                    <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-900">
-                        {quickView.actions.economicCalendar}
-                    </span>
-                </button>
-                <button className="flex flex-col items-center justify-center rounded-md bg-slate-50/70 p-6 text-center shadow-sm border border-slate-100 transition hover:bg-white hover:shadow-md hover:border-blue-200 group">
-                    <div className="mb-4 text-blue-600/80 group-hover:text-blue-600 group-hover:scale-110 transition-all duration-300">
-                        <i className="fa-solid fa-square-poll-vertical text-4xl"></i>
-                    </div>
-                    <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-900">
-                        {quickView.actions.marketData}
-                    </span>
-                </button>
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <table className="w-full text-left">
+                    <thead className="sticky top-0 bg-slate-100 z-10">
+                        <tr>
+                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">Time</th>
+                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">Country</th>
+                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">Figures</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {calendarData.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-200 last:border-0 align-top">
+                                <td className="py-3 px-2">
+                                    <div className="font-medium text-[13px] text-slate-800 tracking-tight leading-tight mb-1">
+                                        {item.time || "-"}
+                                    </div>
+                                    <div className={`text-[10px] space-x-0.5 ${item.impact === "★★★" ? "text-rose-500" : item.impact === "★★" ? "text-amber-500" : "text-emerald-500"}`}>
+                                        {item.impact === "★★★" && <><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i></>}
+                                        {item.impact === "★★" && <><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i></>}
+                                        {item.impact === "★" && <i className="fa-solid fa-star"></i>}
+                                    </div>
+                                </td>
+                                <td className="py-3 px-2 font-medium text-[13px] text-slate-800">
+                                    {item.currency}
+                                </td>
+                                <td className="py-3 px-2">
+                                    <div className="font-bold text-[13px] text-slate-800 mb-1 leading-tight">
+                                        {item.event}
+                                    </div>
+                                    <div className="text-[12px] text-slate-500 gap-2 inline-flex flex-wrap leading-tight">
+                                        {item.previous && <span>Prev: <span className="text-slate-500">{item.previous}</span></span>}
+                                        {item.forecast && <span>Fore: <span className="text-slate-500">{item.forecast}</span></span>}
+                                        {item.actual && (
+                                            <span className="flex items-center gap-1">
+                                                Act: <span className={`font-bold ${item.actual.includes("-") ? "text-rose-500" : "text-emerald-500"}`}>{item.actual}</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
-            <div className="flex flex-col gap-4">
-                {quickView.table.map((row, i) => (
-                    <div key={i} className="flex items-center gap-4 group">
-                        <img
-                            src={`https://flagcdn.com/w40/${row.flag}.png`}
-                            alt={row.flag}
-                            className="w-10 h-auto outline outline-1 outline-slate-200 rounded-sm shadow-sm"
-                        />
-                        <div className="flex-1">
-                            <span className="font-bold text-slate-800 tracking-tight mr-3 block sm:inline">{row.rate}</span>
-                            <span className="text-xs font-medium uppercase tracking-wider text-slate-500 group-hover:text-blue-700 transition-colors">
-                                {row.description}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f5f9;
+                    border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #94a3b8;
+                    border-radius: 4px;
+                }
+            `}} />
         </section>
     );
 }

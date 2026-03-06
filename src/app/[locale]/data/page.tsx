@@ -25,11 +25,11 @@ export default async function DataPage({
         <MarketPageTemplate locale={locale} messages={customMessages}>
             <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="space-y-8">
-                    <DataQuickView messages={customMessages} />
-                    <MarketImpact messages={customMessages} />
+                    <DataQuickView locale={locale} messages={customMessages} />
                 </div>
                 <div className="space-y-8">
                     <ExchangeActivity messages={customMessages} />
+                    <MarketImpact messages={customMessages} />
                 </div>
             </div>
         </MarketPageTemplate>

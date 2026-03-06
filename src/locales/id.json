@@ -425,40 +425,7 @@
           "label": "Analisis Historis"
         }
       ],
-      "economicCalendar": [
-        {
-          "time": "1Q 2024",
-          "event": "PDB Riil YoY",
-          "actual": "5.11%",
-          "forecast": "5.00%",
-          "previous": "5.04%",
-          "flag": "id"
-        },
-        {
-          "time": "Apr 2024",
-          "event": "Tingkat Inflasi YoY",
-          "actual": "3.00%",
-          "forecast": "3.00%",
-          "previous": "3.05%",
-          "flag": "id"
-        },
-        {
-          "time": "Apr 2024",
-          "event": "Inflasi Inti YoY",
-          "actual": "1.82%",
-          "forecast": "1.80%",
-          "previous": "1.77%",
-          "flag": "id"
-        },
-        {
-          "time": "Mar 2024",
-          "event": "Ringkasan Neraca Perdagangan",
-          "actual": "$4.47B",
-          "forecast": "$1.50B",
-          "previous": "$0.87B",
-          "flag": "id"
-        }
-      ],
+      "economicCalendar": [],
       "actions": {
         "economicCalendar": "Kalender Ekonomi",
         "pivotFibonacci": "Pivot & Fibonacci",
@@ -522,6 +489,73 @@
         ],
         "currencyValue": "Nilai Mata Uang"
       }
+    }
+  },
+  "commodities": {
+    "marketOverview": {
+      "title": "Tinjauan Pasar",
+      "stats": [
+        {
+          "title": "Gold Spot",
+          "subtitle": "XAU/USD · 2oz",
+          "value": "0.129%",
+          "change": "-39.39$",
+          "isUp": true,
+          "icon": "fa-brands fa-bitcoin",
+          "iconColor": "text-yellow-500"
+        },
+        {
+          "title": "SGD / IDR",
+          "subtitle": "15,046 / USD",
+          "value": "0.33%",
+          "change": "-53.19%",
+          "isUp": true
+        },
+        {
+          "title": "COMPGSS",
+          "subtitle": "$84 USD · bbl",
+          "value": "0.23%",
+          "change": "$0.00$",
+          "isUp": true
+        }
+      ],
+      "tabs": [
+        "Pasar",
+        "Komoditas",
+        "Ekuitas",
+        "Forex",
+        "Kripto"
+      ]
+    },
+    "recentAnalysis": {
+      "title": "Analisis Terbaru",
+      "seeAll": "Lihat semua >",
+      "items": [
+        {
+          "color": "text-orange-900",
+          "title": "Produksi Gandum Amerika Kemungkinan Akan Melonjak",
+          "value1": "5.5 Mns >",
+          "value2": "SGD/USD: 15,046",
+          "value3": "19.3M",
+          "value4": "$0.00 (0.00%)"
+        },
+        {
+          "color": "text-blue-500",
+          "title": "Komoditas Tetap Tangguh dalam Konteks",
+          "value1": "3.3 Mns >",
+          "value2": "SGD/IDR: 5021.1 MN",
+          "value3": "03.3M",
+          "value4": "$4.56 (0.00%)"
+        },
+        {
+          "color": "text-slate-400",
+          "title": "Komoditas Tetap Tangguh di Berbagai Sektor",
+          "value1": "5.0 Mns >",
+          "value2": "SGD/IDR: 5019.1 MN",
+          "value3": "-0.01M",
+          "value4": "$3.00 (0.00%)"
+        }
+      ]
     }
   },
   "data": {
