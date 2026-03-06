@@ -28,7 +28,12 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${roboto.variable} antialiased`}>{children}</body>
+      <body
+        className={`${roboto.variable} antialiased`}
+        suppressHydrationWarning
+      >
+        {children}
+      </body>
     </html>
   );
 }

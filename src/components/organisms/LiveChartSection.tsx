@@ -96,13 +96,9 @@ export function LiveChartSection({
     };
   }, [apiUrl, refreshMs]);
 
-  const scrollByCard = (direction: "left" | "right") => {
-    const node = scrollerRef.current;
-    if (!node) return;
-    const cardWidth = 240;
-    const delta = direction === "left" ? -cardWidth : cardWidth;
-    node.scrollBy({ left: delta, behavior: "smooth" });
-  };
+  const loopItems =
+    items.length > 0 ? [...items, ...items] : ([] as LiveChartItem[]);
+  const loopDuration = Math.max(12, items.length * 2.5);
 
   const subtitle =
     serverTime && updatedAt
@@ -110,78 +106,77 @@ export function LiveChartSection({
       : "Updated just now";
 
   return (
-    <section className="rounded-lg bg-white shadow overflow-hidden h-fit">
+    <section className="rounded-lg bg-white shadow overflow-hidden h-full">
       <SectionHeader title="Live Market Quotes" optional={subtitle} />
 
-      <div
-        ref={scrollerRef}
-        className="flex gap-3 overflow-x-auto px-4 py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {items.map((item) => {
-          const meta = symbolMeta[item.symbol];
-          const name = meta?.name ?? item.symbol;
-          const iconSrc = meta?.iconSrc ?? defaultIcon;
-          const iconAlt = meta?.iconAlt ?? `Icon ${item.symbol}`;
-          const change = formatPercent(item.percentChange);
+      <div ref={scrollerRef} className="overflow-hidden px-4 py-4">
+        {items.length === 0 ? (
+          <div className="text-xs text-slate-500">Data belum tersedia.</div>
+        ) : (
+          <div
+            className="live-quote-track flex w-max gap-3"
+            style={{ ["--duration" as never]: `${loopDuration}s` }}
+          >
+            {loopItems.map((item, index) => {
+              const meta = symbolMeta[item.symbol];
+              const name = meta?.name ?? item.symbol;
+              const iconSrc = meta?.iconSrc ?? defaultIcon;
+              const iconAlt = meta?.iconAlt ?? `Icon ${item.symbol}`;
+              const change = formatPercent(item.percentChange);
 
-          return (
-            <div
-              key={item.symbol}
-              className="min-w-[220px] rounded-lg border border-slate-200 bg-slate-50/70 p-3 transition hover:bg-white"
-            >
-              <div className="flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-full bg-slate-200/80">
-                  <img src={iconSrc} alt={iconAlt} className="h-5" />
-                </div>
-                <div className="w-full">
-                  <h4 className="text-base font-semibold text-slate-900">
-                    {name}
-                  </h4>
-                  <p className="text-xs text-slate-500">
-                    {formatPrice(item.price)}
-                  </p>
-                  <div className="flex items-center justify-between gap-2 w-full">
-                    <p className="text-xs font-semibold text-blue-700">
-                      {item.symbol}
-                    </p>
-                    <p
-                      className={`text-xs font-semibold ${
-                        change.startsWith("-")
-                          ? "text-rose-600"
-                          : "text-emerald-600"
-                      }`}
-                    >
-                      {change}
-                    </p>
+              return (
+                <div
+                  key={`${item.symbol}-${index}`}
+                  className="min-w-[220px] rounded-lg border border-slate-200 bg-slate-50/70 p-3 transition hover:bg-white"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-11 w-11 place-items-center rounded-full bg-slate-200/80">
+                      <img src={iconSrc} alt={iconAlt} className="h-5" />
+                    </div>
+                    <div className="w-full">
+                      <h4 className="text-base font-semibold text-slate-900">
+                        {name}
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        {formatPrice(item.price)}
+                      </p>
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <p className="text-xs font-semibold text-blue-700">
+                          {item.symbol}
+                        </p>
+                        <p
+                          className={`text-xs font-semibold ${
+                            change.startsWith("-")
+                              ? "text-rose-600"
+                              : "text-emerald-600"
+                          }`}
+                        >
+                          {change}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-        {items.length === 0 && (
-          <div className="text-xs text-slate-500">Data belum tersedia.</div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 px-4 pb-4">
-        <button
-          type="button"
-          aria-label="Geser ke kiri"
-          onClick={() => scrollByCard("left")}
-          className="h-8 w-8 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
-        >
-          <i className="fa-solid fa-chevron-left text-xs"></i>
-        </button>
-        <button
-          type="button"
-          aria-label="Geser ke kanan"
-          onClick={() => scrollByCard("right")}
-          className="h-8 w-8 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
-        >
-          <i className="fa-solid fa-chevron-right text-xs"></i>
-        </button>
-      </div>
+      <style jsx>{`
+        .live-quote-track {
+          animation: live-quote-scroll var(--duration, 16s) linear infinite;
+        }
+
+        @keyframes live-quote-scroll {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
+        }
+      `}</style>
 
       <div className="border-t border-slate-100 bg-slate-950">
         <div className="h-[420px] w-full">
