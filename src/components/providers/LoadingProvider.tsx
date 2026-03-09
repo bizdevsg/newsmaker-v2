@@ -29,7 +29,7 @@ function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100",
       ].join(" ")}
     >
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center">
         <Image
           src="/assets/NewsMaker-23-logo-white.png"
           alt="Logo Newsmaker23"
@@ -45,7 +45,7 @@ function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [pendingCount, setPendingCount] = useState(0);
-  const [showOverlay, setShowOverlay] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const tokens = useRef(new Set<symbol>());
   const pathname = usePathname();
@@ -103,7 +103,8 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     if (!showOverlay) return;
     const originalOverflow = document.body.style.overflow;
     const originalPaddingRight = document.body.style.paddingRight;
-    const scrollBarGap = window.innerWidth - document.documentElement.clientWidth;
+    const scrollBarGap =
+      window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
     if (scrollBarGap > 0) {
       document.body.style.paddingRight = `${scrollBarGap}px`;

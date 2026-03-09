@@ -22,7 +22,7 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
   // Calendar State
   const [calendarTimeFrame, setCalendarTimeFrame] = useState<
     "today" | "this-week" | "previous-week" | "next-week"
-  >("this-week");
+  >("today");
   const [calendarData, setCalendarData] = useState<any[]>([]);
   const [calendarPage, setCalendarPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
@@ -297,7 +297,38 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                 </tr>
               </thead>
               <tbody>
-                {paginatedCalendarData.map((item, idx) => {
+                {paginatedCalendarData.map((item, idx, list) => {
+                  const formatDateLabel = (value: string) => {
+                    const raw = value.trim();
+                    if (!raw) return "";
+                    let year = 0;
+                    let month = 0;
+                    let day = 0;
+
+                    if (raw.includes("-")) {
+                      const parts = raw.split("-");
+                      if (parts[0].length === 4) {
+                        // yyyy-mm-dd
+                        year = Number(parts[0]);
+                        month = Number(parts[1]);
+                        day = Number(parts[2]);
+                      } else {
+                        // dd-mm-yyyy
+                        day = Number(parts[0]);
+                        month = Number(parts[1]);
+                        year = Number(parts[2]);
+                      }
+                    }
+
+                    if (!year || !month || !day) return raw;
+                    const date = new Date(Date.UTC(year, month - 1, day));
+                    return new Intl.DateTimeFormat("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }).format(date);
+                  };
+
                   let dateStr = "";
                   let timeStr = item.time;
                   if (item.time && item.time.includes(" ")) {
@@ -312,14 +343,51 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
                   }
 
                   const isExpanded = expandedRow === idx;
+                  const prevItem = list[idx - 1];
+                  const prevDate = prevItem
+                    ? (() => {
+                        if (prevItem.time && prevItem.time.includes(" ")) {
+                          return prevItem.time
+                            .split(" ")[0]
+                            .split("-")
+                            .reverse()
+                            .join("-");
+                        }
+                        if (prevItem.details?.history?.[0]?.date) {
+                          return prevItem.details.history[0].date
+                            .split("-")
+                            .reverse()
+                            .join("-");
+                        }
+                        return "";
+                      })()
+                    : "";
+                  const showSeparator =
+                    idx !== 0 && dateStr && dateStr !== prevDate;
+                  const dateLabel = dateStr ? formatDateLabel(dateStr) : "";
 
                   return (
                     <React.Fragment key={idx}>
+                      {showSeparator ? (
+                        <tr>
+                          <td colSpan={5} className="bg-slate-100 py-2 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-px flex-1 bg-slate-200" />
+                              <span className="text-xs font-semibold text-slate-500">
+                                {dateLabel}
+                              </span>
+                              <div className="h-px flex-1 bg-slate-200" />
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
                       <tr
                         onClick={() => setExpandedRow(isExpanded ? null : idx)}
                         className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition align-top cursor-pointer ${isExpanded ? "bg-slate-50" : ""}`}
                       >
-                        <td className="py-4 px-2 text-[13px]">{dateStr}</td>
+                        <td className="py-4 px-2 text-[13px]">
+                          {dateLabel || dateStr}
+                        </td>
                         <td className="py-4 px-2 text-[13px]">{timeStr}</td>
                         <td className="py-4 px-2 text-[13px]">
                           {item.currency}

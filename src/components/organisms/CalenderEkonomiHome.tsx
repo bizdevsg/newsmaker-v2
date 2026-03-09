@@ -11,6 +11,7 @@ type CalendarItem = {
   currency: string;
   impact: string;
   event: string;
+  date?: string;
 };
 
 type CalendarResponse = {
@@ -84,20 +85,56 @@ export default function CalenderEkonomiHome() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {items.slice(0, 5).map((item, index) => (
-                <tr key={`${item.time}-${item.event}-${index}`}>
-                  <td className="px-5 py-3 text-center font-semibold text-slate-700">
-                    {item.time}
-                  </td>
-                  <td className="px-2 py-3 text-center text-xs font-semibold uppercase text-slate-500">
-                    {item.currency}
-                  </td>
-                  <td className="px-2 py-3 text-center text-xs text-amber-600">
-                    {item.impact}
-                  </td>
-                  <td className="px-2 py-3 text-slate-700">{item.event}</td>
-                </tr>
-              ))}
+              {items.slice(0, 5).map((item, index, list) => {
+                const extractDate = (value?: string) => {
+                  if (!value) return "";
+                  const trimmed = value.trim();
+                  if (trimmed.includes(" ")) {
+                    return trimmed.split(" ")[0];
+                  }
+                  return trimmed;
+                };
+
+                const currentDate =
+                  extractDate(item.date) || extractDate(item.time);
+                const prevItem = list[index - 1];
+                const prevDate = prevItem
+                  ? extractDate(prevItem.date) || extractDate(prevItem.time)
+                  : "";
+                const showSeparator =
+                  index !== 0 && currentDate && currentDate !== prevDate;
+
+                return (
+                  <React.Fragment key={`${item.time}-${item.event}-${index}`}>
+                    {showSeparator ? (
+                      <tr>
+                        <td colSpan={4} className="bg-slate-100 py-2 px-5">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold text-slate-500">
+                              {currentDate}
+                            </span>
+                            <div className="h-px flex-1 bg-slate-200" />
+                          </div>
+                        </td>
+                      </tr>
+                    ) : null}
+                    <tr>
+                      <td className="px-5 py-3 text-center font-semibold text-slate-700">
+                        {item.time}
+                      </td>
+                      <td className="px-2 py-3 text-center text-xs font-semibold uppercase text-slate-500">
+                        {item.currency}
+                      </td>
+                      <td className="px-2 py-3 text-center text-xs text-amber-600">
+                        {item.impact}
+                      </td>
+                      <td className="px-2 py-3 text-slate-700">
+                        {item.event}
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                );
+              })}
               {items.length === 0 && (
                 <tr>
                   <td className="px-5 py-3 text-xs text-slate-500" colSpan={4}>

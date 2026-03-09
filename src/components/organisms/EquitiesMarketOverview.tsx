@@ -1,13 +1,93 @@
-import React from "react";
+ "use client";
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../atoms/Button";
 import type { Messages } from "@/locales";
+import { useLoading } from "../providers/LoadingProvider";
 
 type EquitiesMarketOverviewProps = {
     messages: Messages;
 };
 
+type InvestingQuote = {
+    symbol: string;
+    last: number;
+    change: number;
+    change_percent: number;
+    currency?: string;
+};
+
+type InvestingResponse = {
+    data?: InvestingQuote[];
+    fetched_at?: string;
+};
+
 export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps) {
+    const loading = useLoading();
     const { marketOverview } = messages.equities;
+    const [rows, setRows] = useState(marketOverview.table.rows);
+    const initialLoad = useRef(true);
+
+    const fallbackBySymbol = useMemo(() => {
+        return new Map(marketOverview.table.rows.map((row) => [row.sector, row]));
+    }, [marketOverview.table.rows]);
+
+    const formatNumber = (value: number, digits = 0) =>
+        new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        }).format(value);
+
+    const formatSignedNumber = (value: number, digits = 0) => {
+        const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+        return `${sign}${formatNumber(Math.abs(value), digits)}`;
+    };
+
+    const formatPercent = (value: number) => {
+        const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+        return `${sign}${Math.abs(value).toFixed(2)}%`;
+    };
+
+    useEffect(() => {
+        let isActive = true;
+
+        const load = async () => {
+            const token = initialLoad.current ? loading.start("equities-overview") : null;
+            try {
+                const response = await fetch("/api/investing", { cache: "no-store" });
+                if (!response.ok) return;
+                const payload = (await response.json()) as InvestingResponse;
+                if (!isActive || !Array.isArray(payload.data) || payload.data.length === 0) return;
+
+                const nextRows = payload.data.map((item) => {
+                    const fallback = fallbackBySymbol.get(item.symbol);
+                    return {
+                        sector: item.symbol,
+                        company: fallback?.company ?? item.symbol,
+                        freeFloat: fallback?.freeFloat ?? (item.currency ?? "-"),
+                        marketCap: formatNumber(item.last),
+                        csRatio: formatPercent(item.change_percent),
+                        transVal: formatSignedNumber(item.change),
+                    };
+                });
+
+                if (nextRows.length) {
+                    setRows(nextRows);
+                }
+            } catch {
+                // keep fallback rows
+            } finally {
+                if (token) loading.stop(token);
+                initialLoad.current = false;
+            }
+        };
+
+        load();
+
+        return () => {
+            isActive = false;
+        };
+    }, [fallbackBySymbol, loading]);
 
     return (
         <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
@@ -50,7 +130,7 @@ export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps
                         </tr>
                     </thead>
                     <tbody>
-                        {marketOverview.table.rows.map((row, idx) => (
+                        {rows.map((row, idx) => (
                             <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
                                 <td className="py-4 px-2 first:px-0 font-medium text-slate-800">
                                     {row.sector}
