@@ -13,6 +13,7 @@ type NewsItem = {
   created_at?: string;
   kategori?: {
     name?: string;
+    slug?: string;
   };
   images?: string[];
 };
@@ -37,7 +38,10 @@ export function MarketInsightHero() {
     let isActive = true;
 
     const stripHtml = (value: string) =>
-      value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      value
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
     const toSummary = (content?: string) => {
       if (!content) return "Market update terbaru dari Newsmaker.";
@@ -50,9 +54,7 @@ export function MarketInsightHero() {
       if (!images || images.length === 0) return fallbackHero.image;
       const first = images[0] ?? "";
       if (!first) return fallbackHero.image;
-      return first.startsWith("http")
-        ? first
-        : `${NEWS_IMAGE_BASE}${first}`;
+      return first.startsWith("http") ? first : `${NEWS_IMAGE_BASE}${first}`;
     };
 
     const load = async () => {
@@ -73,8 +75,7 @@ export function MarketInsightHero() {
           : [];
 
         const marketUpdates = items.filter(
-          (item) =>
-            item.kategori?.name?.toLowerCase() === "market update",
+          (item) => item.kategori?.name?.toLowerCase() === "market update",
         );
 
         if (!marketUpdates.length) return;
@@ -87,11 +88,17 @@ export function MarketInsightHero() {
 
         if (!latest) return;
 
+        const categorySlug = latest.kategori?.slug?.trim();
+        const articleSlug = latest.slug?.trim();
+
         setHero({
           title: latest.title?.trim() || "Market Update",
           description: toSummary(latest.content),
           image: pickImage(latest.images),
-          ctaHref: latest.slug ? `/news/${latest.slug}` : "#",
+          ctaHref:
+            categorySlug && articleSlug
+              ? `/news/${categorySlug}/${articleSlug}`
+              : "#",
         });
       } catch {
         // keep fallback

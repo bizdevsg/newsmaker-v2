@@ -10,10 +10,12 @@ export function MarketInsightHeader({
   emphasis,
 }: MarketInsightHeaderProps) {
   return (
-    <div className="relative z-10 p-4 border-b border-white/30">
-      <h2 className="uppercase text-white">
-        <strong>{emphasis}</strong> {label}
-      </h2>
+    <div className="relative z-10 p-4">
+      <div className="bg-blue-500/50 w-fit px-2 py-0.5 rounded-full">
+        <h2 className="uppercase text-white text-xs select-none">
+          <strong>{emphasis}</strong> {label}
+        </h2>
+      </div>
     </div>
   );
 }
