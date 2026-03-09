@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { useLoading } from "../providers/LoadingProvider";
 
 type CalendarItem = {
   time: string;
@@ -21,14 +22,19 @@ const CALENDAR_URL =
   "https://endpoapi-production-3202.up.railway.app/api/calendar/today";
 
 export default function CalenderEkonomiHome() {
+  const loading = useLoading();
   const { locale } = useParams<{ locale?: string }>();
   const [items, setItems] = useState<CalendarItem[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
+  const initialLoad = useRef(true);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchCalendar = async () => {
+      const token = initialLoad.current
+        ? loading.start("calendar-home")
+        : null;
       try {
         const response = await fetch(CALENDAR_URL, { cache: "no-store" });
         if (!response.ok) return;
@@ -38,6 +44,9 @@ export default function CalenderEkonomiHome() {
         setUpdatedAt(data.updatedAt);
       } catch {
         // keep last data on error
+      } finally {
+        if (token) loading.stop(token);
+        initialLoad.current = false;
       }
     };
 

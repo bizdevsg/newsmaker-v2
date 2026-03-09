@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Messages } from "@/locales";
+import { useLoading } from "../providers/LoadingProvider";
 
 type NewsCategoriesProps = {
     locale: string;
@@ -102,16 +103,19 @@ function CategoryCard({
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
+    const loading = useLoading();
     const [thumbMap, setThumbMap] = useState<Record<number, string>>({});
 
     useEffect(() => {
         // Fetch thumbnails from our cached API route (fast & only once)
+        const token = loading.start("news-categories");
         fetch("/api/news-thumbnails")
             .then(r => r.json())
             .then(json => {
                 if (json.status === "success") setThumbMap(json.data);
             })
-            .catch(() => {/* silently fail - cards still show gradient */ });
+            .catch(() => {/* silently fail - cards still show gradient */ })
+            .finally(() => loading.stop(token));
     }, []);
 
     return (

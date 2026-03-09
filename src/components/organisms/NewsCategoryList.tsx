@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Pagination } from "../molecules/Pagination";
+import { useLoading } from "../providers/LoadingProvider";
 
 type NewsCategoryListProps = {
   categorySlug: string;
@@ -83,6 +84,7 @@ export function NewsCategoryList({
   categorySlug,
   locale,
 }: NewsCategoryListProps) {
+  const globalLoading = useLoading();
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -100,6 +102,7 @@ export function NewsCategoryList({
 
   useEffect(() => {
     const fetchArticles = async () => {
+      const token = globalLoading.start("news-category-list");
       try {
         const res = await fetch(NEWS_API, {
           headers: { Authorization: NEWS_TOKEN },
@@ -142,6 +145,7 @@ export function NewsCategoryList({
         console.error("Failed to fetch articles", err);
       } finally {
         setLoading(false);
+        globalLoading.stop(token);
       }
     };
     fetchArticles();

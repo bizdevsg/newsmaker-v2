@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import TradingViewWidget from "./TradingViewWidget";
 import type { Locale, Messages } from "@/locales";
+import { useLoading } from "../providers/LoadingProvider";
 
 type CommoditiesMarketOverviewProps = {
     locale: Locale;
@@ -13,6 +14,7 @@ export function CommoditiesMarketOverview({
     locale,
     messages,
 }: CommoditiesMarketOverviewProps) {
+    const loading = useLoading();
     const { marketOverview } = messages.commodities;
 
     // Set default active tab to "Commodities" (which is index 1)
@@ -22,6 +24,7 @@ export function CommoditiesMarketOverview({
 
     useEffect(() => {
         const fetchQuotes = async () => {
+            const token = loading.start("commodities-overview");
             try {
                 const res = await fetch("https://endpoapi-production-3202.up.railway.app/api/live-quotes");
                 const json = await res.json();
@@ -77,6 +80,8 @@ export function CommoditiesMarketOverview({
                 }
             } catch (err) {
                 console.error("Failed to fetch live quotes", err);
+            } finally {
+                loading.stop(token);
             }
         };
         fetchQuotes();

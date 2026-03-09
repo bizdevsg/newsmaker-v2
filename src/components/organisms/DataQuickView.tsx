@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import type { Messages, Locale } from "@/locales";
 import Link from "next/link";
+import { useLoading } from "../providers/LoadingProvider";
 
 type DataQuickViewProps = {
     locale: Locale | string;
@@ -10,10 +11,12 @@ type DataQuickViewProps = {
 };
 
 export function DataQuickView({ locale, messages }: DataQuickViewProps) {
+    const loading = useLoading();
     const [calendarData, setCalendarData] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchCalendar = async () => {
+            const token = loading.start("data-quick-view");
             try {
                 const res = await fetch("https://endpoapi-production-3202.up.railway.app/api/calendar/today");
                 const json = await res.json();
@@ -22,6 +25,8 @@ export function DataQuickView({ locale, messages }: DataQuickViewProps) {
                 }
             } catch (error) {
                 console.error("Failed to fetch calendar", error);
+            } finally {
+                loading.stop(token);
             }
         };
         fetchCalendar();

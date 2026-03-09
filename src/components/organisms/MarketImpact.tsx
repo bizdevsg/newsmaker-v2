@@ -4,17 +4,20 @@ import React, { useState, useEffect } from "react";
 import { Card } from "../atoms/Card";
 import { ImpactCard } from "../molecules/ImpactCard";
 import type { Messages } from "@/locales";
+import { useLoading } from "../providers/LoadingProvider";
 
 type MarketImpactProps = {
   messages: Messages;
 };
 
 export function MarketImpact({ messages }: MarketImpactProps) {
+  const loading = useLoading();
   const [newsData, setNewsData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchNews = async () => {
+      const token = loading.start("market-impact");
       try {
         const res = await fetch("https://portalnews.newsmaker.id/api/v1/berita", {
           headers: {
@@ -36,6 +39,7 @@ export function MarketImpact({ messages }: MarketImpactProps) {
         console.error("Failed to fetch news", err);
       } finally {
         setIsLoading(false);
+        loading.stop(token);
       }
     };
     fetchNews();

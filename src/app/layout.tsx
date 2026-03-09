@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./globals.css";
 import { cookies } from "next/headers";
+import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -32,7 +33,7 @@ export default async function RootLayout({
         className={`${roboto.variable} antialiased`}
         suppressHydrationWarning
       >
-        {children}
+        <LoadingProvider>{children}</LoadingProvider>
       </body>
     </html>
   );

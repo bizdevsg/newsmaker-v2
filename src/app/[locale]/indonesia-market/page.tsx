@@ -93,7 +93,7 @@ const fetchJson = async <T,>(url: string): Promise<T | null> => {
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
       },
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (!response.ok) return null;
     return (await response.json()) as T;

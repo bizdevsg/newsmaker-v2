@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Messages } from "@/locales";
 import { Button } from "../atoms/Button";
 import { CurrencyConverter } from "../molecules/CurrencyConverter";
 import { Pagination } from "../molecules/Pagination";
+import { useLoading } from "../providers/LoadingProvider";
 
 type PivotFibonacciProps = {
   messages: Messages;
@@ -67,9 +68,13 @@ type PivotHistoryResponse = {
 type LastEdited = "from" | "to";
 
 export function PivotFibonacci({ messages }: PivotFibonacciProps) {
+  const loading = useLoading();
   const pfData = messages.policy.pivotFibonacci;
   const historicData = messages.policy.historicData;
   const [subTab, setSubTab] = useState<"pivot" | "fibonacci">("pivot");
+  const initialCurrenciesLoad = useRef(true);
+  const initialRateLoad = useRef(true);
+  const initialHistoryLoad = useRef(true);
 
   // --- State: Pivot ---
   const [pivotInputs, setPivotInputs] = useState({
@@ -386,6 +391,9 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
     let isActive = true;
 
     const fetchCurrencies = async () => {
+      const token = initialCurrenciesLoad.current
+        ? loading.start("pivot-currencies")
+        : null;
       try {
         setLoadingCurrencies(true);
 
@@ -411,6 +419,8 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
         if (isActive) {
           setLoadingCurrencies(false);
         }
+        if (token) loading.stop(token);
+        initialCurrenciesLoad.current = false;
       }
     };
 
@@ -425,6 +435,9 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
     let isActive = true;
 
     const fetchRate = async () => {
+      const token = initialRateLoad.current
+        ? loading.start("pivot-rate")
+        : null;
       try {
         setLoadingRate(true);
 
@@ -463,6 +476,8 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
         if (isActive) {
           setLoadingRate(false);
         }
+        if (token) loading.stop(token);
+        initialRateLoad.current = false;
       }
     };
 
@@ -477,6 +492,9 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
     let isActive = true;
 
     const fetchHistory = async () => {
+      const token = initialHistoryLoad.current
+        ? loading.start("pivot-history")
+        : null;
       try {
         setLoadingHistory(true);
         setHistoryError(null);
@@ -508,6 +526,8 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
         if (isActive) {
           setLoadingHistory(false);
         }
+        if (token) loading.stop(token);
+        initialHistoryLoad.current = false;
       }
     };
 

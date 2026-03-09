@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import TradingViewWidget from "./TradingViewWidget";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { useLoading } from "../providers/LoadingProvider";
 
 type LiveChartItem = {
   symbol: string;
@@ -117,6 +118,7 @@ export function LiveChartSection({
   initialServerTime,
   refreshMs = 15000,
 }: LiveChartSectionProps) {
+  const loading = useLoading();
   const [items, setItems] = useState<LiveChartItem[]>(initialItems);
   const [updatedAt, setUpdatedAt] = useState<string | undefined>(
     initialUpdatedAt,
@@ -126,6 +128,7 @@ export function LiveChartSection({
   );
   const [chartSymbol, setChartSymbol] = useState("OANDA:XAUUSD");
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const initialLoad = useRef(true);
   const apiUrl =
     "https://endpoapi-production-3202.up.railway.app/api/live-quotes";
 
@@ -133,6 +136,9 @@ export function LiveChartSection({
     let isMounted = true;
 
     const fetchQuotes = async () => {
+      const token = initialLoad.current
+        ? loading.start("live-chart")
+        : null;
       try {
         const response = await fetch(apiUrl, { cache: "no-store" });
         if (!response.ok) return;
@@ -143,6 +149,9 @@ export function LiveChartSection({
         setServerTime(data.serverTime);
       } catch {
         // ignore transient errors; keep last good data
+      } finally {
+        if (token) loading.stop(token);
+        initialLoad.current = false;
       }
     };
 

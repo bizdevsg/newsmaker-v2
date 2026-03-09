@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Messages } from "@/locales";
 import { Button } from "../atoms/Button";
 import { CurrencyConverter } from "../molecules/CurrencyConverter";
 import { Pagination } from "../molecules/Pagination";
+import { useLoading } from "../providers/LoadingProvider";
 
 type PolicyHistoricDataProps = {
   messages: Messages;
@@ -67,7 +68,11 @@ type PivotHistoryResponse = {
 type LastEdited = "from" | "to";
 
 export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
+  const loading = useLoading();
   const data = messages.policy.historicData;
+  const initialCurrenciesLoad = useRef(true);
+  const initialRateLoad = useRef(true);
+  const initialHistoryLoad = useRef(true);
 
   const [page, setPage] = useState(1);
 
@@ -206,6 +211,9 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
     let isActive = true;
 
     const fetchCurrencies = async () => {
+      const token = initialCurrenciesLoad.current
+        ? loading.start("policy-currencies")
+        : null;
       try {
         setLoadingCurrencies(true);
 
@@ -231,6 +239,8 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         if (isActive) {
           setLoadingCurrencies(false);
         }
+        if (token) loading.stop(token);
+        initialCurrenciesLoad.current = false;
       }
     };
 
@@ -245,6 +255,9 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
     let isActive = true;
 
     const fetchHistory = async () => {
+      const token = initialHistoryLoad.current
+        ? loading.start("policy-history")
+        : null;
       try {
         setLoadingHistory(true);
         setHistoryError(null);
@@ -276,6 +289,8 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         if (isActive) {
           setLoadingHistory(false);
         }
+        if (token) loading.stop(token);
+        initialHistoryLoad.current = false;
       }
     };
 
@@ -290,6 +305,9 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
     let isActive = true;
 
     const fetchRate = async () => {
+      const token = initialRateLoad.current
+        ? loading.start("policy-rate")
+        : null;
       try {
         setLoadingRate(true);
 
@@ -328,6 +346,8 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         if (isActive) {
           setLoadingRate(false);
         }
+        if (token) loading.stop(token);
+        initialRateLoad.current = false;
       }
     };
 

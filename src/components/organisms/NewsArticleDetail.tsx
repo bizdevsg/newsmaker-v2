@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLoading } from "../providers/LoadingProvider";
 
 const NEWS_API = "https://portalnews.newsmaker.id/api/v1/berita";
 const NEWS_TOKEN = "Bearer EWF-06433b884f930161";
@@ -27,6 +28,7 @@ export function NewsArticleDetail({
   locale,
   isEconomic = false,
 }: NewsArticleDetailProps) {
+  const globalLoading = useLoading();
   const [article, setArticle] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);
   const [latest, setLatest] = useState<any[]>([]);
@@ -37,6 +39,7 @@ export function NewsArticleDetail({
 
   useEffect(() => {
     const fetchData = async () => {
+      const token = globalLoading.start("news-article-detail");
       try {
         const res = await fetch(NEWS_API, {
           headers: { Authorization: NEWS_TOKEN },
@@ -72,6 +75,7 @@ export function NewsArticleDetail({
         console.error("Failed to fetch article", err);
       } finally {
         setLoading(false);
+        globalLoading.stop(token);
       }
     };
     fetchData();
@@ -244,7 +248,7 @@ export function NewsArticleDetail({
                         prose-p:mb-5 prose-p:text-slate-700
                         prose-strong:text-slate-800
                         prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                        prose-ul:list-disc prose-ul:pl-6 prose-li:mb-1"
+                        prose-ul:list-disc prose-ul:pl-6 prose-li:mb-1 space-y-3"
           dangerouslySetInnerHTML={{ __html: article.content ?? "" }}
         />
 
@@ -329,7 +333,7 @@ export function NewsArticleDetail({
       </article>
 
       {/* ── Sidebar ── */}
-      <aside className="space-y-8 lg:sticky lg:top-24">
+      <aside className="space-y-8">
         {/* Latest News */}
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5">
           <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">

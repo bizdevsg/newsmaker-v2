@@ -1,9 +1,10 @@
  "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "../atoms/Card";
 import { StatTile } from "../molecules/StatTile";
 import type { Messages } from "@/locales";
+import { useLoading } from "../providers/LoadingProvider";
 
 type ExchangeActivityProps = {
   messages: Messages;
@@ -28,6 +29,7 @@ type StatItem = {
 const API_URL = "/api/investing";
 
 export function ExchangeActivity({ messages }: ExchangeActivityProps) {
+  const loading = useLoading();
   const tabs = messages.exchangeActivity.tabs;
   const initialKey =
     tabs.find((tab) => tab.key === messages.exchangeActivity.activeTabKey)
@@ -35,6 +37,7 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
   const [activeKey, setActiveKey] = useState(initialKey);
   const [liveStats, setLiveStats] = useState<Record<string, StatItem[]>>({});
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const initialLoad = useRef(true);
 
   const formatNumber = (value: number) =>
     new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(value);
@@ -66,6 +69,9 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
     let isActive = true;
 
     const load = async () => {
+      const token = initialLoad.current
+        ? loading.start("exchange-activity")
+        : null;
       try {
         const response = await fetch(API_URL, { cache: "no-store" });
         if (!response.ok) return;
@@ -86,6 +92,9 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
         setUpdatedAt(payload.fetched_at ?? null);
       } catch {
         // keep previous stats
+      } finally {
+        if (token) loading.stop(token);
+        initialLoad.current = false;
       }
     };
 
