@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import type { Locale, Messages } from "@/locales";
 
 type SiteFooterProps = {
@@ -14,11 +15,13 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <div className="rounded-md bg-gradient-to-r from-blue-900 via-blue-800 to-blue-600 text-white shadow-xl">
           <div className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <img
-              src="/assets/NewsMaker-23-logo-white.png"
-              alt={messages.footer.brand}
-              className="h-15 object-contain sm:h-20 w-fit"
-            />
+            <Link href={`/${locale}/`}>
+              <img
+                src="/assets/NewsMaker-23-logo-white.png"
+                alt={messages.footer.brand}
+                className="h-15 object-contain sm:h-20 w-fit"
+              />
+            </Link>
             <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-white/70">
               <span>{localeLabel}</span>
               <span className="text-white/40">|</span>

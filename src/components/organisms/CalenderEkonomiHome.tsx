@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { SectionHeader } from "../molecules/SectionHeader";
 
 type CalendarItem = {
@@ -19,6 +21,7 @@ const CALENDAR_URL =
   "https://endpoapi-production-3202.up.railway.app/api/calendar/today";
 
 export default function CalenderEkonomiHome() {
+  const { locale } = useParams<{ locale?: string }>();
   const [items, setItems] = useState<CalendarItem[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
 
@@ -98,12 +101,12 @@ export default function CalenderEkonomiHome() {
         </div>
 
         <div className="px-5 py-4">
-          <button
-            type="button"
-            className="w-full rounded-md bg-blue-700 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+          <Link
+            href={`/${locale ?? "id"}/policy`}
+            className="inline-flex w-full items-center justify-center rounded-md bg-blue-700 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
           >
             View Full Calendar
-          </button>
+          </Link>
         </div>
       </div>
     </section>

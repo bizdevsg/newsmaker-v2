@@ -167,10 +167,7 @@ export default async function Home({
       label,
       value: value ?? fallback?.value ?? "-",
       delta: delta ?? fallback?.delta ?? "-",
-      tone: (tone ?? fallback?.tone ?? "flat") as
-        | "up"
-        | "down"
-        | "flat",
+      tone: (tone ?? fallback?.tone ?? "flat") as "up" | "down" | "flat",
       meta: meta ?? fallback?.meta,
     };
   };
@@ -290,13 +287,13 @@ export default async function Home({
     <MarketPageTemplate locale={locale} messages={hydratedMessages}>
       <HeroSection messages={hydratedMessages} />
       <PolicySnapshot messages={hydratedMessages} locale={locale} />
-      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="space-y-6">
+      <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="space-y-4">
           <RegulatoryWatch messages={hydratedMessages} />
           <ExchangeActivity messages={hydratedMessages} />
           <RecentAnalysis messages={hydratedMessages} />
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <MarketImpact messages={hydratedMessages} />
           <FocusReport messages={hydratedMessages} />
         </div>

@@ -27,12 +27,12 @@ export function MarketPageTemplate({
           </div>
         </nav>
       </StickyNav>
-      <div className="px-4 pt-4">
+      <div className="px-4 pb-4 pt-8">
         <div className="mx-auto w-full max-w-7xl">
           <TickerBar ticks={messages.ticker.ticks} />
         </div>
       </div>
-      <main className="px-4 py-8">
+      <main className="px-4 py-4">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
           {children}
         </div>
