@@ -4,15 +4,17 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Pagination } from "../molecules/Pagination";
 import { useLoading } from "../providers/LoadingProvider";
+import Image from "next/image";
 
 type NewsCategoryListProps = {
   categorySlug: string;
   locale: string;
+  emptyLabel?: string;
 };
 
-const NEWS_API = "https://portalnews.newsmaker.id/api/v1/berita";
-const NEWS_TOKEN = "Bearer EWF-06433b884f930161";
-const IMAGE_BASE = "https://portalnews.newsmaker.id/";
+const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
+const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
+const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
 
 // Map slugs to category IDs
 const SLUG_TO_IDS: Record<string, number[]> = {
@@ -21,7 +23,7 @@ const SLUG_TO_IDS: Record<string, number[]> = {
   oil: [6],
   nikkei: [2],
   "hang-seng": [10],
-  crypto: [4, 5],
+  crypto: [],
   eurusd: [7],
   usdjpy: [12],
   usdchf: [13],
@@ -38,6 +40,7 @@ const SLUG_TO_IDS: Record<string, number[]> = {
 
 // Keywords used to fuzzy-match articles when no direct ID mapping exists
 const SLUG_KEYWORDS: Record<string, string[]> = {
+  crypto: ["crypto", "kripto", "bitcoin", "btc", "ethereum", "eth"],
   economy: ["global", "economy", "global-economics", "ekonomi"],
   "fiscal-moneter": ["fiscal", "moneter", "monetary", "fiskal"],
   "fiscal-monetary": ["fiscal", "moneter", "monetary"],
@@ -83,6 +86,7 @@ const stripHtml = (html: string) => {
 export function NewsCategoryList({
   categorySlug,
   locale,
+  emptyLabel,
 }: NewsCategoryListProps) {
   const globalLoading = useLoading();
   const [articles, setArticles] = useState<any[]>([]);
@@ -105,7 +109,7 @@ export function NewsCategoryList({
       const token = globalLoading.start("news-category-list");
       try {
         const res = await fetch(NEWS_API, {
-          headers: { Authorization: NEWS_TOKEN },
+          headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
         });
         const json = await res.json();
         if (json?.data) {
@@ -217,18 +221,166 @@ export function NewsCategoryList({
   }
 
   if (articles.length === 0) {
+    const message = emptyLabel ?? `No articles found for "${label}"`;
     return (
-      <div className="text-center py-24">
-        <i className="fa-solid fa-newspaper text-4xl text-slate-200 mb-4"></i>
-        <p className="text-slate-500 font-semibold">
-          No articles found for "{label}"
-        </p>
-        <Link
-          href={`/${locale}/equities`}
-          className="mt-4 inline-block text-sm text-blue-600 hover:underline"
-        >
-          ← Back to News Categories
-        </Link>
+      <div>
+        {/* Category Header */}
+        <div className="flex items-center justify-between">
+          <div className="mb-8">
+            <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
+              <Link
+                href={`/${locale}/equities`}
+                className="hover:text-blue-600 transition"
+              >
+                {isEconomic ? "Economic News" : isAll ? "News" : "Market News"}
+              </Link>
+              <span>/</span>
+              <span className="text-slate-700 font-semibold">{label}</span>
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900">{label}</h1>
+            <p className="text-slate-500 mt-2 text-sm">
+              {filteredBySearch.length} article
+              {filteredBySearch.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          {/* Search bar */}
+          <div className="mb-6">
+            {/* Desktop */}
+            <div className="hidden md:flex items-center justify-end gap-3">
+              {!isSearchOpen && (
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-800 transition"
+                  aria-label="Open search"
+                >
+                  <i className="fa-solid fa-magnifying-glass text-xs"></i>
+                  Search
+                </button>
+              )}
+              {isSearchOpen && (
+                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm w-full max-w-md">
+                  <i className="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search news..."
+                    className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                    aria-label="Search news"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setIsSearchOpen(false);
+                      setPage(1);
+                    }}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-700"
+                    aria-label="Close search"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile */}
+            <div className="md:hidden">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen((v) => !v)}
+                  className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-800 transition"
+                  aria-label={isSearchOpen ? "Close search" : "Open search"}
+                >
+                  <i className="fa-solid fa-magnifying-glass text-xs"></i>
+                  Search
+                </button>
+              </div>
+              {isSearchOpen && (
+                <div
+                  className="fixed inset-0 z-50 bg-black/40 flex items-end"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Search news"
+                  onClick={() => setIsSearchOpen(false)}
+                >
+                  <div
+                    className="w-full rounded-t-2xl bg-white p-4 shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-slate-700">
+                        Search News
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setIsSearchOpen(false);
+                          setPage(1);
+                        }}
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-700"
+                        aria-label="Close search"
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                      <i className="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                      <input
+                        type="search"
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setPage(1);
+                        }}
+                        placeholder="Search news..."
+                        className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                        aria-label="Search news"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 rounded-md">
+          <div className="flex flex-col items-center gap-7 py-20 px-10">
+            <div className="flex flex-col items-center">
+              <Image
+                src="/assets/nodata.png"
+                alt="Logo Newsmaker23"
+                width={360}
+                height={360} // sesuai rasio 1:1
+              />
+
+              <p className="text-sm md:text-base text-slate-500 font-semibold text-center max-w-lg">
+                Belum ada data yang tersedia untuk ditampilkan saat ini. Silakan
+                kembali beberapa saat lagi.
+              </p>
+            </div>
+
+            <Link
+              href={`/${locale}/equities`}
+              className="text-sm md:text-base bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 font-semibold text-white transition"
+            >
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-arrow-left text-xs"></i>
+                <span className="leading-none">Back</span>
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

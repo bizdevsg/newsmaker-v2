@@ -45,6 +45,17 @@ const ECONOMIC_NEWS_CATEGORIES: CategoryDef[] = [
     { id: 15, name: "Market Update", slug: "market-update", icon: "fa-solid fa-arrow-trend-up", gradient: "from-emerald-500 to-teal-600", badge: "ECONOMIC" },
 ];
 
+const LOCAL_THUMBS_BY_SLUG: Record<string, string> = {
+    crypto: "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp",
+    economy: "/assets/tourism-guangzhou-rivers-city-river.jpg",
+    "fiscal-moneter": "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp",
+};
+
+const THUMB_SLUG_ALIASES: Record<string, string[]> = {
+    economy: ["global-economics", "global-economy", "global-economics-news"],
+    "fiscal-moneter": ["fiscal-monetary", "fiscal-monetary-policy"],
+};
+
 // ─── Card component ──────────────────────────────────────────────────────────
 function CategoryCard({
     cat,
@@ -104,7 +115,8 @@ function CategoryCard({
 // ─── Main component ──────────────────────────────────────────────────────────
 export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
     const loading = useLoading();
-    const [thumbMap, setThumbMap] = useState<Record<number, string>>({});
+    const [thumbById, setThumbById] = useState<Record<number, string>>({});
+    const [thumbBySlug, setThumbBySlug] = useState<Record<string, string>>({});
 
     useEffect(() => {
         // Fetch thumbnails from our cached API route (fast & only once)
@@ -112,7 +124,10 @@ export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
         fetch("/api/news-thumbnails")
             .then(r => r.json())
             .then(json => {
-                if (json.status === "success") setThumbMap(json.data);
+                if (json.status === "success") {
+                    setThumbById(json.data?.byId ?? {});
+                    setThumbBySlug(json.data?.bySlug ?? {});
+                }
             })
             .catch(() => {/* silently fail - cards still show gradient */ })
             .finally(() => loading.stop(token));
@@ -133,12 +148,24 @@ export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {MARKET_NEWS_CATEGORIES.map(cat => (
+                        (() => {
+                            const aliases = THUMB_SLUG_ALIASES[cat.slug] ?? [];
+                            const slugThumb =
+                                thumbBySlug[cat.slug] ??
+                                aliases.map((key) => thumbBySlug[key]).find(Boolean);
+                            const thumbUrl =
+                                thumbById[cat.id] ??
+                                slugThumb ??
+                                LOCAL_THUMBS_BY_SLUG[cat.slug];
+                            return (
                         <CategoryCard
                             key={cat.slug}
                             cat={cat}
                             locale={locale}
-                            thumbUrl={cat.id ? thumbMap[cat.id] : undefined}
+                            thumbUrl={thumbUrl}
                         />
+                            );
+                        })()
                     ))}
                 </div>
             </div>
@@ -153,12 +180,24 @@ export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     {ECONOMIC_NEWS_CATEGORIES.map(cat => (
+                        (() => {
+                            const aliases = THUMB_SLUG_ALIASES[cat.slug] ?? [];
+                            const slugThumb =
+                                thumbBySlug[cat.slug] ??
+                                aliases.map((key) => thumbBySlug[key]).find(Boolean);
+                            const thumbUrl =
+                                thumbById[cat.id] ??
+                                slugThumb ??
+                                LOCAL_THUMBS_BY_SLUG[cat.slug];
+                            return (
                         <CategoryCard
                             key={cat.slug}
                             cat={cat}
                             locale={locale}
-                            thumbUrl={cat.id ? thumbMap[cat.id] : undefined}
+                            thumbUrl={thumbUrl}
                         />
+                            );
+                        })()
                     ))}
                 </div>
             </div>

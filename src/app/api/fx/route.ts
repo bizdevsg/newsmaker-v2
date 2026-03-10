@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const FRANKFURTER_BASE_URL = "https://api.frankfurter.dev/v1";
+const FRANKFURTER_BASE_URL = process.env.FRANKFURTER_BASE_URL ?? "";
 
 function normalizeCurrency(value: string | null, fallback: string) {
   return (value || fallback).trim().toUpperCase();

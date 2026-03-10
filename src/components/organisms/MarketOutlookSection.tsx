@@ -1,12 +1,37 @@
 import React from "react";
+import Link from "next/link";
 import { SectionHeader } from "../molecules/SectionHeader";
 
-const outlookItems = [
+type MarketOutlookSectionProps = {
+  locale: string;
+  limit?: number;
+  excludeCategoryNames?: string[];
+};
+
+const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
+const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
+const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+
+type NewsItem = {
+  id: number;
+  title?: string;
+  titles?: { default?: string };
+  slug?: string;
+  content?: string;
+  kategori?: { name?: string; slug?: string };
+  images?: string[];
+  updated_at?: string;
+  created_at?: string;
+};
+
+const fallbackItems = [
   {
     key: "overview-uptick",
     title: "Uptick di Metromonia, Pasar Aset Naik?",
     summary: "Aset blue-chip bergerak stabil jelang data inflasi.",
     image: "/assets/tourism-guangzhou-rivers-city-river.jpg",
+    href: "#",
+    date: "",
   },
   {
     key: "overview-oil-opec",
@@ -14,22 +39,126 @@ const outlookItems = [
     summary: "Pasar energi respons ketegangan suplai.",
     image:
       "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp",
+    href: "#",
+    date: "",
   },
   {
     key: "overview-bitcoin-1",
     title: "Bitcoin Bounce Back",
     summary: "Sentimen risk-on mengangkat aset kripto.",
     image: "/assets/Screenshot-2024-10-29-at-11.27.48.png",
+    href: "#",
+    date: "",
   },
   {
     key: "overview-bitcoin-2",
     title: "Bitcoin Bounce Back",
     summary: "Sentimen risk-on mengangkat aset kripto.",
     image: "/assets/Screenshot-2024-10-29-at-11.27.48.png",
+    href: "#",
+    date: "",
   },
 ];
 
-export function MarketOutlookSection() {
+const stripHtml = (value: string) =>
+  value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const toSummary = (value?: string) => {
+  if (!value) return "Ringkasan market terbaru.";
+  const text = stripHtml(value);
+  if (!text) return "Ringkasan market terbaru.";
+  return text.length > 120 ? `${text.slice(0, 120).trim()}...` : text;
+};
+
+const formatDate = (value: string | undefined, locale: string) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+async function fetchMarketOverview(
+  locale: string,
+  limit: number,
+  excludeCategoryNames: string[],
+) {
+  try {
+    const response = await fetch(NEWS_API, {
+      headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
+      cache: "no-store",
+    });
+    if (!response.ok) return fallbackItems;
+    const payload = await response.json();
+    if (!Array.isArray(payload?.data)) return fallbackItems;
+
+    const excludeSet = new Set(
+      excludeCategoryNames.map((name) => name.toLowerCase()),
+    );
+
+    const items: NewsItem[] = payload.data;
+    const filtered = items.filter((item) => {
+      const name = item.kategori?.name?.toLowerCase() ?? "";
+      return excludeSet.size > 0 ? !excludeSet.has(name) : true;
+    });
+
+    if (!filtered.length) return fallbackItems;
+
+    const sorted = [...filtered].sort((a, b) => {
+      const aTime = Date.parse(a.updated_at || a.created_at || "") || 0;
+      const bTime = Date.parse(b.updated_at || b.created_at || "") || 0;
+      return bTime - aTime;
+    });
+
+    return sorted.slice(0, limit).map((item, idx) => {
+      const title = item.titles?.default || item.title || "Market Overview";
+      const image = item.images?.[0]
+        ? `${IMAGE_BASE}${item.images[0]}`
+        : "/assets/Screenshot-2024-10-29-at-11.27.48.png";
+      const categorySlug = item.kategori?.slug?.trim() || "market-update";
+      const articleSlug = item.slug?.trim() || "";
+      const href = articleSlug
+        ? `/${locale}/news/${categorySlug}/${articleSlug}`
+        : "#";
+      const date = formatDate(item.updated_at || item.created_at, locale);
+      return {
+        key: `${item.id ?? idx}-overview`,
+        title,
+        summary: toSummary(item.content),
+        image,
+        href,
+        date,
+      };
+    });
+  } catch {
+    return fallbackItems;
+  }
+}
+
+export async function MarketOutlookSection({
+  locale,
+  limit = 4,
+  excludeCategoryNames = ["Analisis Market"],
+}: MarketOutlookSectionProps) {
+  const outlookItems = await fetchMarketOverview(
+    locale,
+    limit,
+    excludeCategoryNames,
+  );
+  const gridCols =
+    outlookItems.length <= 1
+      ? "sm:grid-cols-1 lg:grid-cols-1"
+      : outlookItems.length === 2
+        ? "sm:grid-cols-2 lg:grid-cols-2"
+        : outlookItems.length === 3
+          ? "sm:grid-cols-2 lg:grid-cols-3"
+          : "sm:grid-cols-2 lg:grid-cols-4";
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden">
       <SectionHeader
@@ -37,7 +166,7 @@ export function MarketOutlookSection() {
         link="#"
         linkLabel="Read More..."
       />
-      <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 p-4 ${gridCols}`}>
         {outlookItems.map((item) => (
           <article
             key={item.key}
@@ -54,13 +183,18 @@ export function MarketOutlookSection() {
               <h4 className="text-sm font-semibold text-slate-800">
                 {item.title}
               </h4>
+              {item.date ? (
+                <p className="text-[11px] font-semibold text-slate-400">
+                  {item.date}
+                </p>
+              ) : null}
               <p className="text-xs text-slate-500">{item.summary}</p>
-              <button
-                type="button"
+              <Link
+                href={item.href}
                 className="text-xs font-semibold text-blue-700 hover:text-blue-800"
               >
                 Read More &gt;
-              </button>
+              </Link>
             </div>
           </article>
         ))}

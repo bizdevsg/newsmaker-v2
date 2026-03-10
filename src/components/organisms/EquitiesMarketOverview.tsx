@@ -23,7 +23,7 @@ type InvestingResponse = {
 };
 
 export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps) {
-    const loading = useLoading();
+    const { start, stop } = useLoading();
     const { marketOverview } = messages.equities;
     const [rows, setRows] = useState(marketOverview.table.rows);
     const initialLoad = useRef(true);
@@ -52,7 +52,7 @@ export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps
         let isActive = true;
 
         const load = async () => {
-            const token = initialLoad.current ? loading.start("equities-overview") : null;
+            const token = initialLoad.current ? start("equities-overview") : null;
             try {
                 const response = await fetch("/api/investing", { cache: "no-store" });
                 if (!response.ok) return;
@@ -77,7 +77,7 @@ export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps
             } catch {
                 // keep fallback rows
             } finally {
-                if (token) loading.stop(token);
+                if (token) stop(token);
                 initialLoad.current = false;
             }
         };
@@ -87,7 +87,7 @@ export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps
         return () => {
             isActive = false;
         };
-    }, [fallbackBySymbol, loading]);
+    }, [fallbackBySymbol, start, stop]);
 
     return (
         <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">

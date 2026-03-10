@@ -13,6 +13,8 @@ type PolicyQuickDataProps = {
   messages: Messages;
 };
 
+const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
+
 export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
   const loading = useLoading();
   const { quickData } = messages.policy;
@@ -45,7 +47,7 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
           : null;
         try {
           const res = await fetch(
-            `https://endpoapi-production-3202.up.railway.app/api/calendar/${calendarTimeFrame}`,
+            `${ENDPOAPI_BASE}/api/calendar/${calendarTimeFrame}`,
           );
           const json = await res.json();
           if (json && json.data) {
@@ -70,9 +72,7 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
           ? loading.start("policy-live-quotes")
           : null;
         try {
-          const res = await fetch(
-            "https://endpoapi-production-3202.up.railway.app/api/live-quotes",
-          );
+          const res = await fetch(`${ENDPOAPI_BASE}/api/live-quotes`);
           const json = await res.json();
           if (json && json.data) {
             const mappedStats = json.data.map((item: any) => {

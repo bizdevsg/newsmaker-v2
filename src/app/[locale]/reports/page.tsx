@@ -34,7 +34,7 @@ export default async function ReportsPage({
             <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
                 <div className="space-y-8">
                     <ReportCategories messages={customMessages} />
-                    <RecentAnalysis messages={customMessages} />
+                    <RecentAnalysis messages={customMessages} locale={locale} />
                 </div>
                 <div className="space-y-8">
                     <FocusReport messages={customMessages} />

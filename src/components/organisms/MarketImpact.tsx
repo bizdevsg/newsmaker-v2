@@ -10,6 +10,10 @@ type MarketImpactProps = {
   messages: Messages;
 };
 
+const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
+const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
+const NEWS_IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+
 export function MarketImpact({ messages }: MarketImpactProps) {
   const loading = useLoading();
   const [newsData, setNewsData] = useState<any[]>([]);
@@ -19,10 +23,10 @@ export function MarketImpact({ messages }: MarketImpactProps) {
     const fetchNews = async () => {
       const token = loading.start("market-impact");
       try {
-        const res = await fetch("https://portalnews.newsmaker.id/api/v1/berita", {
+        const res = await fetch(NEWS_API_URL, {
           headers: {
-            'Authorization': 'Bearer EWF-06433b884f930161'
-          }
+            Authorization: `Bearer ${NEWS_TOKEN}`,
+          },
         });
         const json = await res.json();
         if (json && json.data) {
@@ -63,7 +67,10 @@ export function MarketImpact({ messages }: MarketImpactProps) {
       title: item.titles?.default || item.title,
       summary: stripHtml(item.content).substring(0, 150) + "...",
       date: formattedDate,
-      imageLabel: item.images && item.images.length > 0 ? `https://portalnews.newsmaker.id/${item.images[0]}` : "./assets/Screenshot-2024-10-29-at-11.27.48.png"
+      imageLabel:
+        item.images && item.images.length > 0
+          ? `${NEWS_IMAGE_BASE}${item.images[0]}`
+          : "./assets/Screenshot-2024-10-29-at-11.27.48.png",
     };
   });
 

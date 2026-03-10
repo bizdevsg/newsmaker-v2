@@ -16,9 +16,9 @@ type NewsItem = {
   images?: string[];
 };
 
-const NEWS_API_URL = "https://portalnews.newsmaker.id/api/v1/berita";
-const NEWS_TOKEN = "EWF-06433b884f930161";
-const NEWS_IMAGE_BASE = "https://portalnews.newsmaker.id/";
+const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
+const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
+const NEWS_IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
 
 const fallbackItem = [
   {

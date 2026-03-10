@@ -23,9 +23,9 @@ export default async function InsightPage({
     <MarketPageTemplate locale={locale} messages={messages}>
       <MarketInsightHero />
 
-      <MarketOutlookSection />
+      <MarketOutlookSection locale={locale} limit={4} />
 
-      <RecentAnalysis messages={messages} />
+      <RecentAnalysis messages={messages} locale={locale} limit={4} />
     </MarketPageTemplate>
   );
 }

@@ -13,13 +13,13 @@ export const metadata: Metadata = {
   title: "Indonesia Market",
 };
 
-const API_TOKEN =
-  "BG0EvCDjcNWAMwmdewC1wz584oEGfU5QiKXGdZQ2qkOro8Hn4FD5OYLHOcUJtLuj";
+const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
+const API_BASE = process.env.ENDPO_NM23_BASE ?? "";
 
 const API_ENDPOINTS = {
-  fx: "https://endpo-nm23.vercel.app/api/newsmaker-v2/fx",
-  ihsg: "https://endpo-nm23.vercel.app/api/newsmaker-v2/market",
-  biRate: "https://endpo-nm23.vercel.app/api/newsmaker-v2/bi-rate",
+  fx: `${API_BASE}/api/newsmaker-v2/fx`,
+  ihsg: `${API_BASE}/api/newsmaker-v2/market`,
+  biRate: `${API_BASE}/api/newsmaker-v2/bi-rate`,
 };
 
 type FxRow = {
@@ -291,7 +291,7 @@ export default async function Home({
         <div className="space-y-4">
           <RegulatoryWatch messages={hydratedMessages} />
           <ExchangeActivity messages={hydratedMessages} />
-          <RecentAnalysis messages={hydratedMessages} />
+          <RecentAnalysis messages={messages} locale={locale} limit={2} />
         </div>
         <div className="space-y-4">
           <MarketImpact messages={hydratedMessages} />

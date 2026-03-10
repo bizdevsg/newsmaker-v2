@@ -10,6 +10,8 @@ type CommoditiesMarketOverviewProps = {
     messages: Messages;
 };
 
+const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
+
 export function CommoditiesMarketOverview({
     locale,
     messages,
@@ -26,7 +28,7 @@ export function CommoditiesMarketOverview({
         const fetchQuotes = async () => {
             const token = loading.start("commodities-overview");
             try {
-                const res = await fetch("https://endpoapi-production-3202.up.railway.app/api/live-quotes");
+                const res = await fetch(`${ENDPOAPI_BASE}/api/live-quotes`);
                 const json = await res.json();
                 if (json && json.data) {
                     const mappedStats = json.data.map((item: any) => {

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-const API_TOKEN =
-  "BG0EvCDjcNWAMwmdewC1wz584oEGfU5QiKXGdZQ2qkOro8Hn4FD5OYLHOcUJtLuj";
-const API_URL = "https://endpo-nm23.vercel.app/api/newsmaker-v2/investing";
+const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
+const API_BASE = process.env.ENDPO_NM23_BASE ?? "";
+const API_URL = `${API_BASE}/api/newsmaker-v2/investing`;
 
 export async function GET() {
   try {

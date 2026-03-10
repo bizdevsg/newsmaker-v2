@@ -38,7 +38,7 @@ export default async function Home({
         <div className="space-y-4">
           <MarketSnapshot />
 
-          <RecentAnalysis messages={messages} />
+          <RecentAnalysis messages={messages} locale={locale} />
         </div>
       </div>
 

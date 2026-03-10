@@ -5,9 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLoading } from "../providers/LoadingProvider";
 
-const NEWS_API = "https://portalnews.newsmaker.id/api/v1/berita";
-const NEWS_TOKEN = "Bearer EWF-06433b884f930161";
-const IMAGE_BASE = "https://portalnews.newsmaker.id/";
+const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
+const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
+const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
 
 const stripHtml = (html: string) =>
   html
@@ -42,7 +42,7 @@ export function NewsArticleDetail({
       const token = globalLoading.start("news-article-detail");
       try {
         const res = await fetch(NEWS_API, {
-          headers: { Authorization: NEWS_TOKEN },
+          headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
         });
         const json = await res.json();
         if (!json?.data) return;
@@ -248,7 +248,7 @@ export function NewsArticleDetail({
                         prose-p:mb-5 prose-p:text-slate-700
                         prose-strong:text-slate-800
                         prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                        prose-ul:list-disc prose-ul:pl-6 prose-li:mb-1 space-y-3"
+                        prose-ul:list-disc prose-ul:pl-6 prose-li:mb-1"
           dangerouslySetInnerHTML={{ __html: article.content ?? "" }}
         />
 

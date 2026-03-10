@@ -30,10 +30,10 @@ type NewsItem = {
   };
 };
 
-const API_URL =
-  "https://endpoapi-production-3202.up.railway.app/api/live-quotes";
-const NEWS_API_URL = "https://portalnews.newsmaker.id/api/v1/berita";
-const NEWS_TOKEN = "EWF-06433b884f930161";
+const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
+const API_URL = `${ENDPOAPI_BASE}/api/live-quotes`;
+const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
+const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
 
 export function TickerBar({ ticks = [] }: TickerBarProps) {
   const loading = useLoading();
@@ -179,94 +179,99 @@ export function TickerBar({ ticks = [] }: TickerBarProps) {
 
   return (
     <div className="ticker-wrapper overflow-hidden rounded-md bg-blue-200 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 shadow-lg">
-      <div className="ticker-track">
-        <div className="ticker-row">
-          {tickStream.map((entry, index) => {
-            const next = tickStream[index + 1];
-            if (entry.type === "pipe") {
+      <div className="relative pr-28">
+        <div className="ticker-track">
+          <div className="ticker-row">
+            {tickStream.map((entry, index) => {
+              const next = tickStream[index + 1];
+              if (entry.type === "pipe") {
+                return (
+                  <span
+                    key={`${entry.key}-${index}`}
+                    className="ticker-sep"
+                    aria-hidden="true"
+                  >
+                    |
+                  </span>
+                );
+              }
+
               return (
                 <span
-                  key={`${entry.key}-${index}`}
-                  className="ticker-sep"
-                  aria-hidden="true"
+                  key={`${entry.item.key}-${index}`}
+                  className="inline-flex items-center gap-2"
                 >
-                  |
+                  <span className="text-blue-700">({entry.item.symbol})</span>
+                  <span className="text-slate-700">{entry.item.priceText}</span>
+                  {entry.item.percentText ? (
+                    <span
+                      className={
+                        entry.item.tone === "up"
+                          ? "text-emerald-700"
+                          : entry.item.tone === "down"
+                            ? "text-rose-600"
+                            : "text-slate-500"
+                      }
+                    >
+                      ({entry.item.percentText})
+                    </span>
+                  ) : null}
+                  {next?.type === "tick" ? (
+                    <span className="ticker-dot" aria-hidden="true">
+                      •
+                    </span>
+                  ) : null}
                 </span>
               );
-            }
-
-            return (
-              <span
-                key={`${entry.item.key}-${index}`}
-                className="inline-flex items-center gap-2"
-              >
-                <span className="text-blue-500">({entry.item.symbol})</span>
-                <span className="text-slate-700">{entry.item.priceText}</span>
-                {entry.item.percentText ? (
+            })}
+          </div>
+          <div className="ticker-row" aria-hidden="true">
+            {tickStream.map((entry, index) => {
+              const next = tickStream[index + 1];
+              if (entry.type === "pipe") {
+                return (
                   <span
-                    className={
-                      entry.item.tone === "up"
-                        ? "text-emerald-700"
-                        : entry.item.tone === "down"
-                          ? "text-rose-600"
-                          : "text-slate-500"
-                    }
+                    key={`${entry.key}-dup-${index}`}
+                    className="ticker-sep"
+                    aria-hidden="true"
                   >
-                    ({entry.item.percentText})
+                    |
                   </span>
-                ) : null}
-                {next?.type === "tick" ? (
-                  <span className="ticker-dot" aria-hidden="true">
-                    •
-                  </span>
-                ) : null}
-              </span>
-            );
-          })}
+                );
+              }
+
+              return (
+                <span
+                  key={`${entry.item.key}-dup-${index}`}
+                  className="inline-flex items-center gap-2"
+                >
+                  <span className="text-blue-900">{entry.item.symbol}</span>
+                  <span className="text-slate-700">{entry.item.priceText}</span>
+                  {entry.item.percentText ? (
+                    <span
+                      className={
+                        entry.item.tone === "up"
+                          ? "text-emerald-600"
+                          : entry.item.tone === "down"
+                            ? "text-rose-600"
+                            : "text-slate-500"
+                      }
+                    >
+                      {entry.item.percentText}
+                    </span>
+                  ) : null}
+                  {next?.type === "tick" ? (
+                    <span className="ticker-dot" aria-hidden="true">
+                      •
+                    </span>
+                  ) : null}
+                </span>
+              );
+            })}
+          </div>
         </div>
-        <div className="ticker-row" aria-hidden="true">
-          {tickStream.map((entry, index) => {
-            const next = tickStream[index + 1];
-            if (entry.type === "pipe") {
-              return (
-                <span
-                  key={`${entry.key}-dup-${index}`}
-                  className="ticker-sep"
-                  aria-hidden="true"
-                >
-                  |
-                </span>
-              );
-            }
-
-            return (
-              <span
-                key={`${entry.item.key}-dup-${index}`}
-                className="inline-flex items-center gap-2"
-              >
-                <span className="text-blue-900">{entry.item.symbol}</span>
-                <span className="text-slate-700">{entry.item.priceText}</span>
-                {entry.item.percentText ? (
-                  <span
-                    className={
-                      entry.item.tone === "up"
-                        ? "text-emerald-600"
-                        : entry.item.tone === "down"
-                          ? "text-rose-600"
-                          : "text-slate-500"
-                    }
-                  >
-                    {entry.item.percentText}
-                  </span>
-                ) : null}
-                {next?.type === "tick" ? (
-                  <span className="ticker-dot" aria-hidden="true">
-                    •
-                  </span>
-                ) : null}
-              </span>
-            );
-          })}
+        <div className="pointer-events-none absolute -left-4 top-1/2 -translate-y-1/2 rounded bg-red-600 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white shadow-sm">
+          Top News
         </div>
       </div>
     </div>

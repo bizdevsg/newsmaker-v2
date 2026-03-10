@@ -19,8 +19,8 @@ type CalendarResponse = {
   data?: CalendarItem[];
 };
 
-const CALENDAR_URL =
-  "https://endpoapi-production-3202.up.railway.app/api/calendar/today";
+const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
+const CALENDAR_URL = `${ENDPOAPI_BASE}/api/calendar/today`;
 
 export default function CalenderEkonomiHome() {
   const loading = useLoading();

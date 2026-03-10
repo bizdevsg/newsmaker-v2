@@ -112,6 +112,8 @@ const formatPrice = (value: number) => {
   }).format(value);
 };
 
+const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
+
 export function LiveChartSection({
   initialItems = [],
   initialUpdatedAt,
@@ -129,8 +131,7 @@ export function LiveChartSection({
   const [chartSymbol, setChartSymbol] = useState("OANDA:XAUUSD");
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const initialLoad = useRef(true);
-  const apiUrl =
-    "https://endpoapi-production-3202.up.railway.app/api/live-quotes";
+  const apiUrl = `${ENDPOAPI_BASE}/api/live-quotes`;
 
   useEffect(() => {
     let isMounted = true;
@@ -165,7 +166,7 @@ export function LiveChartSection({
 
   const loopItems =
     items.length > 0 ? [...items, ...items] : ([] as LiveChartItem[]);
-  const loopDuration = Math.max(12, items.length * 2.5);
+  const loopDuration = Math.max(20, items.length * 4.5);
 
   const subtitle =
     serverTime && updatedAt

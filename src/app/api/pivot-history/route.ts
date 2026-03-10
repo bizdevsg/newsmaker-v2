@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-const API_TOKEN = "EWF-06433b884f930161";
-const API_URL = "https://portalnews.newsmaker.id/api/v1/pivot-history";
+const API_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
+const API_URL = process.env.PORTALNEWS_PIVOT_HISTORY_URL ?? "";
 
 export async function GET() {
   try {

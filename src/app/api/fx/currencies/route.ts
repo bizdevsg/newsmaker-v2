@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const FRANKFURTER_BASE_URL = "https://api.frankfurter.dev/v1";
+const FRANKFURTER_BASE_URL = process.env.FRANKFURTER_BASE_URL ?? "";
 
 export async function GET() {
   try {

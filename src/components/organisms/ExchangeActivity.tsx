@@ -63,7 +63,7 @@ export function ExchangeActivity({ messages }: ExchangeActivityProps) {
     };
   };
 
-  const categoryForSymbol = () => "markets";
+  const categoryForSymbol = (_symbol?: string) => "markets";
 
   useEffect(() => {
     let isActive = true;

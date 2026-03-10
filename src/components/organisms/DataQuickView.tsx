@@ -10,6 +10,8 @@ type DataQuickViewProps = {
     messages: Messages;
 };
 
+const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
+
 export function DataQuickView({ locale, messages }: DataQuickViewProps) {
     const loading = useLoading();
     const [calendarData, setCalendarData] = useState<any[]>([]);
@@ -18,7 +20,7 @@ export function DataQuickView({ locale, messages }: DataQuickViewProps) {
         const fetchCalendar = async () => {
             const token = loading.start("data-quick-view");
             try {
-                const res = await fetch("https://endpoapi-production-3202.up.railway.app/api/calendar/today");
+                const res = await fetch(`${ENDPOAPI_BASE}/api/calendar/today`);
                 const json = await res.json();
                 if (json && json.data) {
                     setCalendarData(json.data);
