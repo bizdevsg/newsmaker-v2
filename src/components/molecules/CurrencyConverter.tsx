@@ -52,15 +52,13 @@ export function CurrencyConverter({
       : "Rate unavailable";
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100/60 p-4 shadow-sm sm:p-5">
+    <div className="rounded-2xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-slate-100/60 p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
             Currency
           </p>
-          <h4 className="text-lg font-semibold text-slate-800">
-            Converter
-          </h4>
+          <h4 className="text-lg font-semibold text-slate-800">Converter</h4>
         </div>
         <div
           className={`rounded-full border px-3 py-1 text-xs font-medium ${
@@ -75,15 +73,13 @@ export function CurrencyConverter({
 
       <div className="mt-4 grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
         <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
-          <label className="text-xs font-medium text-slate-500">
-            From
-          </label>
+          <label className="text-xs font-medium text-slate-500">From</label>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
             <select
               value={fromCurrency}
               onChange={(e) => onFromCurrencyChange(e.target.value)}
               disabled={loadingCurrencies}
-              className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600/40 disabled:cursor-not-allowed disabled:bg-slate-100 sm:w-auto sm:min-w-[96px]"
+              className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600/40 disabled:cursor-not-allowed disabled:bg-slate-100 sm:w-auto sm:min-w-24"
             >
               {currencies.map((item) => (
                 <option key={item.code} value={item.code}>
@@ -116,7 +112,7 @@ export function CurrencyConverter({
               value={toCurrency}
               onChange={(e) => onToCurrencyChange(e.target.value)}
               disabled={loadingCurrencies}
-              className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600/40 disabled:cursor-not-allowed disabled:bg-slate-100 sm:w-auto sm:min-w-[96px]"
+              className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600/40 disabled:cursor-not-allowed disabled:bg-slate-100 sm:w-auto sm:min-w-24"
             >
               {currencies.map((item) => (
                 <option key={item.code} value={item.code}>

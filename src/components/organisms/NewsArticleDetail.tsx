@@ -160,12 +160,12 @@ export function NewsArticleDetail({
             {categorySlug.replace(/-/g, " ")}
           </Link>
           <span>/</span>
-          <span className="text-slate-600 truncate max-w-[200px]">{title}</span>
+          <span className="text-slate-600 truncate max-w-50">{title}</span>
         </nav>
 
         {/* Hero image */}
         {thumb && !heroImageError && (
-          <div className="relative rounded-xl overflow-hidden mb-5 shadow-sm h-[420px]">
+          <div className="relative rounded-xl overflow-hidden mb-5 shadow-sm h-105">
             <Image
               src={thumb}
               alt={title}
@@ -294,7 +294,7 @@ export function NewsArticleDetail({
                     className="flex gap-5 group hover:bg-slate-50 rounded-xl p-3 -mx-3 transition"
                   >
                     {/* Thumbnail */}
-                    <div className="w-40 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-slate-100">
+                    <div className="w-40 h-28 shrink-0 rounded-lg overflow-hidden bg-slate-100">
                       {relThumb ? (
                         <img
                           src={relThumb}
@@ -306,7 +306,7 @@ export function NewsArticleDetail({
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-100 to-slate-200 flex items-center justify-center">
+                        <div className="w-full h-full bg-linear-to-br from-blue-100 to-slate-200 flex items-center justify-center">
                           <i className="fa-solid fa-newspaper text-slate-300 text-2xl"></i>
                         </div>
                       )}
@@ -361,7 +361,7 @@ export function NewsArticleDetail({
                   href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${item.kategori?.slug ?? categorySlug}/${item.slug}`}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
-                  <div className="w-16 h-14 flex-shrink-0 rounded-md overflow-hidden bg-slate-100">
+                  <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
                     {th ? (
                       <img
                         src={th}
@@ -419,7 +419,7 @@ export function NewsArticleDetail({
                   href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${item.kategori?.slug ?? categorySlug}/${item.slug}`}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
-                  <div className="w-16 h-14 flex-shrink-0 rounded-md overflow-hidden bg-slate-100">
+                  <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
                     {th ? (
                       <img
                         src={th}

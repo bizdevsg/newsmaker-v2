@@ -18,7 +18,7 @@ export function MarketPageTemplate({
   messages,
 }: MarketPageTemplateProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-100 to-white text-slate-800">
+    <div className="min-h-screen bg-linear-to-b from-slate-100 via-slate-100 to-white text-slate-800">
       <WorldTimeBar className="hidden md:block" />
       <StickyNav>
         <nav>

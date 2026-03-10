@@ -24,7 +24,7 @@ function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
   return (
     <div
       className={[
-        "fixed inset-0 z-[100] grid place-items-center bg-blue-500 backdrop-blur-sm",
+        "fixed inset-0 z-100 grid place-items-center bg-blue-500 backdrop-blur-sm",
         "transition-opacity duration-300 ease-out",
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100",
       ].join(" ")}

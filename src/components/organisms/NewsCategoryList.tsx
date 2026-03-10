@@ -566,7 +566,7 @@ export function NewsCategoryList({
                     }}
                   />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-blue-100 to-slate-200 flex items-center justify-center">
+                  <div className="h-full w-full bg-linear-to-br from-blue-100 to-slate-200 flex items-center justify-center">
                     <i className="fa-solid fa-newspaper text-slate-300 text-3xl"></i>
                   </div>
                 )}
