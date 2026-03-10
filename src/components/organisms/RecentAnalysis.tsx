@@ -177,7 +177,7 @@ export async function RecentAnalysis({
             key={item.title}
             className="overflow-hidden rounded-md border border-slate-200 bg-white"
           >
-            <div className="aspect-[16/9] overflow-hidden bg-slate-100">
+            <div className="aspect-video overflow-hidden bg-slate-100">
               <img
                 src={item.image}
                 alt={item.title}
