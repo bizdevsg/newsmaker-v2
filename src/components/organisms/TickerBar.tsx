@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLoading } from "../providers/LoadingProvider";
 
@@ -21,14 +22,17 @@ type LiveTick = {
   priceText: string;
   percentText?: string;
   tone: "up" | "down" | "flat";
+  href?: string;
 };
 
 type NewsItem = {
   id: number;
   title?: string;
+  slug?: string;
   created_at?: string;
   kategori?: {
     name?: string;
+    slug?: string;
   };
 };
 
@@ -38,7 +42,8 @@ const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
 
 export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) {
-  const loading = useLoading();
+  const { start, stop } = useLoading();
+  const { locale } = useParams<{ locale?: string }>();
   const [liveTicks, setLiveTicks] = useState<LiveTick[]>(
     ticks.map((tick, index) => {
       const match = tick.match(/([+-]?\d+(?:\.\d+)?)%/);
@@ -95,12 +100,21 @@ export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) 
       };
     };
 
-    const toNewsTick = (item: NewsItem): LiveTick => ({
-      key: `news-${item.id}`,
-      symbol: item.kategori?.name?.toUpperCase() || "NEWS",
-      priceText: item.title?.trim() || "Latest update",
-      tone: "flat",
-    });
+    const toNewsTick = (item: NewsItem): LiveTick => {
+      const categorySlug = item.kategori?.slug?.trim();
+      const articleSlug = item.slug?.trim();
+      const href =
+        categorySlug && articleSlug
+          ? `/${locale ?? "id"}/news/${categorySlug}/${articleSlug}`
+          : undefined;
+      return {
+        key: `news-${item.id}`,
+        symbol: item.kategori?.name?.toUpperCase() || "NEWS",
+        priceText: item.title?.trim() || "Latest update",
+        tone: "flat",
+        href,
+      };
+    };
 
     const loadLive = async () => {
       try {
@@ -141,11 +155,11 @@ export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) 
     };
 
     const loadAll = async () => {
-      const token = initialLoad.current ? loading.start("ticker-bar") : null;
+      const token = initialLoad.current ? start("ticker-bar") : null;
       try {
         await Promise.all([loadLive(), loadNews()]);
       } finally {
-        if (token) loading.stop(token);
+        if (token) stop(token);
         initialLoad.current = false;
       }
     };
@@ -160,7 +174,7 @@ export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) 
       isActive = false;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [locale, start, stop]);
 
   const tickStream = useMemo(() => {
     const group: Array<
@@ -179,9 +193,78 @@ export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) 
     return [...group, ...group, ...group];
   }, [liveTicks, newsTicks]);
 
+  const renderTick = (
+    item: LiveTick,
+    index: number,
+    nextIsTick: boolean,
+    variant: "primary" | "secondary",
+  ) => {
+    const isPrimary = variant === "primary";
+    const symbolClass = isPrimary ? "text-blue-700" : "text-blue-900";
+    const percentClass =
+      item.tone === "up"
+        ? isPrimary
+          ? "text-emerald-700"
+          : "text-emerald-600"
+        : item.tone === "down"
+          ? "text-rose-600"
+          : "text-slate-500";
+    const wrapperClass =
+      "inline-flex items-center gap-2 transition-colors hover:text-slate-900";
+    const content = (
+      <>
+        <span className={symbolClass}>
+          {isPrimary ? `(${item.symbol})` : item.symbol}
+        </span>
+        <span className="text-slate-700">{item.priceText}</span>
+        {item.percentText ? (
+          <span className={percentClass}>
+            {isPrimary ? `(${item.percentText})` : item.percentText}
+          </span>
+        ) : null}
+      </>
+    );
+
+    if (item.href) {
+      return (
+        <span
+          key={`${item.key}-${variant}-${index}`}
+          className="inline-flex items-center gap-2"
+        >
+          <Link
+            href={item.href}
+            className={`${wrapperClass} hover:underline`}
+            aria-label={`Buka berita: ${item.priceText}`}
+          >
+            {content}
+          </Link>
+          {nextIsTick ? (
+            <span className="ticker-dot" aria-hidden="true">
+              &bull;
+            </span>
+          ) : null}
+        </span>
+      );
+    }
+
+    return (
+      <span
+        key={`${item.key}-${variant}-${index}`}
+        className="inline-flex items-center gap-2"
+      >
+        <span className={wrapperClass}>{content}</span>
+        {nextIsTick ? (
+          <span className="ticker-dot" aria-hidden="true">
+            &bull;
+          </span>
+        ) : null}
+      </span>
+    );
+  };
+
   return (
-    <div className="ticker-wrapper overflow-hidden rounded-md bg-blue-200 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 shadow-lg">
-      <div className="relative pr-28">
+    <div className="ticker-wrapper overflow-hidden rounded-md bg-blue-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-lg sm:px-6 sm:py-3 sm:text-xs sm:tracking-[0.2em]">
+      <div className="relative pr-16 sm:pr-28">
         <div className="ticker-track">
           <div className="ticker-row">
             {tickStream.map((entry, index) => {
@@ -198,32 +281,11 @@ export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) 
                 );
               }
 
-              return (
-                <span
-                  key={`${entry.item.key}-${index}`}
-                  className="inline-flex items-center gap-2"
-                >
-                  <span className="text-blue-700">({entry.item.symbol})</span>
-                  <span className="text-slate-700">{entry.item.priceText}</span>
-                  {entry.item.percentText ? (
-                    <span
-                      className={
-                        entry.item.tone === "up"
-                          ? "text-emerald-700"
-                          : entry.item.tone === "down"
-                            ? "text-rose-600"
-                            : "text-slate-500"
-                      }
-                    >
-                      ({entry.item.percentText})
-                    </span>
-                  ) : null}
-                  {next?.type === "tick" ? (
-                    <span className="ticker-dot" aria-hidden="true">
-                      •
-                    </span>
-                  ) : null}
-                </span>
+              return renderTick(
+                entry.item,
+                index,
+                next?.type === "tick",
+                "primary",
               );
             })}
           </div>
@@ -242,37 +304,16 @@ export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) 
                 );
               }
 
-              return (
-                <span
-                  key={`${entry.item.key}-dup-${index}`}
-                  className="inline-flex items-center gap-2"
-                >
-                  <span className="text-blue-900">{entry.item.symbol}</span>
-                  <span className="text-slate-700">{entry.item.priceText}</span>
-                  {entry.item.percentText ? (
-                    <span
-                      className={
-                        entry.item.tone === "up"
-                          ? "text-emerald-600"
-                          : entry.item.tone === "down"
-                            ? "text-rose-600"
-                            : "text-slate-500"
-                      }
-                    >
-                      {entry.item.percentText}
-                    </span>
-                  ) : null}
-                  {next?.type === "tick" ? (
-                    <span className="ticker-dot" aria-hidden="true">
-                      •
-                    </span>
-                  ) : null}
-                </span>
+              return renderTick(
+                entry.item,
+                index,
+                next?.type === "tick",
+                "secondary",
               );
             })}
           </div>
         </div>
-        <div className="pointer-events-none absolute -left-4 top-1/2 -translate-y-1/2 rounded bg-red-600 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white shadow-sm">
+        <div className="pointer-events-none absolute -left-2 top-1/2 -translate-y-1/2 rounded bg-red-600 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-white shadow-sm sm:-left-4 sm:px-3 sm:text-[10px]">
           {topNews}
         </div>
       </div>

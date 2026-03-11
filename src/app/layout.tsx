@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     template: "%s - Newsmaker 23",
   },
   description: "Institutional market dashboard mockup",
+  icons: {
+    icon: "/assets/favicon.png",
+  },
 };
 
 export default async function RootLayout({

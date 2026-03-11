@@ -17,19 +17,19 @@ export function ImpactCard({
   ctaLabel,
   href = "#",
 }: ImpactCardProps) {
-  const isImage = imageLabel.startsWith("/") || imageLabel.startsWith("http");
-
   return (
-    <div className="flex gap-4 rounded-md border border-slate-200 bg-white shadow-sm">
-      <div className="w-1/2 overflow-hidden rounded-lg bg-slate-100">
+    <div className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white shadow-sm sm:flex-row">
+      <div className="w-full overflow-hidden rounded-lg bg-slate-100 sm:w-1/2">
+        <div className="aspect-[4/3] sm:aspect-auto sm:h-full">
         <img
           src={imageLabel}
           alt={title}
           className="h-full w-full object-cover"
         />
+        </div>
       </div>
 
-      <div className="flex w-1/2 flex-col justify-between py-5 pr-5">
+      <div className="flex w-full flex-col justify-between px-4 pb-4 sm:w-1/2 sm:px-0 sm:py-5 sm:pr-5">
         <div className="space-y-1">
           <p className="text-sm font-semibold text-slate-800">{title}</p>
           <p className="line-clamp-4 text-xs text-slate-500">{summary}</p>

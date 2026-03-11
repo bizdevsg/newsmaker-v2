@@ -97,7 +97,7 @@ export function PolicyHistoricData({ messages, locale }: PolicyHistoricDataProps
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("LGD Daily");
 
-  const perPage = 5;
+  const perPage = 20;
 
   const zeroDecimalCurrencies = useMemo(
     () => new Set(["IDR", "JPY", "KRW", "VND"]),

@@ -46,19 +46,62 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
                 className="h-15 object-contain sm:h-20 w-fit"
               />
             </Link>
-            <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-white/70">
-              <button
-                type="button"
-                onClick={toggleLanguage}
-                className="rounded border border-white/40 px-2 py-1 text-[10px] font-semibold tracking-[0.2em] text-white/90 transition hover:border-white/70 hover:text-white"
-                aria-label={changeLanguageLabel}
-              >
-                {localeLabel}
-              </button>
-              <span className="text-white/40">|</span>
-              <Link href={`/${currentLocale}/reports`} className="hover:text-white transition">
-                {messages.footer.reports}
-              </Link>
+            <div className="flex flex-wrap items-center gap-4 text-white/80">
+              <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-white/70">
+                <button
+                  type="button"
+                  onClick={toggleLanguage}
+                  className="rounded border border-white/40 px-2 py-1 text-[10px] font-semibold tracking-[0.2em] text-white/90 transition hover:border-white/70 hover:text-white"
+                  aria-label={changeLanguageLabel}
+                >
+                  {localeLabel}
+                </button>
+                <span className="text-white/40">|</span>
+                <Link
+                  href={`/${currentLocale}/reports`}
+                  className="hover:text-white transition"
+                >
+                  {messages.footer.reports}
+                </Link>
+              </div>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://www.facebook.com/share/PhK7sFfYqgPoqHWf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Newsmaker 23 Facebook"
+                  className="transition hover:text-white"
+                >
+                  <i className="fa-brands fa-facebook-f text-base"></i>
+                </a>
+                <a
+                  href="https://www.instagram.com/news.maker23/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Newsmaker 23 Instagram"
+                  className="transition hover:text-white"
+                >
+                  <i className="fa-brands fa-instagram text-base"></i>
+                </a>
+                <a
+                  href="https://www.tiktok.com/@newsmaker23"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Newsmaker 23 TikTok"
+                  className="transition hover:text-white"
+                >
+                  <i className="fa-brands fa-tiktok text-base"></i>
+                </a>
+                <a
+                  href="https://youtube.com/@newsmaker23"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Newsmaker 23 YouTube"
+                  className="transition hover:text-white"
+                >
+                  <i className="fa-brands fa-youtube text-base"></i>
+                </a>
+              </div>
             </div>
           </div>
           <nav className="flex flex-col gap-3 border-t border-white/15 px-6 py-3 text-sm text-white/80 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">

@@ -61,7 +61,7 @@ export function CurrencyConverter({
           <h4 className="text-lg font-semibold text-slate-800">Converter</h4>
         </div>
         <div
-          className={`rounded-full border px-3 py-1 text-xs font-medium ${
+          className={`rounded-full border px-3 py-1 text-xs font-medium select-none ${
             rate
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
               : "border-slate-200 bg-white text-slate-500"
@@ -102,7 +102,7 @@ export function CurrencyConverter({
         </div>
 
         <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-500 shadow-sm">
-          =
+          <i className="fa-solid fa-equals"></i>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">

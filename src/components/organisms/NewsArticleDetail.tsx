@@ -168,7 +168,7 @@ export function NewsArticleDetail({
       {/* ── Main Article ── */}
       <article>
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs text-slate-400 mb-6">
+        <nav className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mb-6 sm:text-xs">
           <Link
             href={`/${locale}/equities`}
             className="hover:text-blue-600 transition capitalize"
@@ -183,25 +183,30 @@ export function NewsArticleDetail({
             {categorySlug.replace(/-/g, " ")}
           </Link>
           <span>/</span>
-          <span className="text-slate-600 truncate max-w-50">{title}</span>
+          <span className="text-slate-600 truncate max-w-[12rem] sm:max-w-[18rem]">
+            {title}
+          </span>
         </nav>
 
         {/* Hero image */}
         {thumb && !heroImageError && (
-          <div className="relative rounded-xl overflow-hidden mb-5 shadow-sm h-105">
+          <div className="relative rounded-xl overflow-hidden mb-5 shadow-sm h-56 sm:h-72 lg:h-105">
             <Image
               src={thumb}
               alt={title}
               fill
               sizes="(max-width: 1024px) 100vw, 700px"
               className="object-cover"
+              quality={100}
+              priority
+              unoptimized
               onError={() => setHeroImageError(true)}
             />
           </div>
         )}
 
         {/* Date + share row */}
-        <div className="flex items-center gap-4 text-sm text-slate-400 mb-4">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400 mb-4">
           <span>
             <i className="fa-regular fa-calendar mr-1.5"></i>
             {dateStr}
@@ -314,10 +319,10 @@ export function NewsArticleDetail({
                   <Link
                     key={i}
                     href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug}/${rel.slug}`}
-                    className="flex gap-5 group hover:bg-slate-50 rounded-xl p-3 -mx-3 transition"
+                    className="flex flex-col gap-4 group hover:bg-slate-50 rounded-xl p-3 -mx-3 transition sm:flex-row sm:gap-5"
                   >
                     {/* Thumbnail */}
-                    <div className="w-40 h-28 shrink-0 rounded-lg overflow-hidden bg-slate-100">
+                    <div className="w-full h-40 shrink-0 rounded-lg overflow-hidden bg-slate-100 sm:w-40 sm:h-28">
                       {relThumb ? (
                         <img
                           src={relThumb}

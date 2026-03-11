@@ -17,8 +17,12 @@ export function InsightCard({
 }: InsightCardProps) {
   return (
     <article className="rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div className="aspect-[16/9] bg-slate-100">
-        <img src={imageSrc} alt={title} className="h-full w-full object-cover" />
+      <div className=" bg-slate-100">
+        <img
+          src={imageSrc}
+          alt={title}
+          className="h-full w-full max-h-50 object-cover"
+        />
       </div>
       <div className="p-4">
         <h4 className="text-sm font-semibold text-slate-800">{title}</h4>

@@ -12,6 +12,7 @@ import { TikTokEmbedCard } from "@/components/organisms/TikTokEmbedCard";
 import { DisclaimerCard } from "@/components/organisms/DisclaimerCard";
 import { NmAiStatementCard } from "@/components/organisms/NmAiStatementCard";
 import type { Metadata } from "next";
+import { MarketOutlookSection } from "@/components/organisms/MarketOutlookSection";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -38,8 +39,18 @@ export default async function Home({
         <LiveChartSection />
 
         <div className="space-y-4">
-          <SectionGridCard title={messages.widgets?.sectionGridCard?.marketQuotes || "Market Quotes"} items={6} />
-          <SectionGridCard title={messages.widgets?.sectionGridCard?.quickAccess || "Quick Access"} items={3} />
+          <SectionGridCard
+            title={
+              messages.widgets?.sectionGridCard?.marketQuotes || "Market Quotes"
+            }
+            items={6}
+          />
+          <SectionGridCard
+            title={
+              messages.widgets?.sectionGridCard?.quickAccess || "Quick Access"
+            }
+            items={3}
+          />
         </div>
 
         <SectionHomeOutlook locale={locale} messages={messages} />

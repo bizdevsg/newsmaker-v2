@@ -182,7 +182,7 @@ export async function MarketOutlookSection({
               <img
                 src={item.image}
                 alt={item.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full max-h-50 object-cover"
               />
             </div>
             <div className="flex flex-1 flex-col gap-2 p-3">
