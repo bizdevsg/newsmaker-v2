@@ -15,10 +15,11 @@ type PolicyQuickDataCalendarProps = {
   expandedRow: number | null;
   onToggleRow: (row: number) => void;
   loopDuration?: never;
+  messages: any;
+  locale: string;
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-function formatDateLabel(value: string): string {
+function formatDateLabel(value: string, locale: string): string {
   const raw = value.trim();
   if (!raw) return "";
   let year = 0, month = 0, day = 0;
@@ -32,7 +33,8 @@ function formatDateLabel(value: string): string {
   }
   if (!year || !month || !day) return raw;
   const date = new Date(Date.UTC(year, month - 1, day));
-  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(date);
+  const localeStr = locale === "id" ? "id-ID" : "en-US";
+  return new Intl.DateTimeFormat(localeStr, { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
 function ImpactStars({ count }: { count: number }) {
@@ -64,7 +66,10 @@ export function PolicyQuickDataCalendar({
   onPageChange,
   expandedRow,
   onToggleRow,
+  messages,
+  locale,
 }: PolicyQuickDataCalendarProps) {
+  const t = messages?.policy?.quickData?.economicCalendar;
 
   const TIME_FRAMES = ["today", "this-week", "previous-week", "next-week"] as const;
 
@@ -81,7 +86,7 @@ export function PolicyQuickDataCalendar({
               : "bg-white text-blue-700 border-blue-200 hover:border-blue-700 hover:bg-blue-50"
               }`}
           >
-            {tf.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+            {t?.timeFrames?.[tf] || tf}
           </button>
         ))}
       </div>
@@ -89,7 +94,7 @@ export function PolicyQuickDataCalendar({
       {/* ── MOBILE: card list (< md) ──────────────────────────────────────── */}
       <div className="md:hidden space-y-3">
         {paginatedCalendarData.length === 0 && (
-          <p className="text-center text-slate-400 py-10 text-sm">No data available.</p>
+          <p className="text-center text-slate-400 py-10 text-sm">{t?.noData || "No data available."}</p>
         )}
         {paginatedCalendarData.map((item, idx, list) => {
           let dateStr = "";
@@ -106,7 +111,7 @@ export function PolicyQuickDataCalendar({
           const starCount = (impactRaw.match(/\u2605/g) || []).length;
           const isHighImpact = starCount >= 3 || impactRaw.toLowerCase().includes("high");
           const isExpanded = expandedRow === idx;
-          const dateLabel = dateStr ? formatDateLabel(dateStr) : "";
+          const dateLabel = dateStr ? formatDateLabel(dateStr, locale) : "";
 
           // Date separator
           const prevItem = list[idx - 1];
@@ -167,13 +172,13 @@ export function PolicyQuickDataCalendar({
                 {/* Figures */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 font-semibold">
                   <span>
-                    Previous: <span className="text-slate-700 font-medium">{item.previous || "—"}</span>
+                    {t?.columns?.previous}: <span className="text-slate-700 font-medium">{item.previous || "—"}</span>
                   </span>
                   <span>
-                    Forecast: <span className="text-slate-700 font-medium">{item.forecast || "—"}</span>
+                    {t?.columns?.forecast}: <span className="text-slate-700 font-medium">{item.forecast || "—"}</span>
                   </span>
                   <span>
-                    Actual:{" "}
+                    {t?.columns?.actual}:{" "}
                     <span className={`font-bold ${item.actual?.includes("-") ? "text-rose-500" : "text-emerald-500"}`}>
                       {item.actual || "—"}
                     </span>
@@ -190,13 +195,13 @@ export function PolicyQuickDataCalendar({
               {isExpanded && item.details && (
                 <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-4 space-y-3 text-xs">
                   {[
-                    ["Sources", item.details.sources],
-                    ["Measures", item.details.measures],
-                    ["Usual Effect", item.details.usualEffect],
-                    ["Frequency", item.details.frequency],
-                    ["Next Released", item.details.nextRelease],
-                    ["Notes", item.details.notes],
-                    ["Why Traders Care", item.details.whyCare],
+                    [t?.details?.sources || "Sources", item.details.sources],
+                    [t?.details?.measures || "Measures", item.details.measures],
+                    [t?.details?.usualEffect || "Usual Effect", item.details.usualEffect],
+                    [t?.details?.frequency || "Frequency", item.details.frequency],
+                    [t?.details?.nextRelease || "Next Released", item.details.nextRelease],
+                    [t?.details?.notes || "Notes", item.details.notes],
+                    [t?.details?.whyCare || "Why Traders Care", item.details.whyCare],
                   ].map(([label, value]) => value ? (
                     <div key={label as string}>
                       <div className="font-bold text-slate-700 mb-0.5">{label}</div>
@@ -239,17 +244,17 @@ export function PolicyQuickDataCalendar({
         <table className="w-full table-fixed text-left text-sm text-slate-600 min-w-[640px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[16%]">Date</th>
-              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[10%]">Time</th>
-              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[8%]">Country</th>
-              <th className="py-3 px-3 text-xs font-bold text-slate-700 text-center w-[12%]">Impact</th>
-              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[54%]">Event & Figures</th>
+              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[16%]">{t?.columns?.date || "Date"}</th>
+              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[10%]">{t?.columns?.time || "Time"}</th>
+              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[8%]">{t?.columns?.currency || "Currency"}</th>
+              <th className="py-3 px-3 text-xs font-bold text-slate-700 text-center w-[12%]">{t?.columns?.impact || "Impact"}</th>
+              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[54%]">{t?.columns?.event || "Event & Figures"}</th>
             </tr>
           </thead>
           <tbody>
             {paginatedCalendarData.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-10 text-center text-slate-400 text-sm">No data available.</td>
+                <td colSpan={5} className="py-10 text-center text-slate-400 text-sm">{t?.noData || "No data available."}</td>
               </tr>
             )}
             {paginatedCalendarData.map((item, idx, list) => {
@@ -271,7 +276,7 @@ export function PolicyQuickDataCalendar({
                   : prevItem.details?.history?.[0]?.date?.split("-").reverse().join("-") ?? "")
                 : "";
               const showSeparator = calendarTimeFrame !== "today" && idx !== 0 && dateStr && dateStr !== prevDate;
-              const dateLabel = dateStr ? formatDateLabel(dateStr) : "";
+              const dateLabel = dateStr ? formatDateLabel(dateStr, locale) : "";
 
               const impactRaw = String(item.impact ?? "");
               const starCount = (impactRaw.match(/\u2605/g) || []).length;
@@ -308,12 +313,12 @@ export function PolicyQuickDataCalendar({
                     <td className="py-3.5 px-3 text-[13px]">
                       <div className="font-bold text-slate-800 mb-1 leading-snug">{item.event}</div>
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500 font-semibold">
-                        <span>Previous: <span className="text-slate-700 font-medium">{item.previous || "—"}</span></span>
+                        <span>{t?.columns?.previous}: <span className="text-slate-700 font-medium">{item.previous || "—"}</span></span>
                         <span className="text-slate-300">|</span>
-                        <span>Forecast: <span className="text-slate-700 font-medium">{item.forecast || "—"}</span></span>
+                        <span>{t?.columns?.forecast}: <span className="text-slate-700 font-medium">{item.forecast || "—"}</span></span>
                         <span className="text-slate-300">|</span>
                         <span>
-                          Actual:{" "}
+                          {t?.columns?.actual}:{" "}
                           <span className={`font-bold ${item.actual?.includes("-") ? "text-rose-500" : "text-emerald-500"}`}>
                             {item.actual || "—"}
                           </span>
@@ -327,13 +332,13 @@ export function PolicyQuickDataCalendar({
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div className="border border-blue-200 bg-blue-50/30 rounded-md p-4 space-y-3">
                             {[
-                              ["Sources", item.details.sources],
-                              ["Measures", item.details.measures],
-                              ["Usual Effect", item.details.usualEffect],
-                              ["Frequency", item.details.frequency],
-                              ["Next Released", item.details.nextRelease],
-                              ["Notes", item.details.notes],
-                              ["Why Traders Care", item.details.whyCare],
+                              [t?.details?.sources || "Sources", item.details.sources],
+                              [t?.details?.measures || "Measures", item.details.measures],
+                              [t?.details?.usualEffect || "Usual Effect", item.details.usualEffect],
+                              [t?.details?.frequency || "Frequency", item.details.frequency],
+                              [t?.details?.nextRelease || "Next Released", item.details.nextRelease],
+                              [t?.details?.notes || "Notes", item.details.notes],
+                              [t?.details?.whyCare || "Why Traders Care", item.details.whyCare],
                             ].map(([label, value]) => value ? (
                               <div key={label as string}>
                                 <div className="font-bold text-slate-800 text-[13px] mb-0.5">{label}</div>
@@ -345,7 +350,7 @@ export function PolicyQuickDataCalendar({
                             <table className="w-full text-left text-xs min-w-[240px]">
                               <thead>
                                 <tr className="border-b border-slate-200">
-                                  {["History", "Previous", "Forecast", "Actual"].map((h) => (
+                                  {[(t?.details?.detailHistory || "History"), (t?.columns?.previous || "Previous"), (t?.columns?.forecast || "Forecast"), (t?.columns?.actual || "Actual")].map((h) => (
                                     <th key={h} className="py-2 px-2 font-bold text-slate-800 text-center">{h}</th>
                                   ))}
                                 </tr>

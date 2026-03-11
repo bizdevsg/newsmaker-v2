@@ -2,6 +2,14 @@
 
 import React, { useEffect, useRef } from "react";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { useParams } from "next/navigation";
+
+import type { Messages } from "@/locales";
+
+type TikTokEmbedCardProps = {
+  locale?: string;
+  messages?: Messages;
+};
 
 const TIKTOK_VIDEOS = [
   {
@@ -18,8 +26,10 @@ const TIKTOK_VIDEOS = [
   },
 ];
 
-export function TikTokEmbedCard() {
+export function TikTokEmbedCard({ locale: propLocale, messages }: TikTokEmbedCardProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const { locale: routeLocale } = useParams<{ locale?: string }>();
+  const locale = propLocale || routeLocale;
 
   useEffect(() => {
     if (
@@ -54,7 +64,7 @@ export function TikTokEmbedCard() {
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden">
       <SectionHeader
-        title="Video on Tiktok"
+        title={locale === "id" ? "Video di Tiktok" : "Video on Tiktok"}
         actions={
           <div className="flex items-center gap-2">
             <button

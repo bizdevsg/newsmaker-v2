@@ -38,10 +38,10 @@ export function DataQuickView({ locale, messages }: DataQuickViewProps) {
         <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100 flex flex-col h-[500px]">
             <div className="flex items-center justify-between mb-4 border-b border-white pb-1">
                 <div className="px-3 font-bold py-1.5 text-[15px] font-semibold rounded-sm">
-                    Economic Calendar
+                    {messages?.widgets?.dataQuickView?.title || (locale === "id" ? "Kalender Ekonomi" : "Economic Calendar")}
                 </div>
                 <Link href={`/${locale}/policy`} className="text-sm font-semibold text-blue-700 hover:text-blue-800 transition">
-                    View More
+                    {messages?.widgets?.dataQuickView?.cta || (locale === "id" ? "Lihat Selengkapnya" : "View More")}
                 </Link>
             </div>
 
@@ -49,9 +49,9 @@ export function DataQuickView({ locale, messages }: DataQuickViewProps) {
                 <table className="w-full text-left">
                     <thead className="sticky top-0 bg-slate-100 z-10">
                         <tr>
-                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">Time</th>
-                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">Country</th>
-                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">Figures</th>
+                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">{messages?.widgets?.dataQuickView?.columns?.time || (locale === "id" ? "Waktu" : "Time")}</th>
+                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">{messages?.widgets?.dataQuickView?.columns?.country || (locale === "id" ? "Negara" : "Country")}</th>
+                            <th className="py-2 px-2 text-[13px] font-bold text-slate-800">{messages?.widgets?.dataQuickView?.columns?.figures || (locale === "id" ? "Angka" : "Figures")}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -26,6 +26,7 @@ export default async function EconomicNewsArticlePage({
                     slug={slug}
                     categorySlug={category}
                     locale={locale}
+                    messages={customMessages}
                     isEconomic={true}
                 />
             </section>

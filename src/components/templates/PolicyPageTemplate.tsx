@@ -17,10 +17,10 @@ export function PolicyPageTemplate({
     return (
         <MarketPageTemplate locale={locale} messages={messages}>
             <div className="grid gap-6">
-                <PolicyQuickData messages={messages} />
+                <PolicyQuickData messages={messages} locale={locale} />
 
                 <h3 className="text-2xl font-semibold tracking-tight text-slate-800 -mb-2 mt-4 px-1">
-                    Policy Updates & Insights
+                    {messages.policy.policyUpdates?.title}
                 </h3>
                 <div className="grid gap-6 grid-cols-1">
                     <PolicySnapshot messages={messages} locale={locale} />

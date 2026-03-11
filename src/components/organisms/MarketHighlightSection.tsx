@@ -35,13 +35,25 @@ const highlightCards = [
 
 const highlightTabs = ["Markets", "Aktivitas", "Headlines", "Snapshot"];
 
-export function MarketHighlightSection() {
+export function MarketHighlightSection({ locale, messages }: { locale?: string; messages: any }) {
+  const currentHighlightItems = messages?.widgets?.marketHighlight?.items || (locale === "id" ? [
+    { title: "Teknikal Emas Mencapai Level Baru", subtitle: "Peluang trading" },
+    { title: "Pasar Potensial Tertekan Usai Data China", subtitle: "Peluang trading" },
+    { title: "Harga Minyak Bergerak Tinggi Meski Tertekan", subtitle: "Peluang trading" },
+  ] : highlightItems);
+
+  const currentHighlightCards = messages?.widgets?.marketHighlight?.cards || (locale === "id" ? [
+    { title: "Catatan Pagi", description: "Ringkasan pergerakan pasar" },
+    { title: "Tata Kelola Pasar", description: "Ringkasan pergerakan pasar" },
+    { title: "Ekonomi Makro", description: "Ringkasan pergerakan pasar" },
+  ] : highlightCards);
+
   return (
     <section className="bg-white rounded-lg shadow">
-      <SectionHeader title="Market Highlights" />
+      <SectionHeader title={messages?.widgets?.marketHighlight?.title || (locale === "id" ? "Sorotan Pasar" : "Market Highlights")} />
       <div className="grid gap-6 px-4 md:px-5 py-4 md:grid-cols-[1.1fr_1.9fr]">
         <div className="flex h-full flex-col">
-          {highlightItems.map((item, index) => (
+          {currentHighlightItems.map((item: { title: string, subtitle: string }, index: number) => (
             <MarketHighlightItem
               key={`${item.title}-${index}`}
               title={item.title}
@@ -51,7 +63,7 @@ export function MarketHighlightSection() {
           ))}
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {highlightCards.map((card, index) => (
+          {currentHighlightCards.map((card: { title: string, description: string }, index: number) => (
             <MarketHighlightCard
               key={`${card.title}-${index}`}
               title={card.title}

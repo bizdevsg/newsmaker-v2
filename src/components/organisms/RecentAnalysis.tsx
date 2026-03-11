@@ -65,11 +65,12 @@ const stripHtml = (value: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const toSummary = (value?: string) => {
-  if (!value) return "Analisis market terbaru dari Newsmaker.";
+const toSummary = (value?: string, messages?: Messages) => {
+  const fallback = messages?.widgets?.recentAnalysis?.fallbackSummary || "Latest market analysis summary.";
+  if (!value) return fallback;
   const text = stripHtml(value);
-  if (!text) return "Analisis market terbaru dari Newsmaker.";
-  return text.length > 140 ? `${text.slice(0, 140).trim()}...` : text;
+  if (!text) return fallback;
+  return text.length > 120 ? `${text.slice(0, 120).trim()}...` : text;
 };
 
 const formatDate = (value: string | undefined, locale: string) => {
@@ -88,6 +89,7 @@ async function fetchRecentAnalysis(
   limit: number,
   includeCategoryName: string | null,
   excludeCategoryNames: string[],
+  messages?: Messages
 ) {
   try {
     const response = await fetch(NEWS_API, {
@@ -122,7 +124,7 @@ async function fetchRecentAnalysis(
       return bTime - aTime;
     });
 
-    return sorted.slice(0, limit).map((item) => {
+    return sorted.slice(0, limit).map((item, idx) => {
       const title = item.titles?.default || item.title || "Analisis Market";
       const image = item.images?.[0]
         ? `${IMAGE_BASE}${item.images[0]}`
@@ -134,8 +136,9 @@ async function fetchRecentAnalysis(
         : "#";
       const date = formatDate(item.updated_at || item.created_at, locale);
       return {
+        key: `${item.id ?? idx}-analysis`,
         title,
-        summary: toSummary(item.content),
+        summary: toSummary(item.content, messages),
         image,
         href,
         date,
@@ -158,6 +161,7 @@ export async function RecentAnalysis({
     limit,
     includeCategoryName,
     excludeCategoryNames,
+    messages
   );
   const gridCols =
     items.length <= 1
@@ -170,7 +174,7 @@ export async function RecentAnalysis({
 
   return (
     <section className="bg-white rounded-lg shadow">
-      <SectionHeader title="Recent Analysis" link={`/${locale}/news/analisis-market`} linkLabel="Recent >" />
+      <SectionHeader title={messages?.widgets?.recentAnalysis?.title || "Recent Analysis"} link={`/${locale}/news/analisis-market`} linkLabel={messages?.widgets?.recentAnalysis?.cta || "Recent >"} />
       <div className={`grid items-stretch gap-4 px-4 pb-6 pt-4 ${gridCols}`}>
         {items.map((item) => (
           <article
@@ -200,7 +204,7 @@ export async function RecentAnalysis({
                 href={item.href}
                 className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
               >
-                Read More &gt;
+                {messages?.widgets?.recentAnalysis?.itemCta || "Read More >"}
               </Link>
             </div>
           </article>

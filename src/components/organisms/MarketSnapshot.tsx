@@ -1,13 +1,14 @@
 import React from "react";
 import { SnapshotTabs } from "../molecules/SnapshotTabs";
 import { SnapshotRow } from "../molecules/SnapshotRow";
+import type { Messages } from "@/locales";
 
-export function MarketSnapshot() {
+export function MarketSnapshot({ locale, messages }: { locale?: string; messages: Messages }) {
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden">
       <div className="space-y-3 p-4">
-        <h3 className="font-semibold text-blue-800">Market Snapshot</h3>
-        <SnapshotTabs items={["Today", "Week", "Month", "Year"]} />
+        <h3 className="font-semibold text-blue-800">{messages.widgets?.marketSnapshot?.title || "Market Snapshot"}</h3>
+        <SnapshotTabs items={messages.widgets?.marketSnapshot?.tabs || ["Today", "Week", "Month", "Year"]} />
         <div>
           {["IDX Composite", "Gold", "USD/IDR", "BCO/USD"].map(
             (label, index) => (
@@ -23,7 +24,7 @@ export function MarketSnapshot() {
       </div>
 
       <div className="flex items-center justify-between gap-2 bg-zinc-200 px-2 py-2">
-        {["Markets", "Commodities", "Equities", "Forex", "Crypto"].map(
+        {(messages.widgets?.marketSnapshot?.footerLabels || ["Markets", "Commodities", "Equities", "Forex", "Crypto"]).map(
           (label) => (
             <button
               key={label}

@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { useLoading } from "../providers/LoadingProvider";
 
 type TickerBarProps = {
   ticks?: string[];
+  topNews?: string;
 };
 
 type LiveQuote = {
@@ -35,7 +37,7 @@ const API_URL = `${ENDPOAPI_BASE}/api/live-quotes`;
 const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
 
-export function TickerBar({ ticks = [] }: TickerBarProps) {
+export function TickerBar({ ticks = [], topNews = "Top News" }: TickerBarProps) {
   const loading = useLoading();
   const [liveTicks, setLiveTicks] = useState<LiveTick[]>(
     ticks.map((tick, index) => {
@@ -271,7 +273,7 @@ export function TickerBar({ ticks = [] }: TickerBarProps) {
           </div>
         </div>
         <div className="pointer-events-none absolute -left-4 top-1/2 -translate-y-1/2 rounded bg-red-600 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white shadow-sm">
-          Top News
+          {topNews}
         </div>
       </div>
     </div>

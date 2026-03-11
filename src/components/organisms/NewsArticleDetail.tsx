@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLoading } from "../providers/LoadingProvider";
+import type { Messages } from "@/locales";
 
 const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
@@ -20,6 +21,7 @@ type NewsArticleDetailProps = {
   categorySlug: string;
   locale: string;
   isEconomic?: boolean;
+  messages?: Messages;
 };
 
 export function NewsArticleDetail({
@@ -27,8 +29,29 @@ export function NewsArticleDetail({
   categorySlug,
   locale,
   isEconomic = false,
+  messages,
 }: NewsArticleDetailProps) {
   const globalLoading = useLoading();
+
+  // Bilingual labels
+  const nc = messages?.equities?.newsCategories ?? {
+    marketNewsTitle: "Market News",
+    economicNewsTitle: "Economic News",
+    latestNews: "Latest News",
+    popularNews: "Popular News",
+    relatedNews: "Related News",
+    loadingArticle: "Loading Article...",
+    articleNotFound: "Article not found.",
+    backTo: "← Back to",
+    source: "Source",
+    copied: "Copied!",
+    searchBtn: "Search",
+    closeSearch: "Close",
+    searchNews: "Search News",
+  };
+
+  const dateLocale = locale === "id" ? "id-ID" : "en-US";
+
   const [article, setArticle] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);
   const [latest, setLatest] = useState<any[]>([]);
@@ -93,7 +116,7 @@ export function NewsArticleDetail({
     return (
       <div className="flex flex-col items-center justify-center py-32 text-slate-400">
         <i className="fa-solid fa-spinner fa-spin text-3xl mb-4"></i>
-        <p className="text-sm font-semibold">Loading Article...</p>
+        <p className="text-sm font-semibold">{nc.loadingArticle}</p>
       </div>
     );
   }
@@ -102,12 +125,12 @@ export function NewsArticleDetail({
     return (
       <div className="text-center py-32">
         <i className="fa-solid fa-triangle-exclamation text-4xl text-slate-200 mb-4"></i>
-        <p className="text-slate-500 font-semibold">Article not found.</p>
+        <p className="text-slate-500 font-semibold">{nc.articleNotFound}</p>
         <Link
           href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug}`}
           className="mt-4 inline-block text-sm text-blue-600 hover:underline"
         >
-          ← Back to {categorySlug}
+          {nc.backTo} {categorySlug}
         </Link>
       </div>
     );
@@ -121,7 +144,7 @@ export function NewsArticleDetail({
     article.kategori?.name?.toUpperCase() ?? categorySlug.toUpperCase();
   const dateStr = new Date(
     article.updated_at || article.created_at,
-  ).toLocaleDateString("id-ID", {
+  ).toLocaleDateString(dateLocale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -150,7 +173,7 @@ export function NewsArticleDetail({
             href={`/${locale}/equities`}
             className="hover:text-blue-600 transition capitalize"
           >
-            {isEconomic ? "Economic News" : "Market News"}
+            {isEconomic ? nc.economicNewsTitle : nc.marketNewsTitle}
           </Link>
           <span>/</span>
           <Link
@@ -226,7 +249,7 @@ export function NewsArticleDetail({
           </button>
           {copiedLink && (
             <span className="text-[11px] text-blue-600 font-semibold animate-in fade-in">
-              Copied!
+              {nc.copied}
             </span>
           )}
         </div>
@@ -255,7 +278,7 @@ export function NewsArticleDetail({
         {/* Source */}
         {article.source && (
           <p className="mt-8 text-sm text-slate-500 border-t border-slate-100 pt-6">
-            Sumber :{" "}
+            {nc.source}:{" "}
             <span className="font-medium text-slate-700">{article.source}</span>
           </p>
         )}
@@ -264,7 +287,7 @@ export function NewsArticleDetail({
         {related.length > 0 && (
           <section className="mt-10">
             <h2 className="text-xl font-bold text-slate-800 mb-1 pb-3 border-b-2 border-blue-700 inline-block">
-              Related News
+              {nc.relatedNews}
             </h2>
             <div className="mt-5 space-y-5">
               {related.map((rel, i) => {
@@ -337,7 +360,7 @@ export function NewsArticleDetail({
         {/* Latest News */}
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5">
           <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-            Latest News
+            {nc.latestNews}
           </h2>
           <div className="space-y-4">
             {latest.map((item, i) => {
@@ -348,7 +371,7 @@ export function NewsArticleDetail({
               const cat = item.kategori?.name?.toUpperCase() ?? "";
               const d = new Date(
                 item.updated_at || item.created_at,
-              ).toLocaleDateString("id-ID", {
+              ).toLocaleDateString(dateLocale, {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
@@ -395,7 +418,7 @@ export function NewsArticleDetail({
         {/* Popular News */}
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5">
           <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-            Popular News
+            {nc.popularNews}
           </h2>
           <div className="space-y-4">
             {popular.map((item, i) => {
@@ -406,7 +429,7 @@ export function NewsArticleDetail({
               const cat = item.kategori?.name?.toUpperCase() ?? "";
               const d = new Date(
                 item.updated_at || item.created_at,
-              ).toLocaleDateString("id-ID", {
+              ).toLocaleDateString(dateLocale, {
                 day: "numeric",
                 month: "long",
                 year: "numeric",

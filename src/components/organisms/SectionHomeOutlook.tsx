@@ -1,9 +1,11 @@
 import React from "react";
 import Link from "next/link";
 import { SectionHeader } from "../molecules/SectionHeader";
+import type { Messages } from "@/locales";
 
 type SectionHomeOutlookProps = {
-  locale?: string;
+  locale: string;
+  messages: Messages;
 };
 
 const outlookItems = [
@@ -24,13 +26,16 @@ const outlookItems = [
   },
 ];
 
-export function SectionHomeOutlook({ locale = "id" }: SectionHomeOutlookProps) {
+export async function SectionHomeOutlook({
+  locale,
+  messages,
+}: SectionHomeOutlookProps) {
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden">
       <SectionHeader
-        title="Market Overview"
-        link={`/${locale}/news`}
-        linkLabel="Read More..."
+        title={messages.widgets?.marketOutlook?.title || "Market Overview"}
+        link={`/ ${locale}/news`}
+        linkLabel={messages.common?.readMore || "Read More..."}
       />
       <div className="grid items-stretch gap-4 p-4 sm:grid-cols-2">
         {outlookItems.map((item) => (
@@ -54,12 +59,12 @@ export function SectionHomeOutlook({ locale = "id" }: SectionHomeOutlookProps) {
                 href={item.href}
                 className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
               >
-                Read More &gt;
+                {messages.widgets?.marketOutlook?.itemCta || "Read More >"}
               </Link>
             </div>
           </article>
         ))}
       </div>
-    </section>
+    </section >
   );
 }

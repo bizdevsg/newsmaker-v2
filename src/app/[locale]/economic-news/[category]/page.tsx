@@ -30,7 +30,7 @@ export default async function EconomicNewsCategoryPage({
     return (
         <MarketPageTemplate locale={locale} messages={customMessages}>
             <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100 min-h-[60vh]">
-                <NewsCategoryList categorySlug={category} locale={locale} />
+                <NewsCategoryList categorySlug={category} locale={locale} messages={customMessages} />
             </section>
         </MarketPageTemplate>
     );

@@ -2,19 +2,21 @@ import React from "react";
 import { MarketBriefHeader } from "../molecules/MarketBriefHeader";
 import { MarketBriefList } from "../molecules/MarketBriefList";
 
-export function MarketBrief() {
+import type { Messages } from "@/locales";
+
+export function MarketBrief({ locale, messages }: { locale?: string; messages: Messages }) {
   return (
     <section className="bg-white rounded p-4">
       <MarketBriefHeader
-        title="Today Market Brief"
-        ctaLabel="Read More Brief"
+        title={messages.widgets?.marketBrief?.title || "Today Market Brief"}
+        ctaLabel={messages.widgets?.marketBrief?.cta || "Read More Brief"}
         ctaHref="#"
       />
       <MarketBriefList
-        items={[
-          "Gold naik karena USD melemah",
-          "Oil stabil menjelang OPEC",
-          "IHSG menguat tipis",
+        items={messages.widgets?.marketBrief?.items || [
+          "Gold rises as USD weakens",
+          "Oil steady ahead of OPEC",
+          "IHSG slightly stronger",
         ]}
       />
     </section>

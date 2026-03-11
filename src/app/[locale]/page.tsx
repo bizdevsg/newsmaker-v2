@@ -28,25 +28,25 @@ export default async function Home({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <MarketBrief />
+      <MarketBrief locale={locale} messages={messages} />
 
       <div className="grid lg:grid-cols-[1.95fr_1.05fr] gap-4">
         <MarketInsightHero />
 
-        <MarketSnapshot />
+        <MarketSnapshot locale={locale} messages={messages} />
 
         <LiveChartSection />
 
         <div className="space-y-4">
-          <SectionGridCard title="Market Quotes" items={6} />
-          <SectionGridCard title="Quick Access" items={3} />
+          <SectionGridCard title={messages.widgets?.sectionGridCard?.marketQuotes || "Market Quotes"} items={6} />
+          <SectionGridCard title={messages.widgets?.sectionGridCard?.quickAccess || "Quick Access"} items={3} />
         </div>
 
-        <SectionHomeOutlook locale={locale} />
+        <SectionHomeOutlook locale={locale} messages={messages} />
 
-        <CalenderEkonomiHome />
+        <CalenderEkonomiHome locale={locale} messages={messages} />
 
-        <MarketInsightSection />
+        <MarketInsightSection locale={locale} messages={messages} />
 
         <TikTokEmbedCard />
       </div>

@@ -127,11 +127,10 @@ export function SiteHeader() {
                   <Link
                     key={item.key}
                     href={itemHref}
-                    className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${
-                      isActive
+                    className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${isActive
                         ? "text-white after:scale-x-100"
                         : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </Link>
@@ -144,21 +143,18 @@ export function SiteHeader() {
 
       <div
         id="mobile-nav"
-        className={`fixed inset-0 z-50 md:hidden ${
-          isMobileOpen ? "pointer-events-auto" : "pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-50 md:hidden ${isMobileOpen ? "pointer-events-auto" : "pointer-events-none"
+          }`}
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity ${
-            isMobileOpen ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 bg-black/40 transition-opacity ${isMobileOpen ? "opacity-100" : "opacity-0"
+            }`}
           onClick={() => setIsMobileOpen(false)}
         />
         <aside
-          className={`absolute right-0 top-0 flex h-full w-72 max-w-[85vw] flex-col bg-white shadow-xl transition-transform ${
-            isMobileOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`absolute right-0 top-0 flex h-full w-72 max-w-[85vw] flex-col bg-white shadow-xl transition-transform ${isMobileOpen ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
             <span className="text-sm font-semibold text-slate-700">Menu</span>
@@ -208,11 +204,10 @@ export function SiteHeader() {
                     key={item.key}
                     href={itemHref}
                     onClick={() => setIsMobileOpen(false)}
-                    className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                      isActive
+                    className={`rounded-lg px-3 py-2 text-sm transition-colors ${isActive
                         ? "bg-blue-50 text-blue-700"
                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </Link>

@@ -25,6 +25,7 @@ export default async function NewsCategoryPage({
                 <NewsCategoryList
                     categorySlug={category}
                     locale={locale}
+                    messages={customMessages}
                     emptyLabel="Data belum tersedia"
                 />
             </section>

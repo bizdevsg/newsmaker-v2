@@ -1,9 +1,11 @@
 import React from "react";
 import Link from "next/link";
 import { SectionHeader } from "../molecules/SectionHeader";
+import type { Messages } from "@/locales";
 
 type MarketOutlookSectionProps = {
   locale: string;
+  messages?: Messages;
   limit?: number;
   excludeCategoryNames?: string[];
 };
@@ -66,10 +68,11 @@ const stripHtml = (value: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const toSummary = (value?: string) => {
-  if (!value) return "Ringkasan market terbaru.";
+const toSummary = (value?: string, messages?: Messages) => {
+  const fallback = messages?.widgets?.marketOutlook?.fallbackSummary || "Latest market summary.";
+  if (!value) return fallback;
   const text = stripHtml(value);
-  if (!text) return "Ringkasan market terbaru.";
+  if (!text) return fallback;
   return text.length > 120 ? `${text.slice(0, 120).trim()}...` : text;
 };
 
@@ -88,6 +91,7 @@ async function fetchMarketOverview(
   locale: string,
   limit: number,
   excludeCategoryNames: string[],
+  messages?: Messages
 ) {
   try {
     const response = await fetch(NEWS_API, {
@@ -117,7 +121,7 @@ async function fetchMarketOverview(
     });
 
     return sorted.slice(0, limit).map((item, idx) => {
-      const title = item.titles?.default || item.title || "Market Overview";
+      const title = item.titles?.default || item.title || (messages?.widgets?.marketOutlook?.title || "Market Overview");
       const image = item.images?.[0]
         ? `${IMAGE_BASE}${item.images[0]}`
         : "/assets/Screenshot-2024-10-29-at-11.27.48.png";
@@ -130,7 +134,7 @@ async function fetchMarketOverview(
       return {
         key: `${item.id ?? idx}-overview`,
         title,
-        summary: toSummary(item.content),
+        summary: toSummary(item.content, messages),
         image,
         href,
         date,
@@ -143,6 +147,7 @@ async function fetchMarketOverview(
 
 export async function MarketOutlookSection({
   locale,
+  messages,
   limit = 4,
   excludeCategoryNames = ["Analisis Market"],
 }: MarketOutlookSectionProps) {
@@ -150,6 +155,7 @@ export async function MarketOutlookSection({
     locale,
     limit,
     excludeCategoryNames,
+    messages
   );
   const gridCols =
     outlookItems.length <= 1
@@ -162,9 +168,9 @@ export async function MarketOutlookSection({
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden">
       <SectionHeader
-        title="Market Overview"
+        title={messages?.widgets?.marketOutlook?.title || "Market Overview"}
         link={`/${locale}/news`}
-        linkLabel="Read More..."
+        linkLabel={messages?.widgets?.marketOutlook?.cta || "Read More..."}
       />
       <div className={`grid items-stretch gap-4 p-4 ${gridCols}`}>
         {outlookItems.map((item) => (
@@ -193,7 +199,7 @@ export async function MarketOutlookSection({
                 href={item.href}
                 className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
               >
-                Read More &gt;
+                {messages?.widgets?.marketOutlook?.itemCta || "Read More >"}
               </Link>
             </div>
           </article>

@@ -9,6 +9,7 @@ import { useLoading } from "../providers/LoadingProvider";
 
 type PolicyHistoricDataProps = {
   messages: Messages;
+  locale: string;
 };
 
 type CurrencyItem = {
@@ -67,7 +68,7 @@ type PivotHistoryResponse = {
 
 type LastEdited = "from" | "to";
 
-export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
+export function PolicyHistoricData({ messages, locale }: PolicyHistoricDataProps) {
   const loading = useLoading();
   const data = messages.policy.historicData;
   const initialCurrenciesLoad = useRef(true);
@@ -149,9 +150,9 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
     if (!Number.isFinite(value)) return "";
 
     const isZeroDecimal = zeroDecimalCurrencies.has(currency);
-    const locale = currency === "IDR" ? "id-ID" : "en-US";
+    const localeStr = currency === "IDR" ? "id-ID" : "en-US";
 
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat(localeStr, {
       minimumFractionDigits: isZeroDecimal ? 0 : 2,
       maximumFractionDigits: isZeroDecimal ? 0 : 2,
     }).format(value);
@@ -161,7 +162,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
     if (value === null || value === undefined) return "-";
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return String(value);
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 4,
     }).format(numeric);
@@ -170,7 +171,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
   const formatHistoryDate = (value: string): string => {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
-    return new Intl.DateTimeFormat("en-GB", {
+    return new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -269,7 +270,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         if (!response.ok) {
           if (isActive) {
             setHistoryRows([]);
-            setHistoryError("Failed to load history data.");
+            setHistoryError(locale === "id" ? "Gagal memuat data historis." : "Failed to load history data.");
           }
           return;
         }
@@ -283,7 +284,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
       } catch {
         if (isActive) {
           setHistoryRows([]);
-          setHistoryError("Failed to load history data.");
+          setHistoryError(locale === "id" ? "Gagal memuat data historis." : "Failed to load history data.");
         }
       } finally {
         if (isActive) {
@@ -505,14 +506,16 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         {loadingHistory && (
           <div className="py-8 text-center text-slate-400 text-sm">
             <i className="fa-solid fa-spinner fa-spin mr-2"></i>
-            Loading history data...
+            {locale === "id" ? "Memuat data historis..." : "Loading history data..."}
           </div>
         )}
         {!loadingHistory && historyError && (
           <div className="py-8 text-center text-rose-400 text-sm">{historyError}</div>
         )}
         {!loadingHistory && !historyError && rows.length === 0 && (
-          <div className="py-8 text-center text-slate-400 text-sm">No data available.</div>
+          <div className="py-8 text-center text-slate-400 text-sm">
+            {locale === "id" ? "Tidak ada data yang tersedia." : "No data available."}
+          </div>
         )}
         {rows.map((row, idx) => (
           <div
@@ -526,12 +529,12 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
               <span className="text-sm font-bold text-slate-800">{row.d}</span>
               {row.isBankHoliday && (
                 <span className="text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 uppercase tracking-wider">
-                  Bank Holiday
+                  {locale === "id" ? "Libur Bank" : "Bank Holiday"}
                 </span>
               )}
             </div>
             {row.isBankHoliday ? (
-              <p className="text-xs text-slate-500 capitalize">{row.description || "Bank holiday"}</p>
+              <p className="text-xs text-slate-500 capitalize">{row.description || (locale === "id" ? "Libur Bank" : "Bank Holiday")}</p>
             ) : (
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                 {[
@@ -567,7 +570,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
             {loadingHistory && (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
-                  Loading history data...
+                  {locale === "id" ? "Memuat data historis..." : "Loading history data..."}
                 </td>
               </tr>
             )}
@@ -581,7 +584,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
             {!loadingHistory && !historyError && rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
-                  No data available.
+                  {locale === "id" ? "Tidak ada data yang tersedia." : "No data available."}
                 </td>
               </tr>
             )}
@@ -598,7 +601,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
                       colSpan={4}
                       className="px-4 py-3.5 text-sm font-medium text-slate-600 text-center capitalize"
                     >
-                      {row.description || "Bank holiday"}
+                      {row.description || (locale === "id" ? "Libur Bank" : "Bank Holiday")}
                     </td>
                   </>
                 ) : (

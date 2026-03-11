@@ -4,6 +4,103 @@
     "readMore": "Baca Lainnya",
     "viewReport": "Lihat Laporan"
   },
+  "widgets": {
+    "tickerBar": {
+      "topNews": "Berita Terkini"
+    },
+    "calendarEkonomi": {
+      "title": "Kalender Ekonomi",
+      "columns": {
+        "time": "Waktu",
+        "curr": "Mata Uang",
+        "impact": "Dampak",
+        "event": "Peristiwa"
+      },
+      "noData": "Data belum tersedia.",
+      "cta": "Lihat Semua Kalender"
+    },
+    "dataQuickView": {
+      "title": "Kalender Ekonomi",
+      "cta": "Lihat Selengkapnya",
+      "columns": {
+        "time": "Waktu",
+        "country": "Negara",
+        "figures": "Peristiwa"
+      }
+    },
+    "marketOutlook": {
+      "title": "Tinjauan Pasar",
+      "cta": "Baca Selengkapnya...",
+      "itemCta": "Baca Selengkapnya >",
+      "fallbackSummary": "Ringkasan market terbaru."
+    },
+    "recentAnalysis": {
+      "title": "Analisis Terbaru",
+      "cta": "Terbaru >",
+      "itemCta": "Baca Selengkapnya >",
+      "fallbackSummary": "Ringkasan analisis market."
+    },
+    "marketSnapshot": {
+      "title": "Cuplikan Pasar",
+      "tabs": [
+        "Hari Ini",
+        "Minggu",
+        "Bulan",
+        "Tahun"
+      ],
+      "footerLabels": [
+        "Pasar",
+        "Komoditas",
+        "Ekuitas",
+        "Forex",
+        "Kripto"
+      ]
+    },
+    "marketBrief": {
+      "title": "Ringkasan Pasar Hari Ini",
+      "cta": "Baca Selengkapnya",
+      "items": [
+        "Emas naik karena USD melemah",
+        "Minyak stabil menjelang OPEC",
+        "IHSG menguat tipis"
+      ]
+    },
+    "marketHighlight": {
+      "title": "Sorotan Pasar",
+      "items": [
+        {
+          "title": "Teknikal Emas Mencapai Level Baru",
+          "subtitle": "Peluang trading"
+        },
+        {
+          "title": "Pasar Potensial Tertekan Usai Data China",
+          "subtitle": "Peluang trading"
+        },
+        {
+          "title": "Harga Minyak Bergerak Tinggi Meski Tertekan",
+          "subtitle": "Peluang trading"
+        }
+      ],
+      "cards": [
+        {
+          "title": "Catatan Pagi",
+          "description": "Ringkasan pergerakan pasar"
+        },
+        {
+          "title": "Tata Kelola Pasar",
+          "description": "Ringkasan pergerakan pasar"
+        },
+        {
+          "title": "Ekonomi Makro",
+          "description": "Ringkasan pergerakan pasar"
+        }
+      ]
+    },
+    "sectionGridCard": {
+      "marketQuotes": "Kutipan Pasar",
+      "quickAccess": "Akses Cepat"
+    }
+  },
   "header": {
     "navItems": [
       {
@@ -402,6 +499,30 @@
           "image": "/assets/placeholder-infrastructure.jpg"
         }
       ]
+    },
+    "newsCategories": {
+      "marketNewsTitle": "Berita Pasar",
+      "economicNewsTitle": "Berita Ekonomi",
+      "viewAll": "Lihat Semua",
+      "readMore": "Baca Selengkapnya",
+      "allArticles": "Semua Artikel",
+      "searchPlaceholder": "Cari berita...",
+      "noResults": "Tidak ada hasil untuk",
+      "articles": "artikel",
+      "results": "hasil",
+      "backToCategories": "Kembali ke Kategori",
+      "latestNews": "Berita Terkini",
+      "popularNews": "Berita Populer",
+      "relatedNews": "Berita Terkait",
+      "loadingArticle": "Memuat Artikel...",
+      "loadingArticles": "Memuat berita...",
+      "articleNotFound": "Artikel tidak ditemukan.",
+      "backTo": "← Kembali ke",
+      "source": "Sumber",
+      "copied": "Tersalin!",
+      "searchBtn": "Cari",
+      "closeSearch": "Tutup",
+      "searchNews": "Cari Berita"
     }
   },
   "policy": {
@@ -425,13 +546,44 @@
           "label": "Analisis Historis"
         }
       ],
-      "economicCalendar": [],
+      "economicCalendar": {
+        "noData": "Tidak ada data yang tersedia.",
+        "timeFrames": {
+          "today": "Hari Ini",
+          "this-week": "Minggu Ini",
+          "previous-week": "Minggu Lalu",
+          "next-week": "Minggu Depan"
+        },
+        "columns": {
+          "date": "Tanggal",
+          "time": "Waktu",
+          "currency": "Mata Uang",
+          "event": "Peristiwa",
+          "impact": "Dampak",
+          "previous": "Sebelumnya",
+          "forecast": "Perkiraan",
+          "actual": "Aktual"
+        },
+        "details": {
+          "sources": "Sumber",
+          "measures": "Ukuran",
+          "usualEffect": "Efek Biasa",
+          "frequency": "Frekuensi",
+          "nextRelease": "Rilis Berikutnya",
+          "notes": "Catatan",
+          "whyCare": "Mengapa Trader Peduli",
+          "detailHistory": "Detail Historis"
+        }
+      },
       "actions": {
         "economicCalendar": "Kalender Ekonomi",
         "pivotFibonacci": "Pivot & Fibonacci",
         "liveChart": "Grafik Langsung",
         "historic": "Data Historis"
       }
+    },
+    "policyUpdates": {
+      "title": "Pembaruan & Wawasan Kebijakan"
     },
     "historicData": {
       "title": "Data Historis",

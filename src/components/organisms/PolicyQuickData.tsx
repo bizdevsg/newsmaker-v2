@@ -11,11 +11,12 @@ import { PolicyQuickDataLiveChart } from "./PolicyQuickDataLiveChart";
 
 type PolicyQuickDataProps = {
   messages: Messages;
+  locale?: string;
 };
 
 const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
 
-export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
+export function PolicyQuickData({ messages, locale = "id" }: PolicyQuickDataProps) {
   const loading = useLoading();
   const { quickData } = messages.policy;
   const [activeTab, setActiveTab] = useState(quickData.tabs[0].key);
@@ -201,10 +202,12 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
           onPageChange={setCalendarPage}
           expandedRow={expandedRow}
           onToggleRow={(row) => setExpandedRow(row === -1 ? null : row)}
+          messages={messages}
+          locale={locale}
         />
       )}
 
-      {activeTab === "fibonacci" && <PivotFibonacci messages={messages} />}
+      {activeTab === "fibonacci" && <PivotFibonacci messages={messages} locale={locale} />}
 
 
       {activeTab === "liveChart" && (
@@ -216,7 +219,7 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
         />
       )}
 
-      {activeTab === "historic" && <PolicyHistoricData messages={messages} />}
+      {activeTab === "historic" && <PolicyHistoricData messages={messages} locale={locale} />}
 
     </section>
   );

@@ -95,27 +95,13 @@ export function EquitiesMarketOverview({ messages }: EquitiesMarketOverviewProps
                 <h2 className="text-xl font-semibold text-slate-800">
                     {marketOverview.title}
                 </h2>
-                <div className="flex items-center gap-4">
-                    <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        {marketOverview.tabs.map((tab, idx) => (
-                            <button
-                                key={tab.key}
-                                type="button"
-                                className={`transition-colors hover:text-blue-600 ${idx === 0 ? "text-blue-600 border-b-2 border-blue-600 pb-1" : "pb-1"
-                                    }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                    <select className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none focus:border-blue-500">
-                        {marketOverview.tabs.map((tab) => (
-                            <option key={tab.key} value={tab.key}>
-                                {tab.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <select className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none focus:border-blue-500">
+                    {marketOverview.tabs.map((tab) => (
+                        <option key={tab.key} value={tab.key}>
+                            {tab.label}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             <div className="overflow-x-auto">

@@ -4,6 +4,103 @@
     "readMore": "Read More",
     "viewReport": "View Report"
   },
+  "widgets": {
+    "tickerBar": {
+      "topNews": "Top News"
+    },
+    "calendarEkonomi": {
+      "title": "Economic Calendar",
+      "columns": {
+        "time": "Time",
+        "curr": "Curr",
+        "impact": "Impact",
+        "event": "Event"
+      },
+      "noData": "No data available.",
+      "cta": "View Full Calendar"
+    },
+    "dataQuickView": {
+      "title": "Economic Calendar",
+      "cta": "View More",
+      "columns": {
+        "time": "Time",
+        "country": "Country",
+        "figures": "Figures"
+      }
+    },
+    "marketOutlook": {
+      "title": "Market Overview",
+      "cta": "Read More...",
+      "itemCta": "Read More >",
+      "fallbackSummary": "Latest market summary."
+    },
+    "recentAnalysis": {
+      "title": "Recent Analysis",
+      "cta": "Recent >",
+      "itemCta": "Read More >",
+      "fallbackSummary": "Latest market analysis summary."
+    },
+    "marketSnapshot": {
+      "title": "Market Snapshot",
+      "tabs": [
+        "Today",
+        "Week",
+        "Month",
+        "Year"
+      ],
+      "footerLabels": [
+        "Markets",
+        "Commodities",
+        "Equities",
+        "Forex",
+        "Crypto"
+      ]
+    },
+    "marketBrief": {
+      "title": "Today Market Brief",
+      "cta": "Read More Brief",
+      "items": [
+        "Gold rises as USD weakens",
+        "Oil steady ahead of OPEC",
+        "IHSG slightly stronger"
+      ]
+    },
+    "marketHighlight": {
+      "title": "Market Highlights",
+      "items": [
+        {
+          "title": "Gold Technical Makes New Level",
+          "subtitle": "The trading opportunities"
+        },
+        {
+          "title": "Potential Markets Under Pressure After China Data",
+          "subtitle": "The trading opportunities"
+        },
+        {
+          "title": "Oil Price Makes Higher Move Under Pressure",
+          "subtitle": "The trading opportunities"
+        }
+      ],
+      "cards": [
+        {
+          "title": "Morning Notes",
+          "description": "Snapshot of market moves"
+        },
+        {
+          "title": "Market Governance",
+          "description": "Snapshot of market moves"
+        },
+        {
+          "title": "Macro Economics",
+          "description": "Snapshot of market moves"
+        }
+      ]
+    },
+    "sectionGridCard": {
+      "marketQuotes": "Market Quotes",
+      "quickAccess": "Quick Access"
+    }
+  },
   "header": {
     "navItems": [
       {
@@ -402,6 +499,30 @@
           "image": "/assets/placeholder-infrastructure.jpg"
         }
       ]
+    },
+    "newsCategories": {
+      "marketNewsTitle": "Market News",
+      "economicNewsTitle": "Economic News",
+      "viewAll": "View All",
+      "readMore": "Read More",
+      "allArticles": "All Articles",
+      "searchPlaceholder": "Search news...",
+      "noResults": "No results for",
+      "articles": "articles",
+      "results": "results",
+      "backToCategories": "Back to Categories",
+      "latestNews": "Latest News",
+      "popularNews": "Popular News",
+      "relatedNews": "Related News",
+      "loadingArticle": "Loading Article...",
+      "loadingArticles": "Loading Articles...",
+      "articleNotFound": "Article not found.",
+      "backTo": "← Back to",
+      "source": "Source",
+      "copied": "Copied!",
+      "searchBtn": "Search",
+      "closeSearch": "Close",
+      "searchNews": "Search News"
     }
   },
   "policy": {
@@ -425,13 +546,44 @@
           "label": "Historic Analysis"
         }
       ],
-      "economicCalendar": [],
+      "economicCalendar": {
+        "noData": "No data available.",
+        "timeFrames": {
+          "today": "Today",
+          "this-week": "This Week",
+          "previous-week": "Previous Week",
+          "next-week": "Next Week"
+        },
+        "columns": {
+          "date": "Date",
+          "time": "Time",
+          "currency": "Currency",
+          "event": "Event",
+          "impact": "Impact",
+          "previous": "Previous",
+          "forecast": "Forecast",
+          "actual": "Actual"
+        },
+        "details": {
+          "sources": "Sources",
+          "measures": "Measures",
+          "usualEffect": "Usual Effect",
+          "frequency": "Frequency",
+          "nextRelease": "Next Released",
+          "notes": "Notes",
+          "whyCare": "Why Traders Care",
+          "detailHistory": "Detail History"
+        }
+      },
       "actions": {
         "economicCalendar": "Economic Calendar",
         "pivotFibonacci": "Pivot & Fibonacci",
         "liveChart": "Live Chart",
         "historic": "Historical Data"
       }
+    },
+    "policyUpdates": {
+      "title": "Policy Updates & Insights"
     },
     "historicData": {
       "title": "Historical Data",

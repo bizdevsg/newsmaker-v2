@@ -9,6 +9,7 @@ import { useLoading } from "../providers/LoadingProvider";
 
 type PivotFibonacciProps = {
   messages: Messages;
+  locale: string;
 };
 
 type CurrencyItem = {
@@ -67,7 +68,7 @@ type PivotHistoryResponse = {
 
 type LastEdited = "from" | "to";
 
-export function PivotFibonacci({ messages }: PivotFibonacciProps) {
+export function PivotFibonacci({ messages, locale }: PivotFibonacciProps) {
   const loading = useLoading();
   const pfData = messages.policy.pivotFibonacci;
   const historicData = messages.policy.historicData;
@@ -329,9 +330,8 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
     if (!Number.isFinite(value)) return "";
 
     const isZeroDecimal = zeroDecimalCurrencies.has(currency);
-    const locale = currency === "IDR" ? "id-ID" : "en-US";
-
-    return new Intl.NumberFormat(locale, {
+    const localeStr = locale === "id" ? "id-ID" : "en-US";
+    return new Intl.NumberFormat(localeStr, {
       minimumFractionDigits: isZeroDecimal ? 0 : 2,
       maximumFractionDigits: isZeroDecimal ? 0 : 2,
     }).format(value);
@@ -371,7 +371,7 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
     if (value === null || value === undefined) return "-";
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return String(value);
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 4,
     }).format(numeric);
@@ -380,7 +380,7 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
   const formatHistoryDate = (value: string): string => {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
-    return new Intl.DateTimeFormat("en-GB", {
+    return new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -610,9 +610,9 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
   const rateText =
     rate && rate > 0
       ? {
-          forward: `1 ${fromCurrency} = ${formatValue(rate, toCurrency)} ${toCurrency}`,
-          reverse: `1 ${toCurrency} = ${formatValue(1 / rate, fromCurrency)} ${fromCurrency}`,
-        }
+        forward: `1 ${fromCurrency} = ${formatValue(rate, toCurrency)} ${toCurrency}`,
+        reverse: `1 ${toCurrency} = ${formatValue(1 / rate, fromCurrency)} ${fromCurrency}`,
+      }
       : null;
 
   return (
@@ -621,11 +621,10 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
       <div className="flex items-center gap-1 border-b border-slate-200 mb-6">
         <button
           onClick={() => setSubTab("pivot")}
-          className={`px-4 py-3 text-sm font-semibold transition-all relative ${
-            subTab === "pivot"
+          className={`px-4 py-3 text-sm font-semibold transition-all relative ${subTab === "pivot"
               ? "text-blue-700 bg-white"
               : "text-slate-500 hover:text-blue-600 hover:bg-slate-50"
-          }`}
+            }`}
         >
           {pfData.tabs.pivot}
           {subTab === "pivot" && (
@@ -637,11 +636,10 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
         </button>
         <button
           onClick={() => setSubTab("fibonacci")}
-          className={`px-4 py-3 text-sm font-semibold transition-all relative ${
-            subTab === "fibonacci"
+          className={`px-4 py-3 text-sm font-semibold transition-all relative ${subTab === "fibonacci"
               ? "text-blue-700 bg-white"
               : "text-slate-500 hover:text-blue-600 hover:bg-slate-50"
-          }`}
+            }`}
         >
           {pfData.tabs.fibonacci}
           {subTab === "fibonacci" && (
@@ -1203,9 +1201,8 @@ export function PivotFibonacci({ messages }: PivotFibonacciProps) {
               {rows.map((row, idx) => (
                 <tr
                   key={idx}
-                  className={`transition-colors odd:bg-white even:bg-slate-50/70 hover:bg-slate-100/70 ${
-                    row.isBankHoliday ? "text-slate-500" : ""
-                  }`}
+                  className={`transition-colors odd:bg-white even:bg-slate-50/70 hover:bg-slate-100/70 ${row.isBankHoliday ? "text-slate-500" : ""
+                    }`}
                 >
                   {row.isBankHoliday ? (
                     <>

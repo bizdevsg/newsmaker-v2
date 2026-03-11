@@ -4,6 +4,9 @@ import React, { useEffect, useRef, useState } from "react";
 import TradingViewWidget from "./TradingViewWidget";
 import { SectionHeader } from "../molecules/SectionHeader";
 import { useLoading } from "../providers/LoadingProvider";
+import { useParams } from "next/navigation";
+
+import type { Messages } from "@/locales";
 
 type LiveChartItem = {
   symbol: string;
@@ -12,6 +15,8 @@ type LiveChartItem = {
 };
 
 type LiveChartSectionProps = {
+  locale?: string;
+  messages?: Messages;
   initialItems?: LiveChartItem[];
   initialUpdatedAt?: string;
   initialServerTime?: string;
@@ -115,6 +120,8 @@ const formatPrice = (value: number) => {
 const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
 
 export function LiveChartSection({
+  locale: propLocale,
+  messages,
   initialItems = [],
   initialUpdatedAt,
   initialServerTime,
@@ -130,6 +137,8 @@ export function LiveChartSection({
   );
   const [chartSymbol, setChartSymbol] = useState("OANDA:XAUUSD");
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const { locale: routeLocale } = useParams<{ locale?: string }>();
+  const locale = propLocale || routeLocale;
   const initialLoad = useRef(true);
   const apiUrl = `${ENDPOAPI_BASE}/api/live-quotes`;
 
@@ -175,11 +184,11 @@ export function LiveChartSection({
 
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden h-full">
-      <SectionHeader title="Live Market Quotes" optional={subtitle} />
+      <SectionHeader title={locale === "id" ? "Kutipan Pasar Langsung" : "Live Market Quotes"} optional={subtitle} />
 
       <div ref={scrollerRef} className="overflow-hidden px-4 py-4">
         {items.length === 0 ? (
-          <div className="text-xs text-slate-500">Data belum tersedia.</div>
+          <div className="text-xs text-slate-500">{messages?.widgets?.calendarEkonomi?.noData || (locale === "id" ? "Data belum tersedia." : "Data not available.")}</div>
         ) : (
           <div
             className="live-quote-track-policy flex w-max gap-4"
@@ -199,11 +208,10 @@ export function LiveChartSection({
                 <div
                   key={`${item.symbol}-${index}`}
                   onClick={() => setChartSymbol(tvSymbol)}
-                  className={`flex-none w-[260px] p-4 flex flex-col justify-center rounded-md border transition shadow-sm hover:shadow-md cursor-pointer ${
-                    chartSymbol === tvSymbol
-                      ? "bg-blue-50 border-blue-300 ring-1 ring-blue-100"
-                      : "bg-white border-slate-200"
-                  }`}
+                  className={`flex-none w-[260px] p-4 flex flex-col justify-center rounded-md border transition shadow-sm hover:shadow-md cursor-pointer ${chartSymbol === tvSymbol
+                    ? "bg-blue-50 border-blue-300 ring-1 ring-blue-100"
+                    : "bg-white border-slate-200"
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -223,23 +231,20 @@ export function LiveChartSection({
                     </div>
                     <div className="text-right flex flex-col items-end">
                       <div
-                        className={`flex items-center gap-1 font-bold text-sm ${
-                          isUp ? "text-emerald-600" : "text-rose-600"
-                        }`}
+                        className={`flex items-center gap-1 font-bold text-sm ${isUp ? "text-emerald-600" : "text-rose-600"
+                          }`}
                       >
                         {formatPrice(item.price)}
                       </div>
                       <div
-                        className={`text-xs font-bold mt-1 ${
-                          change.startsWith("-")
-                            ? "text-rose-600"
-                            : "text-emerald-600"
-                        }`}
+                        className={`text-xs font-bold mt-1 ${change.startsWith("-")
+                          ? "text-rose-600"
+                          : "text-emerald-600"
+                          }`}
                       >
                         <i
-                          className={`fa-solid ${
-                            isUp ? "fa-caret-up" : "fa-caret-down"
-                          } mr-1`}
+                          className={`fa-solid ${isUp ? "fa-caret-up" : "fa-caret-down"
+                            } mr-1`}
                         ></i>
                         {change}
                       </div>

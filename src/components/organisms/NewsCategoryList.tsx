@@ -6,10 +6,13 @@ import { Pagination } from "../molecules/Pagination";
 import { useLoading } from "../providers/LoadingProvider";
 import Image from "next/image";
 
+import type { Messages } from "@/locales";
+
 type NewsCategoryListProps = {
   categorySlug: string;
   locale: string;
   emptyLabel?: string;
+  messages?: Messages;
 };
 
 const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
@@ -87,8 +90,35 @@ export function NewsCategoryList({
   categorySlug,
   locale,
   emptyLabel,
+  messages,
 }: NewsCategoryListProps) {
   const globalLoading = useLoading();
+
+  // Bilingual labels — fallback to English if messages not provided
+  const nc = messages?.equities?.newsCategories ?? {
+    marketNewsTitle: "Market News",
+    economicNewsTitle: "Economic News",
+    viewAll: "View All",
+    readMore: "Read More",
+    allArticles: "All Articles",
+    searchPlaceholder: "Search news...",
+    noResults: "No results for",
+    articles: "articles",
+    results: "results",
+    backToCategories: "Back to Categories",
+    latestNews: "Latest News",
+    popularNews: "Popular News",
+    relatedNews: "Related News",
+    loadingArticle: "Loading Article...",
+    loadingArticles: "Loading Articles...",
+    articleNotFound: "Article not found.",
+    backTo: "← Back to",
+    source: "Source",
+    copied: "Copied!",
+    searchBtn: "Search",
+    closeSearch: "Close",
+    searchNews: "Search News",
+  };
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -232,15 +262,14 @@ export function NewsCategoryList({
                 href={`/${locale}/equities`}
                 className="hover:text-blue-600 transition"
               >
-                {isEconomic ? "Economic News" : isAll ? "News" : "Market News"}
+                {isEconomic ? nc.economicNewsTitle : isAll ? nc.allArticles : nc.marketNewsTitle}
               </Link>
               <span>/</span>
               <span className="text-slate-700 font-semibold">{label}</span>
             </div>
             <h1 className="text-3xl font-bold text-slate-900">{label}</h1>
             <p className="text-slate-500 mt-2 text-sm">
-              {filteredBySearch.length} article
-              {filteredBySearch.length !== 1 ? "s" : ""}
+              {filteredBySearch.length} {nc.articles}
             </p>
           </div>
 
@@ -256,7 +285,7 @@ export function NewsCategoryList({
                   aria-label="Open search"
                 >
                   <i className="fa-solid fa-magnifying-glass text-xs"></i>
-                  Search
+                  {nc.searchBtn}
                 </button>
               )}
               {isSearchOpen && (
@@ -269,7 +298,7 @@ export function NewsCategoryList({
                       setSearchTerm(e.target.value);
                       setPage(1);
                     }}
-                    placeholder="Search news..."
+                    placeholder={nc.searchPlaceholder}
                     className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
                     aria-label="Search news"
                     autoFocus
@@ -284,7 +313,7 @@ export function NewsCategoryList({
                     className="text-xs font-semibold text-slate-500 hover:text-slate-700"
                     aria-label="Close search"
                   >
-                    Close
+                    {nc.closeSearch}
                   </button>
                 </div>
               )}
@@ -300,7 +329,7 @@ export function NewsCategoryList({
                   aria-label={isSearchOpen ? "Close search" : "Open search"}
                 >
                   <i className="fa-solid fa-magnifying-glass text-xs"></i>
-                  Search
+                  {nc.searchBtn}
                 </button>
               </div>
               {isSearchOpen && (
@@ -317,7 +346,7 @@ export function NewsCategoryList({
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-semibold text-slate-700">
-                        Search News
+                        {nc.searchNews}
                       </span>
                       <button
                         type="button"
@@ -329,7 +358,7 @@ export function NewsCategoryList({
                         className="text-xs font-semibold text-slate-500 hover:text-slate-700"
                         aria-label="Close search"
                       >
-                        Close
+                        {nc.closeSearch}
                       </button>
                     </div>
                     <div className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
@@ -341,7 +370,7 @@ export function NewsCategoryList({
                           setSearchTerm(e.target.value);
                           setPage(1);
                         }}
-                        placeholder="Search news..."
+                        placeholder={nc.searchPlaceholder}
                         className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
                         aria-label="Search news"
                         autoFocus
@@ -365,8 +394,9 @@ export function NewsCategoryList({
               />
 
               <p className="text-sm md:text-base text-slate-500 font-semibold text-center max-w-lg">
-                Belum ada data yang tersedia untuk ditampilkan saat ini. Silakan
-                kembali beberapa saat lagi.
+                {locale === "id"
+                  ? "Belum ada data yang tersedia untuk ditampilkan saat ini. Silakan kembali beberapa saat lagi."
+                  : "No data available at the moment. Please check back later."}
               </p>
             </div>
 
@@ -376,12 +406,12 @@ export function NewsCategoryList({
             >
               <div className="flex items-center gap-2">
                 <i className="fa-solid fa-arrow-left text-xs"></i>
-                <span className="leading-none">Back</span>
+                <span className="leading-none">{nc.backToCategories}</span>
               </div>
             </Link>
           </div>
         </div>
-      </div>
+      </div >
     );
   }
 
@@ -395,15 +425,14 @@ export function NewsCategoryList({
               href={`/${locale}/equities`}
               className="hover:text-blue-600 transition"
             >
-              {isEconomic ? "Economic News" : isAll ? "News" : "Market News"}
+              {isEconomic ? nc.economicNewsTitle : isAll ? nc.allArticles : nc.marketNewsTitle}
             </Link>
             <span>/</span>
             <span className="text-slate-700 font-semibold">{label}</span>
           </div>
           <h1 className="text-3xl font-bold text-slate-900">{label}</h1>
           <p className="text-slate-500 mt-2 text-sm">
-            {filteredBySearch.length} article
-            {filteredBySearch.length !== 1 ? "s" : ""}
+            {filteredBySearch.length} {nc.articles}
           </p>
         </div>
 
@@ -419,7 +448,7 @@ export function NewsCategoryList({
                 aria-label="Open search"
               >
                 <i className="fa-solid fa-magnifying-glass text-xs"></i>
-                Search
+                {nc.searchBtn}
               </button>
             )}
             {isSearchOpen && (
@@ -432,7 +461,7 @@ export function NewsCategoryList({
                     setSearchTerm(e.target.value);
                     setPage(1);
                   }}
-                  placeholder="Search news..."
+                  placeholder={nc.searchPlaceholder}
                   className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
                   aria-label="Search news"
                   autoFocus
@@ -447,7 +476,7 @@ export function NewsCategoryList({
                   className="text-xs font-semibold text-slate-500 hover:text-slate-700"
                   aria-label="Close search"
                 >
-                  Close
+                  {nc.closeSearch}
                 </button>
               </div>
             )}
@@ -463,7 +492,7 @@ export function NewsCategoryList({
                 aria-label={isSearchOpen ? "Close search" : "Open search"}
               >
                 <i className="fa-solid fa-magnifying-glass text-xs"></i>
-                Search
+                {nc.searchBtn}
               </button>
             </div>
             {isSearchOpen && (
@@ -480,7 +509,7 @@ export function NewsCategoryList({
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-slate-700">
-                      Search News
+                      {nc.searchNews}
                     </span>
                     <button
                       type="button"
@@ -492,7 +521,7 @@ export function NewsCategoryList({
                       className="text-xs font-semibold text-slate-500 hover:text-slate-700"
                       aria-label="Close search"
                     >
-                      Close
+                      {nc.closeSearch}
                     </button>
                   </div>
                   <div className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
@@ -504,7 +533,7 @@ export function NewsCategoryList({
                         setSearchTerm(e.target.value);
                         setPage(1);
                       }}
-                      placeholder="Search news..."
+                      placeholder={nc.searchPlaceholder}
                       className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
                       aria-label="Search news"
                       autoFocus
@@ -521,7 +550,7 @@ export function NewsCategoryList({
         <div className="text-center py-16">
           <i className="fa-solid fa-magnifying-glass text-3xl text-slate-200 mb-3"></i>
           <p className="text-slate-500 font-semibold">
-            No results for "{searchTerm.trim()}"
+            {nc.noResults} "{searchTerm.trim()}"
           </p>
         </div>
       )}
@@ -594,7 +623,7 @@ export function NewsCategoryList({
                     href={`/${locale}/${isItemEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug ?? ""}`}
                     className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 transition"
                   >
-                    READ MORE
+                    {nc.readMore.toUpperCase()}
                   </Link>
                   {/* Social share row */}
                   {(() => {

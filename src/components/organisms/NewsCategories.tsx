@@ -220,6 +220,7 @@ function CategoryCard({
 // ─── Main component ──────────────────────────────────────────────────────────
 export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
     const loading = useLoading();
+    const nc = messages.equities.newsCategories;
     const [thumbById, setThumbById] = useState<Record<number, string>>({});
     const [thumbBySlug, setThumbBySlug] = useState<Record<string, string>>({});
 
@@ -247,13 +248,13 @@ export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
                         <div className="h-5 w-1.5 rounded-full bg-blue-600"></div>
-                        <h2 className="text-xl font-bold text-slate-800">Market News</h2>
+                        <h2 className="text-xl font-bold text-slate-800">{nc.marketNewsTitle}</h2>
                     </div>
                     <Link
                         href={`/${locale}/news`}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
                     >
-                        View All &rsaquo;
+                        {nc.viewAll} &rsaquo;
                     </Link>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -285,7 +286,7 @@ export function NewsCategories({ locale, messages }: NewsCategoriesProps) {
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
                         <div className="h-5 w-1.5 rounded-full bg-teal-600"></div>
-                        <h2 className="text-xl font-bold text-slate-800">Economic News</h2>
+                        <h2 className="text-xl font-bold text-slate-800">{nc.economicNewsTitle}</h2>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

@@ -30,19 +30,19 @@ export default async function Home({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <MarketBrief />
+      <MarketBrief locale={locale} messages={messages} />
 
       <div className="grid lg:grid-cols-[1.95fr_1.05fr] gap-4">
         <LiveChartSection />
 
         <div className="space-y-4">
-          <MarketSnapshot />
+          <MarketSnapshot locale={locale} messages={messages} />
 
           <RecentAnalysis messages={messages} locale={locale} />
         </div>
       </div>
 
-      <MarketHighlightSection />
+      <MarketHighlightSection locale={locale} messages={messages} />
     </MarketPageTemplate>
   );
 }

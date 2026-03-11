@@ -37,7 +37,14 @@ const fallbackItem = [
   },
 ];
 
-export function MarketInsightSection() {
+import type { Messages } from "@/locales";
+
+type MarketInsightSectionProps = {
+  locale?: string;
+  messages?: Messages;
+};
+
+export function MarketInsightSection({ locale, messages }: MarketInsightSectionProps) {
   const loading = useLoading();
   const [insightItems, setInsightItems] = useState(fallbackItem);
 
@@ -119,7 +126,7 @@ export function MarketInsightSection() {
 
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden h-fit">
-      <SectionHeader title="Market Insight" />
+      <SectionHeader title={locale === "id" ? "Wawasan Pasar" : "Market Insights"} link="#" linkLabel={messages?.common?.readMore || "Read More..."} />
       <div className="grid gap-4 p-4 md:grid-cols-2">
         {insightItems.map((item) => (
           <InsightCard

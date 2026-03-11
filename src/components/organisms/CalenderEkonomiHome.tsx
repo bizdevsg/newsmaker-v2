@@ -22,9 +22,17 @@ type CalendarResponse = {
 const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
 const CALENDAR_URL = `${ENDPOAPI_BASE}/api/calendar/today`;
 
-export default function CalenderEkonomiHome() {
+import type { Messages } from "@/locales";
+
+type CalenderEkonomiHomeProps = {
+  locale?: string;
+  messages?: Messages;
+};
+
+export default function CalenderEkonomiHome({ locale: propLocale, messages }: CalenderEkonomiHomeProps) {
   const loading = useLoading();
-  const { locale } = useParams<{ locale?: string }>();
+  const { locale: routeLocale } = useParams<{ locale?: string }>();
+  const locale = propLocale || routeLocale;
   const [items, setItems] = useState<CalendarItem[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
   const initialLoad = useRef(true);
@@ -61,27 +69,27 @@ export default function CalenderEkonomiHome() {
 
   const formattedUpdatedAt = updatedAt
     ? new Intl.DateTimeFormat("id-ID", {
-        dateStyle: "medium",
-        timeStyle: "short",
-        timeZone: "Asia/Jakarta",
-      }).format(new Date(updatedAt))
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "Asia/Jakarta",
+    }).format(new Date(updatedAt))
     : "";
 
   return (
     <section className="rounded-md bg-white shadow overflow-hidden border border-slate-100">
       <div className="h-full flex flex-col justify-between">
         <SectionHeader
-          title="Economic Calendar"
+          title={messages?.widgets?.calendarEkonomi?.title || (locale === "id" ? "Kalender Ekonomi" : "Economic Calendar")}
           optional={formattedUpdatedAt}
         />
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-5 py-2 text-center font-semibold">Time</th>
-                <th className="px-2 py-2 text-center font-semibold">Curr</th>
-                <th className="px-2 py-2 text-center font-semibold">Impact</th>
-                <th className="px-2 py-2 text-center font-semibold">Event</th>
+                <th className="px-5 py-2 text-center font-semibold">{messages?.widgets?.calendarEkonomi?.columns?.time || (locale === "id" ? "Waktu" : "Time")}</th>
+                <th className="px-2 py-2 text-center font-semibold">{messages?.widgets?.calendarEkonomi?.columns?.curr || (locale === "id" ? "Mata Uang" : "Curr")}</th>
+                <th className="px-2 py-2 text-center font-semibold">{messages?.widgets?.calendarEkonomi?.columns?.impact || (locale === "id" ? "Dampak" : "Impact")}</th>
+                <th className="px-2 py-2 text-center font-semibold">{messages?.widgets?.calendarEkonomi?.columns?.event || (locale === "id" ? "Peristiwa" : "Event")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -102,7 +110,7 @@ export default function CalenderEkonomiHome() {
               {items.length === 0 && (
                 <tr>
                   <td className="px-5 py-3 text-xs text-slate-500" colSpan={4}>
-                    Data belum tersedia.
+                    {messages?.widgets?.calendarEkonomi?.noData || (locale === "id" ? "Data belum tersedia." : "No data available.")}
                   </td>
                 </tr>
               )}
@@ -115,7 +123,7 @@ export default function CalenderEkonomiHome() {
             href={`/${locale ?? "id"}/policy`}
             className="inline-flex w-full items-center justify-center rounded-md bg-blue-700 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
           >
-            View Full Calendar
+            {messages?.widgets?.calendarEkonomi?.cta || (locale === "id" ? "Lihat Semua Kalender" : "View Full Calendar")}
           </Link>
         </div>
       </div>
