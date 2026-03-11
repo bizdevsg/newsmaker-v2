@@ -8,13 +8,14 @@ import { useLoading } from "../providers/LoadingProvider";
 
 type MarketImpactProps = {
   messages: Messages;
+  locale?: string;
 };
 
 const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
 const NEWS_IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
 
-export function MarketImpact({ messages }: MarketImpactProps) {
+export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   const loading = useLoading();
   const [newsData, setNewsData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,14 +60,19 @@ export function MarketImpact({ messages }: MarketImpactProps) {
 
   const displayItems = newsData.map((item, index) => {
     const d = new Date(item.updated_at || item.created_at);
-    // Format date generically like "24 Apr 2024"
     const formattedDate = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    const categorySlug = item.kategori?.slug?.trim() || 'market-update';
+    const articleSlug = item.slug?.trim() || '';
+    const href = articleSlug
+      ? `/${locale}/news/${categorySlug}/${articleSlug}`
+      : `/${locale}/news`;
 
     return {
       key: `news-${item.id || index}`,
       title: item.titles?.default || item.title,
       summary: stripHtml(item.content).substring(0, 150) + "...",
       date: formattedDate,
+      href,
       imageLabel:
         item.images && item.images.length > 0
           ? `${NEWS_IMAGE_BASE}${item.images[0]}`
@@ -80,7 +86,7 @@ export function MarketImpact({ messages }: MarketImpactProps) {
         <h3 className="text-lg font-semibold text-slate-800">
           {messages.marketImpact.title}
         </h3>
-        <a href="#" className="text-xs font-semibold text-blue-700">
+        <a href={`/${locale}/news`} className="text-xs font-semibold text-blue-700">
           {messages.marketImpact.ctaLabel}
         </a>
       </div>
@@ -94,6 +100,7 @@ export function MarketImpact({ messages }: MarketImpactProps) {
               title={impact.title}
               summary={impact.summary}
               date={impact.date}
+              href={impact.href}
               imageLabel={impact.imageLabel}
               ctaLabel={messages.common.readFullInsight}
             />

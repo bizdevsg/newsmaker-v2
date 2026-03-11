@@ -5,13 +5,13 @@ export const revalidate = 300;
 
 const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+const IMAGE_BASE = (process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "").replace(/\/$/, "");
 
 export async function GET() {
     try {
         const res = await fetch(NEWS_API, {
             headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
-            next: { revalidate: 300 },
+            cache: "no-store",
         });
         const json = await res.json();
         if (!json?.data) return NextResponse.json({ status: "error" }, { status: 500 });
@@ -22,7 +22,9 @@ export async function GET() {
         for (const item of json.data) {
             const image = item.images?.[0];
             if (!image) continue;
-            const url = `${IMAGE_BASE}${image}`;
+            // Sanitize: avoid double-slash if image path starts with /
+            const imagePath = image.startsWith("/") ? image : `/${image}`;
+            const url = `${IMAGE_BASE}${imagePath}`;
             if (typeof item.category_id === "number" && !thumbMapById[item.category_id]) {
                 thumbMapById[item.category_id] = url;
             }

@@ -42,7 +42,7 @@ export default async function Home({
           <SectionGridCard title="Quick Access" items={3} />
         </div>
 
-        <SectionHomeOutlook />
+        <SectionHomeOutlook locale={locale} />
 
         <CalenderEkonomiHome />
 

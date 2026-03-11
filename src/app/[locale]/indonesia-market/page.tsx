@@ -189,97 +189,97 @@ export default async function Home({
       ...messages.exchangeActivity,
       stats: ihsgResponse?.indices
         ? [
-            buildIndexStat(
-              "composite",
-              "IHSG",
-              messages.exchangeActivity.stats[0],
-            ),
-            buildIndexStat(
-              "idx30",
-              "IDX30",
-              messages.exchangeActivity.stats[1],
-            ),
-            buildIndexStat("lq45", "LQ45", messages.exchangeActivity.stats[2]),
-            buildIndexStat(
-              "kompas100",
-              "Kompas100",
-              messages.exchangeActivity.stats[3],
-            ),
-          ].map((stat) => ({
-            key: stat.key,
-            label: stat.label,
-            value: stat.value,
-            delta: stat.delta,
-            tone: stat.tone,
-          }))
+          buildIndexStat(
+            "composite",
+            "IHSG",
+            messages.exchangeActivity.stats[0],
+          ),
+          buildIndexStat(
+            "idx30",
+            "IDX30",
+            messages.exchangeActivity.stats[1],
+          ),
+          buildIndexStat("lq45", "LQ45", messages.exchangeActivity.stats[2]),
+          buildIndexStat(
+            "kompas100",
+            "Kompas100",
+            messages.exchangeActivity.stats[3],
+          ),
+        ].map((stat) => ({
+          key: stat.key,
+          label: stat.label,
+          value: stat.value,
+          delta: stat.delta,
+          tone: stat.tone,
+        }))
         : messages.exchangeActivity.stats.map((stat) => {
-            if (stat.key === "ihsg") {
-              return {
-                ...stat,
-                value: ihsgValue
-                  ? (formatNumber(ihsgValue) ?? stat.value)
-                  : stat.value,
-                delta: ihsgDelta
-                  ? (formatPercent(ihsgDelta) ?? stat.delta)
-                  : stat.delta,
-                tone: ihsgTone ?? stat.tone,
-              };
-            }
-            if (stat.key === "idr-usd") {
-              return {
-                ...stat,
-                value: usdValue ?? stat.value,
-              };
-            }
-            return stat;
-          }),
+          if (stat.key === "ihsg") {
+            return {
+              ...stat,
+              value: ihsgValue
+                ? (formatNumber(ihsgValue) ?? stat.value)
+                : stat.value,
+              delta: ihsgDelta
+                ? (formatPercent(ihsgDelta) ?? stat.delta)
+                : stat.delta,
+              tone: ihsgTone ?? stat.tone,
+            };
+          }
+          if (stat.key === "idr-usd") {
+            return {
+              ...stat,
+              value: usdValue ?? stat.value,
+            };
+          }
+          return stat;
+        }),
     },
     focusReport: {
       ...messages.focusReport,
       metrics: ihsgResponse?.indices
         ? [
-            buildIndexStat(
-              "composite",
-              "IHSG",
-              messages.focusReport.metrics[0],
-            ),
-            buildIndexStat("idx30", "IDX30", messages.focusReport.metrics[1]),
-            buildIndexStat("lq45", "LQ45", messages.focusReport.metrics[2]),
-            buildIndexStat(
-              "kompas100",
-              "Kompas100",
-              messages.focusReport.metrics[3],
-            ),
-          ].map((metric) => ({
-            key: metric.key,
-            label: metric.label,
-            value: metric.value,
-            delta: metric.delta,
-            tone: metric.tone,
-            meta: metric.meta ?? "",
-          }))
+          buildIndexStat(
+            "composite",
+            "IHSG",
+            messages.focusReport.metrics[0],
+          ),
+          buildIndexStat("idx30", "IDX30", messages.focusReport.metrics[1]),
+          buildIndexStat("lq45", "LQ45", messages.focusReport.metrics[2]),
+          buildIndexStat(
+            "kompas100",
+            "Kompas100",
+            messages.focusReport.metrics[3],
+          ),
+        ].map((metric) => ({
+          key: metric.key,
+          label: metric.label,
+          value: metric.value,
+          delta: metric.delta,
+          tone: metric.tone,
+          meta: metric.meta ?? "",
+        }))
         : messages.focusReport.metrics.map((metric) => {
-            if (metric.key === "ihsg") {
-              return {
-                ...metric,
-                value: ihsgValue
-                  ? (formatNumber(ihsgValue) ?? metric.value)
-                  : metric.value,
-                delta: ihsgDelta
-                  ? (formatPercent(ihsgDelta) ?? metric.delta)
-                  : metric.delta,
-                tone: ihsgTone ?? metric.tone,
-                meta: formatChangePoints(ihsgChange) ?? metric.meta,
-              };
-            }
-            if (metric.key === "usd") {
-              return {
-                ...metric,
-                value: usdValue ?? metric.value,
-              };
-            }
-            return metric;
-          }),
+          if (metric.key === "ihsg") {
+            return {
+              ...metric,
+              value: ihsgValue
+                ? (formatNumber(ihsgValue) ?? metric.value)
+                : metric.value,
+              delta: ihsgDelta
+                ? (formatPercent(ihsgDelta) ?? metric.delta)
+                : metric.delta,
+              tone: ihsgTone ?? metric.tone,
+              meta: formatChangePoints(ihsgChange) ?? metric.meta,
+            };
+          }
+          if (metric.key === "usd") {
+            return {
+              ...metric,
+              value: usdValue ?? metric.value,
+            };
+          }
+          return metric;
+        }),
     },
   };
 
@@ -294,7 +294,7 @@ export default async function Home({
           <RecentAnalysis messages={messages} locale={locale} limit={2} />
         </div>
         <div className="space-y-4">
-          <MarketImpact messages={hydratedMessages} />
+          <MarketImpact messages={hydratedMessages} locale={locale} />
           <FocusReport messages={hydratedMessages} />
         </div>
       </div>

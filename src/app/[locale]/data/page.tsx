@@ -29,7 +29,7 @@ export default async function DataPage({
         </div>
         <div className="space-y-4">
           <ExchangeActivity messages={customMessages} />
-          <MarketImpact messages={customMessages} />
+          <MarketImpact messages={customMessages} locale={locale} />
         </div>
       </div>
     </MarketPageTemplate>

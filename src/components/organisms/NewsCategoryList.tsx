@@ -193,16 +193,16 @@ export function NewsCategoryList({
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredBySearch = normalizedSearch
     ? articles.filter((item: any) => {
-        const title = (item.titles?.default || item.title || "")
-          .toString()
-          .toLowerCase();
-        const content = stripHtml(item.content ?? "")
-          .toString()
-          .toLowerCase();
-        return (
-          title.includes(normalizedSearch) || content.includes(normalizedSearch)
-        );
-      })
+      const title = (item.titles?.default || item.title || "")
+        .toString()
+        .toLowerCase();
+      const content = stripHtml(item.content ?? "")
+        .toString()
+        .toLowerCase();
+      return (
+        title.includes(normalizedSearch) || content.includes(normalizedSearch)
+      );
+    })
     : articles;
 
   const totalPages = Math.ceil(filteredBySearch.length / perPage) || 1;

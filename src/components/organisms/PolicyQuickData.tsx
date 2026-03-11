@@ -183,17 +183,6 @@ export function PolicyQuickData({ messages }: PolicyQuickDataProps) {
             {quickData.title}
           </h2>
         </div>
-        <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold pb-3 px-1">
-          <button className="hover:text-slate-800 transition">C +</button>
-          <span className="text-slate-200 font-light">|</span>
-          <button className="hover:text-slate-800 transition tracking-widest">
-            SS
-          </button>
-          <span className="text-slate-200 font-light">|</span>
-          <button className="hover:text-slate-800 transition">
-            <i className="fa-solid fa-bars"></i>
-          </button>
-        </div>
       </div>
 
       <PolicyQuickDataTabs

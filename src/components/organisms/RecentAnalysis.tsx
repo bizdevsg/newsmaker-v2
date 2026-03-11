@@ -170,22 +170,22 @@ export async function RecentAnalysis({
 
   return (
     <section className="bg-white rounded-lg shadow">
-      <SectionHeader title="Recent Analysis" link="#" linkLabel="Recent >" />
-      <div className={`grid gap-4 px-4 pb-6 pt-4 ${gridCols}`}>
+      <SectionHeader title="Recent Analysis" link={`/${locale}/news/analisis-market`} linkLabel="Recent >" />
+      <div className={`grid items-stretch gap-4 px-4 pb-6 pt-4 ${gridCols}`}>
         {items.map((item) => (
           <article
             key={item.title}
-            className="overflow-hidden rounded-md border border-slate-200 bg-white"
+            className="flex h-full flex-col overflow-hidden rounded-md border border-slate-200 bg-white"
           >
-            <div className="aspect-video overflow-hidden bg-slate-100">
+            <div className="aspect-video flex-shrink-0 overflow-hidden bg-slate-100">
               <img
                 src={item.image}
                 alt={item.title}
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="space-y-2 p-3">
-              <h4 className="text-sm font-semibold text-slate-800">
+            <div className="flex flex-1 flex-col gap-2 p-3">
+              <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
                 {item.title}
               </h4>
               {item.date ? (
@@ -193,10 +193,12 @@ export async function RecentAnalysis({
                   {item.date}
                 </p>
               ) : null}
-              <p className="text-xs text-slate-500">{item.summary}</p>
+              <p className="line-clamp-3 flex-1 text-xs text-slate-500">
+                {item.summary}
+              </p>
               <Link
                 href={item.href}
-                className="text-xs font-semibold text-blue-700 hover:text-blue-800"
+                className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
               >
                 Read More &gt;
               </Link>
