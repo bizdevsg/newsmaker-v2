@@ -1,5 +1,8 @@
-import React from "react";
+"use client";
+
+import React, { useMemo } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import type { Locale, Messages } from "@/locales";
 
 type SiteFooterProps = {
@@ -8,7 +11,28 @@ type SiteFooterProps = {
 };
 
 export function SiteFooter({ locale, messages }: SiteFooterProps) {
-  const localeLabel = locale.toUpperCase();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const currentLocale = useMemo(() => {
+    const segment = pathname.split("/")[1] || "id";
+    return segment === "en" ? "en" : "id";
+  }, [pathname]);
+
+  const nextLocale = currentLocale === "en" ? "id" : "en";
+  const localeLabel = currentLocale.toUpperCase();
+  const nextLocaleLabel = nextLocale.toUpperCase();
+  const changeLanguageLabel = messages.header.changeLanguageAria.replace(
+    "{locale}",
+    nextLocaleLabel,
+  );
+
+  const toggleLanguage = () => {
+    const segments = pathname.split("/");
+    segments[1] = nextLocale;
+    const nextPath = segments.join("/") || `/${nextLocale}`;
+    router.push(nextPath);
+  };
 
   return (
     <footer className="px-4 pb-10">
@@ -23,9 +47,18 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
               />
             </Link>
             <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-white/70">
-              <span>{localeLabel}</span>
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="rounded border border-white/40 px-2 py-1 text-[10px] font-semibold tracking-[0.2em] text-white/90 transition hover:border-white/70 hover:text-white"
+                aria-label={changeLanguageLabel}
+              >
+                {localeLabel}
+              </button>
               <span className="text-white/40">|</span>
-              <span>{messages.footer.reports}</span>
+              <Link href={`/${currentLocale}/reports`} className="hover:text-white transition">
+                {messages.footer.reports}
+              </Link>
             </div>
           </div>
           <nav className="flex flex-col gap-3 border-t border-white/15 px-6 py-3 text-sm text-white/80 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">

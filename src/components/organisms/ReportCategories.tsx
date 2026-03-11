@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import type { Messages } from "@/locales";
 
 type ReportCategoriesProps = {
@@ -9,19 +11,28 @@ type ReportCategoriesProps = {
 
 export function ReportCategories({ messages }: ReportCategoriesProps) {
     const { categories } = messages.reportsMenu;
+    const params = useParams<{ locale?: string }>();
+    const locale = params?.locale || "id";
+
+    const getHref = (index: number) => {
+        if (index === 0) return `/${locale}/reports/macro`;
+        if (index === 1) return `/${locale}/reports/sectoral`;
+        if (index === 2) return `/${locale}/reports/company`;
+        return `/${locale}/reports`;
+    };
 
     return (
         <section className="flex flex-col gap-6">
             <div className="grid grid-cols-3 gap-3 md:gap-4">
                 {categories.items.map((cat, i) => (
-                    <button key={i} className="flex flex-col items-center justify-center rounded-md bg-slate-50/70 p-4 text-center shadow-sm border border-slate-100 transition hover:bg-white hover:shadow-md hover:border-blue-200 group h-full">
+                    <Link key={i} href={getHref(i)} className="flex flex-col items-center justify-center rounded-md bg-slate-50/70 p-4 text-center shadow-sm border border-slate-100 transition hover:bg-white hover:shadow-md hover:border-blue-200 group h-full">
                         <div className="mb-3 text-blue-600/80 group-hover:text-blue-600 group-hover:scale-110 transition-all duration-300">
                             <i className={`fa-solid fa-${cat.icon} text-3xl`}></i>
                         </div>
                         <span className="text-xs sm:text-sm font-semibold text-slate-700 group-hover:text-blue-900">
                             {cat.label}
                         </span>
-                    </button>
+                    </Link>
                 ))}
             </div>
 

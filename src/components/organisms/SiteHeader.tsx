@@ -79,9 +79,9 @@ export function SiteHeader() {
                 {localeLabel}
               </button>
               <span className="text-white/40">|</span>
-              <span className="hidden sm:inline">
+              <Link href={`/${currentLocale}/reports`} className="hidden sm:inline hover:text-white transition">
                 {messages.header.reports}
-              </span>
+              </Link>
             </div>
             <div className="flex items-center gap-3">
               <Button
@@ -128,8 +128,8 @@ export function SiteHeader() {
                     key={item.key}
                     href={itemHref}
                     className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${isActive
-                        ? "text-white after:scale-x-100"
-                        : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+                      ? "text-white after:scale-x-100"
+                      : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
                       }`}
                   >
                     {item.label}
@@ -177,7 +177,9 @@ export function SiteHeader() {
                 {localeLabel}
               </button>
               <span className="text-slate-300">|</span>
-              <span>{messages.header.reports}</span>
+              <Link href={`/${currentLocale}/reports`} className="hover:text-blue-700 transition">
+                {messages.header.reports}
+              </Link>
             </div>
             <Button
               variant="secondaryAlt"
@@ -205,8 +207,8 @@ export function SiteHeader() {
                     href={itemHref}
                     onClick={() => setIsMobileOpen(false)}
                     className={`rounded-lg px-3 py-2 text-sm transition-colors ${isActive
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                   >
                     {item.label}
