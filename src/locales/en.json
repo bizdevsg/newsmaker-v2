@@ -763,5 +763,61 @@
         "description": "Comprehensive analysis of Indonesian equities and fixed income markets amidst global uncertainties. Download the full PDF for detailed sector targets."
       }
     }
+  },
+  "reports": {
+    "pages": {
+      "common": {
+        "readMore": "Read More",
+        "featuredLabel": "Featured Report",
+        "lockNotice": "Search feature active for Ebook Portal customers/users."
+      },
+      "macro": {
+        "title": "Macroeconomic Reports",
+        "description": "Understand the direction of monetary and fiscal policy, and global macroeconomic trends shaping the investment climate.",
+        "keyIndicators": "Key Indicators",
+        "latestTitle": "Latest in Macroeconomics",
+        "readReport": "Read Report",
+        "meta": {
+          "title": "Macroeconomic Reports | NewsMaker",
+          "description": "Access macroeconomic analysis, global trends, and market sentiment."
+        }
+      },
+      "sectoral": {
+        "title": "Sectoral Analysis",
+        "description": "Compare market rotation, understand the industry sentiment map, and identify sectors with the best potential.",
+        "rotationTitle": "Weekly Sector Rotation",
+        "expertSentiment": "Expert Sentiment",
+        "topRecTitle": "Top Sector Recommendations",
+        "footnoteCompilation": "Data updated quarterly based on internal Ebook Portal analyst sentiment compilation.",
+        "researchBySector": "Research by Sector",
+        "readAnalysis": "Read Analysis",
+        "meta": {
+          "title": "Sectoral Analysis | NewsMaker",
+          "description": "In-depth specific research on various industry sectors."
+        }
+      },
+      "company": {
+        "title": "Company & Equity Research",
+        "description": "Presentation of issuer fundamentals, target price valuation, investment feasibility, and in-depth review of operational profit and loss.",
+        "searchTickerLabel": "By Stock Ticker (Ticker)",
+        "searchTickerPlaceholder": "Type company name or ticker (e.g., BBCA)...",
+        "summaryTitle": "Top Stock Picks Recommendation Summary",
+        "summaryOptional": "NewsMaker Research Bureau",
+        "table": {
+          "ticker": "Ticker / Company Name",
+          "lastPrice": "Last Price",
+          "targetPrice": "Target Price (12M)",
+          "valuation": "Valuation Status",
+          "recommendation": "Recommendation"
+        },
+        "loginToViewMore": "Login to view 50+ other stock recommendations",
+        "latestEquityTitle": "Latest Equity Research",
+        "detailTargetValuation": "Detail Target & Valuation",
+        "meta": {
+          "title": "Company & Equity Research | NewsMaker",
+          "description": "Issuer recommendations, price targets, and comprehensive financial statement analysis."
+        }
+      }
+    }
   }
 }

@@ -763,5 +763,61 @@
         "description": "Analisis komprehensif mengenai pasar ekuitas dan pendapatan tetap Indonesia di tengah ketidakpastian global. Unduh PDF lengkap untuk target sektor terperinci."
       }
     }
+  },
+  "reports": {
+    "pages": {
+      "common": {
+        "readMore": "Baca Selengkapnya",
+        "featuredLabel": "Featured Report",
+        "lockNotice": "Fitur pencarian aktif bagi pelanggan/user Ebook Portal."
+      },
+      "macro": {
+        "title": "Laporan Ekonomi Makro",
+        "description": "Pahami arah kebijakan moneter, fiskal, dan tren makro ekonomi global yang membentuk iklim investasi.",
+        "keyIndicators": "Indikator Kunci",
+        "latestTitle": "Terbaru di Makro Ekonomi",
+        "readReport": "Baca Laporan",
+        "meta": {
+          "title": "Laporan Ekonomi Makro | NewsMaker",
+          "description": "Akses analisis ekonomi makro, tren global, dan sentimen pasar."
+        }
+      },
+      "sectoral": {
+        "title": "Analisis Sektoral",
+        "description": "Bandingkan rotasi pasar, pahami peta sentimen industri, dan identifikasi sektor dengan potensi terbaik.",
+        "rotationTitle": "Rotasi Sektor Mingguan",
+        "expertSentiment": "Sentimen Ahli",
+        "topRecTitle": "Rekomendasi Sektor Teratas",
+        "footnoteCompilation": "Data diperbarui setiap kuartal berdasarkan kompilasi sentimen analis internal Ebook Portal.",
+        "researchBySector": "Riset Menurut Sektor",
+        "readAnalysis": "Baca Analisis",
+        "meta": {
+          "title": "Analisis Sektoral | NewsMaker",
+          "description": "Riset spesifik mendalam pada berbagai sektor industri."
+        }
+      },
+      "company": {
+        "title": "Riset Perusahaan & Ekuitas",
+        "description": "Pemaparan fundamental emiten, valuasi target harga, kelayakan investasi, dan telaah mendalam laba-rugi operasional.",
+        "searchTickerLabel": "Berdasarkan Kode Saham (Ticker)",
+        "searchTickerPlaceholder": "Ketik nama perusahaan atau kode saham (cth: BBCA)...",
+        "summaryTitle": "Ringkasan Rekomendasi Saham Pilihan",
+        "summaryOptional": "Biro Riset NewsMaker",
+        "table": {
+          "ticker": "Kode / Nama Emiten",
+          "lastPrice": "Harga Terakhir",
+          "targetPrice": "Target Harga (12B)",
+          "valuation": "Status Valuasi",
+          "recommendation": "Rekomendasi"
+        },
+        "loginToViewMore": "Login untuk melihat 50+ rekomendasi saham lainnya",
+        "latestEquityTitle": "Riset Ekuitas Terbaru",
+        "detailTargetValuation": "Detail Target & Valuasi",
+        "meta": {
+          "title": "Riset Perusahaan & Ekuitas | NewsMaker",
+          "description": "Rekomendasi emiten, target harga, dan analisis laporan keuangan komprehensif."
+        }
+      }
+    }
   }
 }
