@@ -6,15 +6,42 @@
   },
   "header": {
     "navItems": [
-      { "key": "home", "label": "Beranda" },
-      { "key": "insight", "label": "Wawasan" },
-      { "key": "markets", "label": "Pasar" },
-      { "key": "commodities", "label": "Komoditas" },
-      { "key": "equities", "label": "Ekuitas" },
-      { "key": "policy", "label": "Kebijakan" },
-      { "key": "indonesia-market", "label": "Pasar Indonesia" },
-      { "key": "data", "label": "Data" },
-      { "key": "reports", "label": "Laporan" }
+      {
+        "key": "home",
+        "label": "Beranda"
+      },
+      {
+        "key": "insight",
+        "label": "Wawasan"
+      },
+      {
+        "key": "markets",
+        "label": "Pasar"
+      },
+      {
+        "key": "commodities",
+        "label": "Komoditas"
+      },
+      {
+        "key": "equities",
+        "label": "Ekuitas"
+      },
+      {
+        "key": "policy",
+        "label": "Kebijakan"
+      },
+      {
+        "key": "indonesia-market",
+        "label": "Pasar Indonesia"
+      },
+      {
+        "key": "data",
+        "label": "Data"
+      },
+      {
+        "key": "reports",
+        "label": "Laporan"
+      }
     ],
     "activeNavKey": "indonesia-market",
     "reports": "Laporan",
@@ -95,17 +122,53 @@
   "exchangeActivity": {
     "title": "Aktivitas Bursa & Derivatif Indonesia",
     "tabs": [
-      { "key": "markets", "label": "Pasar" },
-      { "key": "derivatives", "label": "Derivatif" },
-      { "key": "rates", "label": "Suku Bunga" },
-      { "key": "flows", "label": "Arus" }
+      {
+        "key": "markets",
+        "label": "Pasar"
+      },
+      {
+        "key": "derivatives",
+        "label": "Derivatif"
+      },
+      {
+        "key": "rates",
+        "label": "Suku Bunga"
+      },
+      {
+        "key": "flows",
+        "label": "Arus"
+      }
     ],
     "activeTabKey": "markets",
     "stats": [
-      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up" },
-      { "key": "idr-usd", "label": "IDR/USD", "value": "15,680", "delta": "+0.04%", "tone": "up" },
-      { "key": "contracts", "label": "Kontrak", "value": "132,000", "delta": "-0.22%", "tone": "down" },
-      { "key": "derivatives-vol", "label": "Vol Derivatif", "value": "1,254,000", "delta": "+1.30%", "tone": "up" }
+      {
+        "key": "ihsg",
+        "label": "IHSG",
+        "value": "7,150",
+        "delta": "+0.68%",
+        "tone": "up"
+      },
+      {
+        "key": "idr-usd",
+        "label": "IDR/USD",
+        "value": "15,680",
+        "delta": "+0.04%",
+        "tone": "up"
+      },
+      {
+        "key": "contracts",
+        "label": "Kontrak",
+        "value": "132,000",
+        "delta": "-0.22%",
+        "tone": "down"
+      },
+      {
+        "key": "derivatives-vol",
+        "label": "Vol Derivatif",
+        "value": "1,254,000",
+        "delta": "+1.30%",
+        "tone": "up"
+      }
     ],
     "heatmapNote": "Placeholder heatmap intraday - dipindah ke panel data pada versi penuh."
   },
@@ -135,10 +198,38 @@
     "subtitle": "Ringkasan kuartalan institusi dengan wawasan kebijakan dan likuiditas.",
     "ctaLabel": "Lihat Laporan",
     "metrics": [
-      { "key": "ihsg", "label": "IHSG", "value": "7,150", "delta": "+0.68%", "tone": "up", "meta": "AS 04:44, 00024" },
-      { "key": "usd", "label": "USD", "value": "15,680", "delta": "+6.92%", "tone": "up", "meta": "USD/IDR 20" },
-      { "key": "gold", "label": "Emas", "value": "1,254,000", "delta": "+0.32%", "tone": "up", "meta": "FT 18:20" },
-      { "key": "oil", "label": "Minyak", "value": "83.20", "delta": "-0.15%", "tone": "down", "meta": "FT 18:20" }
+      {
+        "key": "ihsg",
+        "label": "IHSG",
+        "value": "7,150",
+        "delta": "+0.68%",
+        "tone": "up",
+        "meta": "AS 04:44, 00024"
+      },
+      {
+        "key": "usd",
+        "label": "USD",
+        "value": "15,680",
+        "delta": "+6.92%",
+        "tone": "up",
+        "meta": "USD/IDR 20"
+      },
+      {
+        "key": "gold",
+        "label": "Emas",
+        "value": "1,254,000",
+        "delta": "+0.32%",
+        "tone": "up",
+        "meta": "FT 18:20"
+      },
+      {
+        "key": "oil",
+        "label": "Minyak",
+        "value": "83.20",
+        "delta": "-0.15%",
+        "tone": "down",
+        "meta": "FT 18:20"
+      }
     ]
   },
   "recentAnalysis": {
@@ -161,18 +252,364 @@
     "brand": "NEWSMAKER 23",
     "reports": "Laporan",
     "footerLinks": [
-      { "key": "about", "label": "Tentang", "href": "#" },
-      { "key": "research", "label": "Riset", "href": "#" },
-      { "key": "insights", "label": "Insight", "href": "#" },
-      { "key": "contact", "label": "Kontak", "href": "#" },
-      { "key": "careers", "label": "Karier", "href": "#" }
+      {
+        "key": "about",
+        "label": "Tentang",
+        "href": "#"
+      },
+      {
+        "key": "research",
+        "label": "Riset",
+        "href": "#"
+      },
+      {
+        "key": "insights",
+        "label": "Insight",
+        "href": "#"
+      },
+      {
+        "key": "contact",
+        "label": "Kontak",
+        "href": "#"
+      },
+      {
+        "key": "careers",
+        "label": "Karier",
+        "href": "#"
+      }
     ],
     "legalLinks": [
-      { "key": "privacy", "label": "Privasi", "href": "#" },
-      { "key": "terms", "label": "Ketentuan", "href": "#" },
-      { "key": "disclaimer", "label": "Disclaimer", "href": "#" }
+      {
+        "key": "privacy",
+        "label": "Privasi",
+        "href": "#"
+      },
+      {
+        "key": "terms",
+        "label": "Ketentuan",
+        "href": "#"
+      },
+      {
+        "key": "disclaimer",
+        "label": "Disclaimer",
+        "href": "#"
+      }
     ],
     "coverage": "Newsmaker Research · Cakupan Pasar Indonesia",
     "copyright": "© 2026 Newsmaker Research. Hak cipta dilindungi."
+  },
+  "equities": {
+    "marketOverview": {
+      "title": "Tinjauan Pasar",
+      "tabs": [
+        {
+          "key": "ihsg",
+          "label": "IHSG"
+        },
+        {
+          "key": "idx30",
+          "label": "IDX30"
+        },
+        {
+          "key": "lq45",
+          "label": "LQ45"
+        },
+        {
+          "key": "issi",
+          "label": "ISSI"
+        },
+        {
+          "key": "idxhidiv20",
+          "label": "IDX HIDIV20"
+        }
+      ],
+      "table": {
+        "columns": [
+          "Emiten",
+          "Perusahaan",
+          "DI Bebas",
+          "Kapitalisasi",
+          "Rasio C/S",
+          "Val Transaksi"
+        ],
+        "rows": [
+          {
+            "sector": "BBCA",
+            "company": "Bank Central Asia Tbk.",
+            "freeFloat": "43.89%",
+            "marketCap": "1,143.08 Triliun",
+            "csRatio": "3.00",
+            "transVal": "1.05 Triliun"
+          },
+          {
+            "sector": "BBRI",
+            "company": "Bank Rakyat Indonesia Tbk.",
+            "freeFloat": "46.39%",
+            "marketCap": "860.68 Triliun",
+            "csRatio": "4.15",
+            "transVal": "850 Miliar"
+          },
+          {
+            "sector": "BMRI",
+            "company": "Bank Mandiri Tbk.",
+            "freeFloat": "40.00%",
+            "marketCap": "645.15 Triliun",
+            "csRatio": "2.80",
+            "transVal": "750 Miliar"
+          },
+          {
+            "sector": "TLKM",
+            "company": "Telkom Indonesia Tbk.",
+            "freeFloat": "47.90%",
+            "marketCap": "350.50 Triliun",
+            "csRatio": "1.50",
+            "transVal": "500 Miliar"
+          }
+        ],
+        "viewFullUpdates": "Lihat Pembaruan Lengkap"
+      }
+    },
+    "keySectors": {
+      "title": "Sektor Utama",
+      "viewAll": "Lihat Semua",
+      "items": [
+        {
+          "key": "finance",
+          "title": "Sektor Keuangan",
+          "description": "Saham perbankan memimpin reli indeks di tengah sentimen penurunan suku bunga.",
+          "indicators": "3.5k | 12.0000",
+          "image": "/assets/placeholder-finance.jpg"
+        },
+        {
+          "key": "energy",
+          "title": "Sektor Energi",
+          "description": "Perusahaan batubara menopang laju sektor menyusul kenaikan harga komoditas.",
+          "indicators": "2.1k | 10.200",
+          "image": "/assets/placeholder-energy.jpg"
+        },
+        {
+          "key": "consumer",
+          "title": "Sektor Konsumer",
+          "description": "Emiten ritel mencatat kenaikan penjualan didorong konsumsi domestik.",
+          "indicators": "1.8k | 8.500",
+          "image": "/assets/placeholder-consumer.jpg"
+        },
+        {
+          "key": "infrastructure",
+          "title": "Sektor Infrastruktur",
+          "description": "Percepatan pembangunan proyek strategis nasional mendorong optimisme investor.",
+          "indicators": "4.1k | 15.000",
+          "image": "/assets/placeholder-infrastructure.jpg"
+        }
+      ]
+    }
+  },
+  "policy": {
+    "quickData": {
+      "title": "Data Cepat",
+      "tabs": [
+        {
+          "key": "calendar",
+          "label": "Kalender Ekonomi"
+        },
+        {
+          "key": "fibonacci",
+          "label": "Pivot & Fibonacci"
+        },
+        {
+          "key": "forex",
+          "label": "Proyeksi Forex"
+        },
+        {
+          "key": "historic",
+          "label": "Analisis Historis"
+        }
+      ],
+      "economicCalendar": [],
+      "actions": {
+        "economicCalendar": "Kalender Ekonomi",
+        "pivotFibonacci": "Pivot & Fibonacci",
+        "liveChart": "Grafik Langsung",
+        "historic": "Data Historis"
+      }
+    },
+    "historicData": {
+      "title": "Data Historis",
+      "filters": {
+        "start": "Mulai",
+        "end": "Akhir",
+        "filterBtn": "Saring",
+        "downloadBtn": "Unduh"
+      },
+      "columns": [
+        "Tanggal",
+        "Buka",
+        "Tinggi",
+        "Rendah",
+        "Tutup"
+      ],
+      "currencyValue": "Nilai Mata Uang"
+    },
+    "pivotFibonacci": {
+      "tabs": {
+        "pivot": "Pivot",
+        "fibonacci": "Fibonacci"
+      },
+      "inputs": {
+        "open": "Buka",
+        "high": "Tinggi",
+        "low": "Rendah",
+        "close": "Tutup",
+        "calculate": "Kalkulasi"
+      },
+      "pivot": {
+        "columns": [
+          "Klasik",
+          "Woodie",
+          "Camarilla"
+        ]
+      },
+      "fibonacci": {
+        "upTrend": "TREN NAIK",
+        "downTrend": "TREN TURUN",
+        "priceA": "Harga (A)",
+        "priceB": "Harga (B)",
+        "lowValue": "nilai rendah",
+        "highValue": "nilai tinggi",
+        "retracement": "Retracement",
+        "projection": "Proyeksi"
+      },
+      "historicalData": {
+        "columns": [
+          "Tanggal",
+          "Buka",
+          "Tinggi",
+          "Rendah",
+          "Tutup"
+        ],
+        "currencyValue": "Nilai Mata Uang"
+      }
+    }
+  },
+  "commodities": {
+    "marketOverview": {
+      "title": "Tinjauan Pasar",
+      "stats": [
+        {
+          "title": "Gold Spot",
+          "subtitle": "XAU/USD · 2oz",
+          "value": "0.129%",
+          "change": "-39.39$",
+          "isUp": true,
+          "icon": "fa-brands fa-bitcoin",
+          "iconColor": "text-yellow-500"
+        },
+        {
+          "title": "SGD / IDR",
+          "subtitle": "15,046 / USD",
+          "value": "0.33%",
+          "change": "-53.19%",
+          "isUp": true
+        },
+        {
+          "title": "COMPGSS",
+          "subtitle": "$84 USD · bbl",
+          "value": "0.23%",
+          "change": "$0.00$",
+          "isUp": true
+        }
+      ],
+      "tabs": [
+        "Pasar",
+        "Komoditas",
+        "Ekuitas",
+        "Forex",
+        "Kripto"
+      ]
+    },
+    "recentAnalysis": {
+      "title": "Analisis Terbaru",
+      "seeAll": "Lihat semua >",
+      "items": [
+        {
+          "color": "text-orange-900",
+          "title": "Produksi Gandum Amerika Kemungkinan Akan Melonjak",
+          "value1": "5.5 Mns >",
+          "value2": "SGD/USD: 15,046",
+          "value3": "19.3M",
+          "value4": "$0.00 (0.00%)"
+        },
+        {
+          "color": "text-blue-500",
+          "title": "Komoditas Tetap Tangguh dalam Konteks",
+          "value1": "3.3 Mns >",
+          "value2": "SGD/IDR: 5021.1 MN",
+          "value3": "03.3M",
+          "value4": "$4.56 (0.00%)"
+        },
+        {
+          "color": "text-slate-400",
+          "title": "Komoditas Tetap Tangguh di Berbagai Sektor",
+          "value1": "5.0 Mns >",
+          "value2": "SGD/IDR: 5019.1 MN",
+          "value3": "-0.01M",
+          "value4": "$3.00 (0.00%)"
+        }
+      ]
+    }
+  },
+  "data": {
+    "quickView": {
+      "title": "Data Cepat",
+      "actions": {
+        "economicCalendar": "Kalender Ekonomi",
+        "marketData": "Data Pasar"
+      },
+      "table": [
+        {
+          "flag": "us",
+          "rate": "3.290%",
+          "description": "Imbal Hasil Obligasi AS 10-Tahun"
+        },
+        {
+          "flag": "id",
+          "rate": "6.000%",
+          "description": "Suku Bunga BI 7-Day Reverse Repo"
+        },
+        {
+          "flag": "eu",
+          "rate": "4.500%",
+          "description": "Suku Bunga Pembiayaan Utama ECB"
+        },
+        {
+          "flag": "gb",
+          "rate": "5.250%",
+          "description": "Suku Bunga Bank Sentral Inggris"
+        }
+      ]
+    }
+  },
+  "reportsMenu": {
+    "categories": {
+      "title": "Kategori Laporan",
+      "items": [
+        {
+          "icon": "calendar-days",
+          "label": "Laporan Ekonomi"
+        },
+        {
+          "icon": "chart-pie",
+          "label": "Analisis Sektor"
+        },
+        {
+          "icon": "book-open",
+          "label": "Riset Perusahaan"
+        }
+      ],
+      "featured": {
+        "title": "Prospek Kuartalan: Ketahanan Pasar",
+        "description": "Analisis komprehensif mengenai pasar ekuitas dan pendapatan tetap Indonesia di tengah ketidakpastian global. Unduh PDF lengkap untuk target sektor terperinci."
+      }
+    }
   }
 }

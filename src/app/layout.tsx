@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./globals.css";
 import { cookies } from "next/headers";
+import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -11,7 +12,10 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Newsmaker Indonesia Market",
+  title: {
+    default: "Newsmaker 23",
+    template: "%s - Newsmaker 23",
+  },
   description: "Institutional market dashboard mockup",
 };
 
@@ -25,11 +29,12 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${roboto.variable} antialiased`}>
-        {children}
+      <body
+        className={`${roboto.variable} antialiased`}
+        suppressHydrationWarning
+      >
+        <LoadingProvider>{children}</LoadingProvider>
       </body>
     </html>
   );
 }
-
-
