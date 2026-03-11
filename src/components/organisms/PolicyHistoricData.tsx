@@ -430,9 +430,9 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
   const rateText =
     rate && rate > 0
       ? {
-          forward: `1 ${fromCurrency} = ${formatValue(rate, toCurrency)} ${toCurrency}`,
-          reverse: `1 ${toCurrency} = ${formatValue(1 / rate, fromCurrency)} ${fromCurrency}`,
-        }
+        forward: `1 ${fromCurrency} = ${formatValue(rate, toCurrency)} ${toCurrency}`,
+        reverse: `1 ${toCurrency} = ${formatValue(1 / rate, fromCurrency)} ${fromCurrency}`,
+      }
       : null;
 
   return (
@@ -442,11 +442,11 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
       </h3>
 
       {/* Filters */}
-      <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="grid items-end gap-3 grid-cols-2 lg:grid-cols-7">
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:outline-none lg:col-span-2"
+          className="col-span-2 w-full min-w-0 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:outline-none lg:col-span-2"
         >
           {categories.length === 0 && <option>Loading...</option>}
           {categories.map((category) => (
@@ -463,7 +463,7 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
         </select>
 
         <div className="flex flex-col gap-1 lg:col-span-1">
-          <span className="text-sm font-medium text-slate-700">
+          <span className="text-xs font-medium text-slate-600">
             {data.filters.start}
           </span>
           <input
@@ -472,8 +472,9 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
           />
         </div>
 
-        <div className="flex flex-col gap-1 lg:col-span-1">
-          <span className="text-sm font-medium text-slate-700">
+        {/* End date — full-width on mobile so buttons land on their own row */}
+        <div className="col-span-2 flex flex-col gap-1 lg:col-span-1">
+          <span className="text-xs font-medium text-slate-600">
             {data.filters.end}
           </span>
           <input
@@ -482,70 +483,104 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
           />
         </div>
 
-        <Button
-          variant="primary"
-          className="w-full bg-blue-700 px-6 py-2.5 font-medium hover:bg-blue-800 sm:justify-self-end lg:col-span-1 lg:justify-self-start"
-        >
-          {data.filters.filterBtn}
-        </Button>
-
-        <Button
-          variant="primary"
-          className="w-full bg-blue-700 px-6 py-2.5 font-medium hover:bg-blue-800 sm:justify-self-end lg:col-span-1 lg:justify-self-start"
-        >
-          {data.filters.downloadBtn}
-        </Button>
+        {/* Buttons — col-span-2 on mobile → always side-by-side via flex */}
+        <div className="col-span-2 flex gap-2 lg:col-span-2">
+          <Button
+            variant="primary"
+            className="flex-1 bg-blue-700 px-4 py-2 text-sm font-semibold hover:bg-blue-800"
+          >
+            {data.filters.filterBtn}
+          </Button>
+          <Button
+            variant="primary"
+            className="flex-1 bg-blue-700 px-4 py-2 text-sm font-semibold hover:bg-blue-800"
+          >
+            {data.filters.downloadBtn}
+          </Button>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-sm border border-slate-200">
+      {/* ── MOBILE: card list (<md) ─────────────────────────────────────── */}
+      <div className="md:hidden space-y-3">
+        {loadingHistory && (
+          <div className="py-8 text-center text-slate-400 text-sm">
+            <i className="fa-solid fa-spinner fa-spin mr-2"></i>
+            Loading history data...
+          </div>
+        )}
+        {!loadingHistory && historyError && (
+          <div className="py-8 text-center text-rose-400 text-sm">{historyError}</div>
+        )}
+        {!loadingHistory && !historyError && rows.length === 0 && (
+          <div className="py-8 text-center text-slate-400 text-sm">No data available.</div>
+        )}
+        {rows.map((row, idx) => (
+          <div
+            key={idx}
+            className={`rounded-xl border p-4 ${row.isBankHoliday
+              ? "border-amber-200 bg-amber-50/40"
+              : "border-slate-200 bg-white"
+              }`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-slate-800">{row.d}</span>
+              {row.isBankHoliday && (
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 uppercase tracking-wider">
+                  Bank Holiday
+                </span>
+              )}
+            </div>
+            {row.isBankHoliday ? (
+              <p className="text-xs text-slate-500 capitalize">{row.description || "Bank holiday"}</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                {[
+                  { label: data.columns[1], value: row.o },
+                  { label: data.columns[2], value: row.h },
+                  { label: data.columns[3], value: row.l },
+                  { label: data.columns[4], value: row.c },
+                ].map(({ label, value }) => (
+                  <div key={label}>
+                    <span className="font-semibold text-slate-500 block text-[10px] uppercase tracking-wide">{label}</span>
+                    <span className="font-bold text-slate-800 tabular-nums">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* ── DESKTOP: table (≥md) ──────────────────────────────────────────── */}
+      <div className="hidden md:block overflow-x-auto rounded-sm border border-slate-200">
         <table className="w-full border-separate border-spacing-0 text-left text-sm [&_td+td]:border-l [&_td+td]:border-slate-100 [&_th+th]:border-l [&_th+th]:border-slate-200">
           <thead className="border-b border-slate-300 bg-slate-200">
             <tr>
-              <th className="px-4 py-3 font-bold text-slate-800">
-                {data.columns[0]}
-              </th>
-              <th className="px-4 py-3 font-bold text-slate-800">
-                {data.columns[1]}
-              </th>
-              <th className="px-4 py-3 font-bold text-slate-800">
-                {data.columns[2]}
-              </th>
-              <th className="px-4 py-3 font-bold text-slate-800">
-                {data.columns[3]}
-              </th>
-              <th className="px-4 py-3 font-bold text-slate-800">
-                {data.columns[4]}
-              </th>
+              <th className="px-4 py-3 font-bold text-slate-800">{data.columns[0]}</th>
+              <th className="px-4 py-3 font-bold text-slate-800">{data.columns[1]}</th>
+              <th className="px-4 py-3 font-bold text-slate-800">{data.columns[2]}</th>
+              <th className="px-4 py-3 font-bold text-slate-800">{data.columns[3]}</th>
+              <th className="px-4 py-3 font-bold text-slate-800">{data.columns[4]}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-300">
             {loadingHistory && (
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-6 text-center text-sm text-slate-500"
-                >
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
                   Loading history data...
                 </td>
               </tr>
             )}
             {!loadingHistory && historyError && (
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-6 text-center text-sm text-slate-500"
-                >
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
                   {historyError}
                 </td>
               </tr>
             )}
             {!loadingHistory && !historyError && rows.length === 0 && (
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-6 text-center text-sm text-slate-500"
-                >
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
                   No data available.
                 </td>
               </tr>
@@ -553,9 +588,8 @@ export function PolicyHistoricData({ messages }: PolicyHistoricDataProps) {
             {rows.map((row, idx) => (
               <tr
                 key={idx}
-                className={`transition-colors odd:bg-white even:bg-slate-50/70 hover:bg-slate-100/70 ${
-                  row.isBankHoliday ? "text-slate-500" : ""
-                }`}
+                className={`transition-colors odd:bg-white even:bg-slate-50/70 hover:bg-slate-100/70 ${row.isBankHoliday ? "text-slate-500" : ""
+                  }`}
               >
                 {row.isBankHoliday ? (
                   <>
