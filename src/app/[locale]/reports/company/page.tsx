@@ -7,9 +7,10 @@ import { getMessages, type Locale } from "@/locales";
 export async function generateMetadata({ params }: { params: Promise<{ locale?: string }> }) {
     const { locale: rawLocale } = await params;
     const locale = rawLocale === "en" ? "en" : "id";
+    const messages = getMessages(locale);
     return {
-        title: locale === "id" ? "Riset Perusahaan & Ekuitas | NewsMaker" : "Company & Equity Research | NewsMaker",
-        description: locale === "id" ? "Rekomendasi emiten, target harga, dan analisis laporan keuangan komprehensif." : "Issuer recommendations, price targets, and comprehensive financial statement analysis.",
+        title: messages.reports.pages.company.meta.title,
+        description: messages.reports.pages.company.meta.description,
     };
 }
 
@@ -29,16 +30,16 @@ export default async function CompanyResearchPage({ params }: { params: Promise<
         header: { ...messages.header, activeNavKey: "reports" }
     };
 
+    const t = messages.reports.pages;
+
     return (
         <MarketPageTemplate locale={locale} messages={customMessages}>
             <div className="mb-4">
                 <h2 className="text-xl font-bold tracking-tight text-blue-900 mb-1">
-                    {locale === "id" ? "Riset Perusahaan & Ekuitas" : "Company & Equity Research"}
+                    {t.company.title}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium max-w-2xl">
-                    {locale === "id"
-                        ? "Pemaparan fundamental emiten, valuasi target harga, kelayakan investasi, dan telaah mendalam laba-rugi operasional."
-                        : "Presentation of issuer fundamentals, target price valuation, investment feasibility, and in-depth review of operational profit and loss."}
+                    {t.company.description}
                 </p>
             </div>
 
@@ -48,12 +49,12 @@ export default async function CompanyResearchPage({ params }: { params: Promise<
                     <i className="fa-solid fa-magnifying-glass-chart text-base"></i>
                 </div>
                 <div className="flex-grow w-full">
-                    <h3 className="text-xs font-bold text-slate-700 mb-1.5">Berdasarkan Kode Saham (Ticker)</h3>
+                    <h3 className="text-xs font-bold text-slate-700 mb-1.5">{t.company.searchTickerLabel}</h3>
                     <div className="relative">
-                        <input type="text" placeholder={locale === "id" ? "Ketik nama perusahaan atau kode saham (cth: BBCA)..." : "Type company name or ticker (e.g., BBCA)..."} className="w-full pl-4 pr-10 py-2 border border-slate-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm shadow-sm" disabled />
+                        <input type="text" placeholder={t.company.searchTickerPlaceholder} className="w-full pl-4 pr-10 py-2 border border-slate-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm shadow-sm" disabled />
                         <i className="fa-solid fa-search absolute right-3 top-2.5 text-slate-400"></i>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-2">* Fitur pencarian aktif bagi pelanggan/user Ebook Portal.</p>
+                    <p className="text-[10px] text-slate-400 mt-2">* {t.common.lockNotice}</p>
                 </div>
                 <div className="hidden lg:flex gap-2">
                     <span className="bg-white border border-slate-200 px-3 py-1 rounded-full text-xs font-bold text-slate-600 shadow-sm cursor-pointer hover:border-blue-300">BBRI</span>
@@ -65,16 +66,16 @@ export default async function CompanyResearchPage({ params }: { params: Promise<
             <div className="grid gap-6 lg:grid-cols-2 mb-6">
                 {/* Analyst Recommendation Summary Table */}
                 <Card className="flex flex-col overflow-hidden lg:col-span-2">
-                    <SectionHeader title={locale === "id" ? "Ringkasan Rekomendasi Saham Pilihan" : "Top Stock Picks Recommendation Summary"} optional={locale === "id" ? "Biro Riset NewsMaker" : "NewsMaker Research Bureau"} />
+                    <SectionHeader title={t.company.summaryTitle} optional={t.company.summaryOptional} />
                     <div className="overflow-x-auto">
                         <table className="w-full text-left whitespace-nowrap">
                             <thead className="bg-slate-50 text-slate-500 uppercase tracking-widest text-[10px] font-bold">
                                 <tr>
-                                    <th className="px-5 py-3.5">Kode / Nama Emiten</th>
-                                    <th className="px-5 py-3.5">Harga Terakhir</th>
-                                    <th className="px-5 py-3.5">Target Harga (12B)</th>
-                                    <th className="px-5 py-3.5">Status Valuasi</th>
-                                    <th className="px-5 py-3.5 text-center">Rekomendasi</th>
+                                    <th className="px-5 py-3.5">{t.company.table.ticker}</th>
+                                    <th className="px-5 py-3.5">{t.company.table.lastPrice}</th>
+                                    <th className="px-5 py-3.5">{t.company.table.targetPrice}</th>
+                                    <th className="px-5 py-3.5">{t.company.table.valuation}</th>
+                                    <th className="px-5 py-3.5 text-center">{t.company.table.recommendation}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 text-sm text-slate-700 font-semibold bg-white">
@@ -128,7 +129,7 @@ export default async function CompanyResearchPage({ params }: { params: Promise<
                     </div>
                     <div className="bg-slate-50 p-2.5 border-t border-slate-100 text-center">
                         <a href="https://ebook.newsmaker.id/login" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition">
-                            <i className="fa-solid fa-lock mr-2 text-slate-400"></i> {locale === "id" ? "Login untuk melihat 50+ rekomendasi saham lainnya" : "Login to view 50+ other stock recommendations"}
+                            <i className="fa-solid fa-lock mr-2 text-slate-400"></i> {t.company.loginToViewMore}
                         </a>
                     </div>
                 </Card>
@@ -136,7 +137,7 @@ export default async function CompanyResearchPage({ params }: { params: Promise<
 
             {/* Latest Equity Reports List */}
             <h3 className="text-base font-bold text-slate-800 mb-3 mt-6 bg-white p-3 rounded-md border border-slate-200">
-                <i className="fa-solid fa-building text-blue-600 mr-2 text-sm"></i> {locale === "id" ? "Riset Ekuitas Terbaru" : "Latest Equity Research"}
+                <i className="fa-solid fa-building text-blue-600 mr-2 text-sm"></i> {t.company.latestEquityTitle}
             </h3>
             <div className="grid gap-3 md:grid-cols-2">
                 {DUMMY_REPORTS.map((report) => (
@@ -164,7 +165,7 @@ export default async function CompanyResearchPage({ params }: { params: Promise<
                         </div>
                         <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                             <a href="https://ebook.newsmaker.id/login" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-                                Detail Target & Valuasi <i className="fa-solid fa-arrow-right"></i>
+                                {t.company.detailTargetValuation} <i className="fa-solid fa-arrow-right"></i>
                             </a>
                             <i className="fa-solid fa-lock text-slate-300 text-sm"></i>
                         </div>

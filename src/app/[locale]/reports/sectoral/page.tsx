@@ -7,9 +7,10 @@ import { getMessages, type Locale } from "@/locales";
 export async function generateMetadata({ params }: { params: Promise<{ locale?: string }> }) {
     const { locale: rawLocale } = await params;
     const locale = rawLocale === "en" ? "en" : "id";
+    const messages = getMessages(locale);
     return {
-        title: locale === "id" ? "Analisis Sektoral | NewsMaker" : "Sectoral Analysis | NewsMaker",
-        description: locale === "id" ? "Riset spesifik mendalam pada berbagai sektor industri." : "In-depth specific research on various industry sectors.",
+        title: messages.reports.pages.sectoral.meta.title,
+        description: messages.reports.pages.sectoral.meta.description,
     };
 }
 
@@ -29,24 +30,24 @@ export default async function SectoralAnalysisPage({ params }: { params: Promise
         header: { ...messages.header, activeNavKey: "reports" }
     };
 
+    const t = messages.reports.pages;
+
     return (
         <MarketPageTemplate locale={locale} messages={customMessages}>
             <div className="mb-4">
                 <h2 className="text-xl font-bold tracking-tight text-blue-900 mb-1">
-                    {locale === "id" ? "Analisis Sektoral" : "Sectoral Analysis"}
+                    {t.sectoral.title}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium max-w-2xl">
-                    {locale === "id"
-                        ? "Bandingkan rotasi pasar, pahami peta sentimen industri, dan identifikasi sektor dengan potensi terbaik."
-                        : "Compare market rotation, understand the industry sentiment map, and identify sectors with the best potential."}
+                    {t.sectoral.description}
                 </p>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2 mb-6">
                 {/* Heatmap/Top Picks Placeholder */}
                 <Card className="flex flex-col overflow-hidden">
-                    <SectionHeader title={locale === "id" ? "Rotasi Sektor Mingguan" : "Weekly Sector Rotation"}
-                        optional={locale === "id" ? "Sentimen Ahli" : "Expert Sentiment"} />
+                    <SectionHeader title={t.sectoral.rotationTitle}
+                        optional={t.sectoral.expertSentiment} />
                     <div className="p-3 grid gap-2 flex-grow-0">
                         {[
                             { name: "Energi & Tambang", perf: "+4.2%", bg: "bg-emerald-500" },
@@ -70,7 +71,7 @@ export default async function SectoralAnalysisPage({ params }: { params: Promise
 
                 {/* Top Recommendations Table Placeholder */}
                 <Card className="flex flex-col overflow-hidden">
-                    <SectionHeader title={locale === "id" ? "Rekomendasi Sektor Teratas" : "Top Sector Recommendations"} />
+                    <SectionHeader title={t.sectoral.topRecTitle} />
                     <div className="overflow-x-auto flex-grow">
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
@@ -105,14 +106,14 @@ export default async function SectoralAnalysisPage({ params }: { params: Promise
                         </table>
                     </div>
                     <div className="bg-slate-50 p-3 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
-                        <i className="fa-solid fa-info-circle mr-1"></i> Data diperbarui setiap kuartal berdasarkan kompilasi sentimen analis internal Ebook Portal.
+                        <i className="fa-solid fa-info-circle mr-1"></i> {t.sectoral.footnoteCompilation}
                     </div>
                 </Card>
             </div>
 
             {/* Filter Chips and Latest Reports List */}
             <h3 className="text-base font-bold text-slate-800 mb-3 mt-6 bg-white p-3 rounded-md border border-slate-200 flex items-center justify-between">
-                <span><i className="fa-solid fa-industry text-blue-600 mr-2 text-sm"></i> {locale === "id" ? "Riset Menurut Sektor" : "Research by Sector"}</span>
+                <span><i className="fa-solid fa-industry text-blue-600 mr-2 text-sm"></i> {t.sectoral.researchBySector}</span>
                 <div className="hidden sm:flex gap-2 text-xs font-semibold">
                     <button className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full hover:bg-blue-200 transition">Semua</button>
                     <button className="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition">Finansial</button>
@@ -142,7 +143,7 @@ export default async function SectoralAnalysisPage({ params }: { params: Promise
                         </div>
                         <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                             <a href="https://ebook.newsmaker.id/login" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-                                Baca Analisis <i className="fa-solid fa-arrow-right"></i>
+                                {t.sectoral.readAnalysis} <i className="fa-solid fa-arrow-right"></i>
                             </a>
                             <i className="fa-solid fa-lock text-slate-300 text-sm"></i>
                         </div>

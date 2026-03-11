@@ -7,9 +7,10 @@ import { getMessages, type Locale } from "@/locales";
 export async function generateMetadata({ params }: { params: Promise<{ locale?: string }> }) {
     const { locale: rawLocale } = await params;
     const locale = rawLocale === "en" ? "en" : "id";
+    const messages = getMessages(locale);
     return {
-        title: locale === "id" ? "Laporan Ekonomi Makro | NewsMaker" : "Macroeconomic Reports | NewsMaker",
-        description: locale === "id" ? "Akses analisis ekonomi makro, tren global, dan sentimen pasar." : "Access macroeconomic analysis, global trends, and market sentiment.",
+        title: messages.reports.pages.macro.meta.title,
+        description: messages.reports.pages.macro.meta.description,
     };
 }
 
@@ -29,16 +30,16 @@ export default async function MacroReportsPage({ params }: { params: Promise<{ l
         header: { ...messages.header, activeNavKey: "reports" }
     };
 
+    const t = messages.reports.pages;
+
     return (
         <MarketPageTemplate locale={locale} messages={customMessages}>
             <div className="mb-4">
                 <h2 className="text-xl font-bold tracking-tight text-blue-900 mb-1">
-                    {locale === "id" ? "Laporan Ekonomi Makro" : "Macroeconomic Reports"}
+                    {t.macro.title}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium max-w-2xl">
-                    {locale === "id"
-                        ? "Pahami arah kebijakan moneter, fiskal, dan tren makro ekonomi global yang membentuk iklim investasi."
-                        : "Understand the direction of monetary and fiscal policy, and global macroeconomic trends shaping the investment climate."}
+                    {t.macro.description}
                 </p>
             </div>
 
@@ -51,7 +52,7 @@ export default async function MacroReportsPage({ params }: { params: Promise<{ l
                         </div>
                         <div className="relative z-10 w-full">
                             <span className="inline-block bg-blue-500 text-white text-[10px] uppercase font-bold tracking-widest px-2 py-1 rounded mb-3">
-                                Featured Report
+                                {t.common.featuredLabel}
                             </span>
                             <h3 className="text-lg font-bold leading-tight mb-2">
                                 Prospek Pertumbuhan Ekonomi Asia Tenggara 2024
@@ -68,7 +69,7 @@ export default async function MacroReportsPage({ params }: { params: Promise<{ l
                             </ul>
                             <div className="flex items-center gap-3">
                                 <a href="https://ebook.newsmaker.id/login" target="_blank" rel="noopener noreferrer" className="bg-white text-blue-900 text-xs font-bold px-3 py-1.5 rounded shadow-md hover:bg-slate-50 transition">
-                                    <i className="fa-solid fa-lock mr-2"></i> Baca Selengkapnya
+                                    <i className="fa-solid fa-lock mr-2"></i> {t.common.readMore}
                                 </a>
                                 <button disabled className="bg-blue-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded cursor-not-allowed opacity-80" aria-label="PDF Download locked">
                                     <i className="fa-solid fa-file-pdf mr-1"></i> PDF
@@ -80,7 +81,7 @@ export default async function MacroReportsPage({ params }: { params: Promise<{ l
 
                 {/* Macro Indicators */}
                 <Card>
-                    <SectionHeader title={locale === "id" ? "Indikator Kunci" : "Key Indicators"} />
+                    <SectionHeader title={t.macro.keyIndicators} />
                     <div className="divide-y divide-slate-100">
                         {[
                             { label: "Suku Bunga BI", value: "6.00%", delta: "Tetap", tone: "neutral" },
@@ -107,7 +108,7 @@ export default async function MacroReportsPage({ params }: { params: Promise<{ l
 
             {/* Latest Reports List */}
             <h3 className="text-base font-bold text-slate-800 mb-3 mt-6 bg-white p-3 rounded-md border border-slate-200">
-                <i className="fa-solid fa-list text-blue-600 mr-2 text-sm"></i> {locale === "id" ? "Terbaru di Makro Ekonomi" : "Latest in Macroeconomics"}
+                <i className="fa-solid fa-list text-blue-600 mr-2 text-sm"></i> {t.macro.latestTitle}
             </h3>
             <div className="grid gap-3 md:grid-cols-2">
                 {DUMMY_REPORTS.map((report) => (
@@ -130,7 +131,7 @@ export default async function MacroReportsPage({ params }: { params: Promise<{ l
                         </div>
                         <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                             <a href="https://ebook.newsmaker.id/login" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-                                Baca Laporan <i className="fa-solid fa-arrow-right"></i>
+                                {t.macro.readReport} <i className="fa-solid fa-arrow-right"></i>
                             </a>
                             <i className="fa-solid fa-lock text-slate-300 text-sm"></i>
                         </div>
