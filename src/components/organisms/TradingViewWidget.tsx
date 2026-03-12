@@ -59,10 +59,23 @@ function TradingViewWidget({ symbol = "OANDA:XAUUSD" }: TradingViewWidgetProps) 
 
   return (
     <div
-      className="tradingview-widget-container"
+      className="tradingview-widget-container min-w-0 max-w-full overflow-hidden"
       ref={container}
       style={{ height: "100%", width: "100%" }}
     >
+      <style jsx global>{`
+        .tradingview-widget-container,
+        .tradingview-widget-container__widget,
+        .tradingview-widget-container iframe {
+          max-width: 100%;
+        }
+
+        .tradingview-widget-container__widget,
+        .tradingview-widget-container iframe {
+          width: 100% !important;
+          display: block;
+        }
+      `}</style>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { StickyNav } from "../organisms/StickyNav";
 import { TickerBar } from "../organisms/TickerBar";
 import { WorldTimeBar } from "../organisms/WorldTimeBar";
 import { ScrollUpButton } from "../organisms/ScrollUpButton";
+import { FloatingPartnerButtons } from "../organisms/FloatingPartnerButtons";
 import type { Locale, Messages } from "@/locales";
 
 type MarketPageTemplateProps = {
@@ -41,6 +42,7 @@ export function MarketPageTemplate({
           {children}
         </div>
       </main>
+      <FloatingPartnerButtons />
       <ScrollUpButton />
       <SiteFooter locale={locale} messages={messages} />
     </div>

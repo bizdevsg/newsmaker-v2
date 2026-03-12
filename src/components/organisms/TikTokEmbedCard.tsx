@@ -26,7 +26,10 @@ const TIKTOK_VIDEOS = [
   },
 ];
 
-export function TikTokEmbedCard({ locale: propLocale, messages }: TikTokEmbedCardProps) {
+export function TikTokEmbedCard({
+  locale: propLocale,
+  messages,
+}: TikTokEmbedCardProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const { locale: routeLocale } = useParams<{ locale?: string }>();
   const locale = propLocale || routeLocale;
@@ -64,7 +67,7 @@ export function TikTokEmbedCard({ locale: propLocale, messages }: TikTokEmbedCar
   return (
     <section className="rounded-lg bg-white shadow overflow-hidden">
       <SectionHeader
-        title={locale === "id" ? "Video di Tiktok" : "Video on Tiktok"}
+        title={locale === "id" ? "Berita Live" : "Live News"}
         actions={
           <div className="flex items-center gap-2">
             <button

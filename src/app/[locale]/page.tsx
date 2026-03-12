@@ -13,6 +13,11 @@ import { DisclaimerCard } from "@/components/organisms/DisclaimerCard";
 import { NmAiStatementCard } from "@/components/organisms/NmAiStatementCard";
 import type { Metadata } from "next";
 import { MarketOutlookSection } from "@/components/organisms/MarketOutlookSection";
+import { MarketImpact } from "@/components/organisms/MarketImpact";
+import { RegulatoryWatch } from "@/components/organisms/RegulatoryWatch";
+import { FocusReport } from "@/components/organisms/FocusReport";
+import { ExchangeActivity } from "@/components/organisms/ExchangeActivity";
+import { ToolsCard } from "@/components/organisms/ToolsCard";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -30,36 +35,32 @@ export default async function Home({
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
       <MarketBrief locale={locale} messages={messages} />
+      <MarketInsightHero />
 
-      <div className="grid lg:grid-cols-[1.95fr_1.05fr] gap-4">
-        <MarketInsightHero />
-
-        <MarketSnapshot locale={locale} messages={messages} />
-
-        <LiveChartSection />
-
+      <div className="grid lg:grid-cols-2 gap-4">
         <div className="space-y-4">
-          <SectionGridCard
-            title={
-              messages.widgets?.sectionGridCard?.marketQuotes || "Market Quotes"
-            }
-            items={6}
-          />
-          <SectionGridCard
-            title={
-              messages.widgets?.sectionGridCard?.quickAccess || "Quick Access"
-            }
-            items={3}
-          />
+          <CalenderEkonomiHome locale={locale} messages={messages} />
+
+          <RegulatoryWatch messages={messages} />
+
+          <ExchangeActivity messages={messages} />
         </div>
+        <div className="space-y-4">
+          <MarketImpact messages={messages} locale={locale} />
 
-        <SectionHomeOutlook locale={locale} messages={messages} />
+          <FocusReport messages={messages} />
+        </div>
+      </div>
 
-        <CalenderEkonomiHome locale={locale} messages={messages} />
+      <div className="grid lg:grid-cols-[2.5fr_1fr] gap-4 w-full min-w-0">
+        <div className="min-w-0 space-y-4">
+          <LiveChartSection />
 
-        <MarketInsightSection locale={locale} messages={messages} />
-
-        <TikTokEmbedCard />
+          <ToolsCard />
+        </div>
+        <div className="min-w-0 space-y-4">
+          <TikTokEmbedCard />
+        </div>
       </div>
 
       <DisclaimerCard />
