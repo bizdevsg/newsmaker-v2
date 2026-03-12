@@ -55,8 +55,6 @@ export function WorldTimeBar({
     return `${hour}.${minute}`;
   };
 
-  const dateLabel = formatDate(now, "Asia/Jakarta");
-
   const timeItems = cityTimes.map((city) => ({
     label: city.label,
     value: formatTime(now, city.timeZone),
@@ -84,10 +82,6 @@ export function WorldTimeBar({
     <div className={`${toneClasses.wrapper} ${className ?? ""}`.trim()}>
       <div className={`px-4 ${containerClassName ?? ""}`.trim()}>
         <div className={rowClass}>
-          <span className={`whitespace-nowrap ${toneClasses.strong}`.trim()}>
-            {dateLabel}
-          </span>
-          <span className={toneClasses.divider}>|</span>
           {timeItems.map((item, index) => (
             <React.Fragment key={item.label}>
               <span className="whitespace-nowrap">

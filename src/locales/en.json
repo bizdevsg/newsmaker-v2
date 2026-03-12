@@ -585,6 +585,21 @@
     "policyUpdates": {
       "title": "Policy Updates & Insights"
     },
+    "biRatePage": {
+      "kicker": "Monetary Policy",
+      "title": "BI Rate",
+      "subtitle": "Historical BI 7-Day Reverse Repo rate decisions.",
+      "updatedLabel": "Updated",
+      "empty": "BI-Rate data is not available yet.",
+      "sourceLabel": "Source",
+      "pressReleaseLabel": "Press Release",
+      "columns": [
+        "Date",
+        "BI Rate",
+        "Change",
+        "Press Release"
+      ]
+    },
     "historicData": {
       "title": "Historical Data",
       "filters": {

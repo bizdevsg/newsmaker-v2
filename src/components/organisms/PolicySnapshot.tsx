@@ -63,6 +63,11 @@ export async function PolicySnapshot({
   locale,
 }: PolicySnapshotProps) {
   const policyHref = locale ? `/${locale}/policy` : "#";
+  const biRateHref = locale ? `/${locale}/indonesia-market/bi-rate` : "#";
+  const externalLinks: Record<string, string> = {
+    "ojk-update": "https://www.ojk.go.id/",
+    "bappebti-circular": "https://bappebti.go.id/",
+  };
   const biRateResponse = await fetchJson<BiRateResponse>(API_ENDPOINTS.biRate);
   const items = buildItems(messages, biRateResponse);
   return (
@@ -79,19 +84,31 @@ export async function PolicySnapshot({
         </Link>
       </div>
       <div className="grid gap-4 px-6 pb-6 pt-5 md:grid-cols-2 xl:grid-cols-4">
-        {items.map((item) => (
-          <SnapshotCard
-            key={item.key}
-            icon={item.icon}
-            title={item.title}
-            value={item.value}
-            subtitle={item.subtitle}
-            meta={item.meta}
-          />
-        ))}
+        {items.map((item) => {
+          const isBiRate = item.key === "bi-rate";
+          const externalHref = externalLinks[item.key];
+          const href = isBiRate ? biRateHref : externalHref ?? policyHref;
+          const isExternal = Boolean(externalHref);
+
+          return (
+            <Link
+              key={item.key}
+              href={href}
+              className="block"
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noreferrer" : undefined}
+            >
+              <SnapshotCard
+                icon={item.icon}
+                title={item.title}
+                value={item.value}
+                subtitle={item.subtitle}
+                meta={item.meta}
+              />
+            </Link>
+          );
+        })}
       </div>
     </Card>
   );
 }
-
-

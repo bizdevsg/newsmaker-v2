@@ -260,10 +260,13 @@ export function ExchangeActivityClient({
 
   return (
     <Card as="section">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-6 py-4">
-        <h3 className="text-lg font-semibold text-slate-800">
-          {messages.exchangeActivity.title}
-        </h3>
+      <div className="border-b border-slate-100 px-6 py-4">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800">
+            {messages.exchangeActivity.title}
+          </h3>
+          <span className="mt-2 block h-0.5 w-16 rounded-full bg-blue-600" />
+        </div>
       </div>
       <div className="px-6 pb-6 pt-4">
         <div className="inline-flex items-center overflow-hidden rounded-md border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-800">

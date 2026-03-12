@@ -12,6 +12,9 @@ type CalendarItem = {
   impact: string;
   event: string;
   date?: string;
+  previous?: string;
+  forecast?: string;
+  actual?: string;
 };
 
 type CalendarResponse = {
@@ -76,9 +79,34 @@ export default function CalenderEkonomiHome({
       }).format(new Date(updatedAt))
     : "";
 
+  const toFlagClass = (currency: string) => {
+    const upper = currency?.toUpperCase();
+    const map: Record<string, string> = {
+      USD: "fi-us",
+      EUR: "fi-eu",
+      GBP: "fi-gb",
+      JPY: "fi-jp",
+      AUD: "fi-au",
+      CAD: "fi-ca",
+      CHF: "fi-ch",
+      NZD: "fi-nz",
+      CNY: "fi-cn",
+      IDR: "fi-id",
+    };
+    return map[upper] || "fi-un";
+  };
+
+  const impactStars = (impact: string) => {
+    const level = impact?.toLowerCase();
+    if (level.includes("high")) return 3;
+    if (level.includes("medium")) return 2;
+    if (level.includes("low")) return 1;
+    return 0;
+  };
+
   return (
     <section className="rounded-md bg-white shadow overflow-hidden border border-slate-100">
-      <div className="h-full flex flex-col justify-between">
+      <div className="h-full flex flex-col">
         <SectionHeader
           title={
             messages?.widgets?.calendarEkonomi?.title ||
@@ -93,58 +121,97 @@ export default function CalenderEkonomiHome({
             </Link>
           }
         />
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-blue-100 text-xs uppercase text-slate-500">
-              <tr>
-                <th className="px-5 py-2 text-center font-semibold">
-                  {messages?.widgets?.calendarEkonomi?.columns?.time ||
-                    (locale === "id" ? "Waktu" : "Time")}
-                </th>
-                <th className="px-2 py-2 text-center font-semibold">
-                  {messages?.widgets?.calendarEkonomi?.columns?.curr ||
-                    (locale === "id" ? "Mata Uang" : "Curr")}
-                </th>
-                <th className="px-2 py-2 text-center font-semibold">
-                  {messages?.widgets?.calendarEkonomi?.columns?.impact ||
-                    (locale === "id" ? "Dampak" : "Impact")}
-                </th>
-                <th className="px-2 py-2 text-center font-semibold">
-                  {messages?.widgets?.calendarEkonomi?.columns?.event ||
-                    (locale === "id" ? "Peristiwa" : "Event")}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {items.slice(0, 8).map((item, index) => (
-                <tr
-                  key={`${item.time}-${item.event}-${index}`}
-                  className="even:bg-slate-50"
-                >
-                  <td className="px-5 py-3 font-semibold text-slate-700">
-                    {item.time}
-                  </td>
-                  <td className="px-2 py-3 text-xs font-semibold uppercase text-slate-500">
-                    {item.currency}
-                  </td>
-                  <td className="px-2 py-3 text-center text-xs text-amber-600">
-                    {item.impact}
-                  </td>
-                  <td className="px-2 py-3 text-slate-700">{item.event}</td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr>
-                  <td className="px-5 py-3 text-xs text-slate-500" colSpan={4}>
-                    {messages?.widgets?.calendarEkonomi?.noData ||
-                      (locale === "id"
-                        ? "Data belum tersedia."
-                        : "No data available.")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="divide-y divide-slate-200">
+          {items.slice(0, 6).map((item, index) => {
+            const stars = impactStars(item.impact);
+            return (
+              <div
+                key={`${item.time}-${item.event}-${index}`}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                <div className="flex h-10 w-12 items-center justify-center rounded-md border border-slate-200 bg-white">
+                  <span
+                    className={`fi ${toFlagClass(item.currency)} h-6 w-9 rounded-sm`}
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-sm font-semibold text-slate-900">
+                      {item.time}
+                    </span>
+                    <span className="text-xs font-semibold uppercase text-slate-500">
+                      {item.currency}
+                    </span>
+                  </div>
+                  <div className="truncate text-sm font-semibold text-slate-800">
+                    {item.event}
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+                    <span>
+                      Prev:{" "}
+                      <span className="font-semibold text-slate-700">
+                        {item.previous || "-"}
+                      </span>
+                    </span>
+                    <span>
+                      Forecast:{" "}
+                      <span className="font-semibold text-slate-700">
+                        {item.forecast || "-"}
+                      </span>
+                    </span>
+                    <span>
+                      Act:{" "}
+                      <span
+                        className={
+                          item.actual
+                            ? "font-semibold text-rose-500"
+                            : "font-semibold text-slate-700"
+                        }
+                      >
+                        {item.actual || "-"}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="inline-flex items-center justify-center rounded-full bg-emerald-100 p-1 text-emerald-600">
+                    <svg
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 2.5l2.86 5.79 6.39.93-4.62 4.5 1.09 6.36L12 17.77l-5.72 3.01 1.09-6.36-4.62-4.5 6.39-.93L12 2.5z" />
+                    </svg>
+                  </span>
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 3 }).map((_, starIndex) => (
+                      <svg
+                        key={starIndex}
+                        className={`h-4 w-4 ${
+                          starIndex < stars ? "text-rose-500" : "text-slate-300"
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 2.5l2.86 5.79 6.39.93-4.62 4.5 1.09 6.36L12 17.77l-5.72 3.01 1.09-6.36-4.62-4.5 6.39-.93L12 2.5z" />
+                      </svg>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {items.length === 0 && (
+            <div className="px-5 py-3 text-xs text-slate-500">
+              {messages?.widgets?.calendarEkonomi?.noData ||
+                (locale === "id"
+                  ? "Data belum tersedia."
+                  : "No data available.")}
+            </div>
+          )}
         </div>
 
         {/* <div className="px-5 py-4">

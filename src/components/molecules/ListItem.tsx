@@ -24,7 +24,11 @@ export function ListItem({
           {tag ? <Tag tone="slate">{tag}</Tag> : null}
         </div>
       </div>
-      <Button variant="outline" size="sm">
+      <Button
+        variant="primary"
+        size="sm"
+        className="h-8 rounded-full px-3 text-[11px]"
+      >
         {actionLabel}
       </Button>
     </div>

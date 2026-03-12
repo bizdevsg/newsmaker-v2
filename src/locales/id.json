@@ -585,6 +585,21 @@
     "policyUpdates": {
       "title": "Pembaruan & Wawasan Kebijakan"
     },
+    "biRatePage": {
+      "kicker": "Kebijakan Moneter",
+      "title": "BI-Rate",
+      "subtitle": "Riwayat suku bunga acuan BI 7-Day Reverse Repo.",
+      "updatedLabel": "Diperbarui",
+      "empty": "Data BI-Rate belum tersedia.",
+      "sourceLabel": "Sumber",
+      "pressReleaseLabel": "Press Release",
+      "columns": [
+        "Tanggal",
+        "BI-Rate",
+        "Perubahan",
+        "Press Release"
+      ]
+    },
     "historicData": {
       "title": "Data Historis",
       "filters": {

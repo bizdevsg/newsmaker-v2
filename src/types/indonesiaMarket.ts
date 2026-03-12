@@ -15,9 +15,11 @@ export type BiRateRow = {
   rate?: number;
   raw_date?: string;
   raw_rate?: string;
+  press_release_url?: string;
 };
 
 export type BiRateResponse = {
+  source?: string;
   data?: BiRateRow[];
   fetched_at?: string;
 };

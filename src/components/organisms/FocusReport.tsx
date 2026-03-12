@@ -162,71 +162,103 @@ export async function FocusReport({ messages }: FocusReportProps) {
         return metric;
       });
 
+  const iconTone = (key: string) => {
+    switch (key) {
+      case "gold":
+        return "bg-amber-100 text-amber-700";
+      case "oil":
+        return "bg-slate-200 text-slate-700";
+      case "usd":
+        return "bg-emerald-100 text-emerald-700";
+      default:
+        return "bg-blue-100 text-blue-700";
+    }
+  };
+
+  const heroImage = "/assets/tourism-guangzhou-rivers-city-river.jpg";
+
   return (
-    <Card as="section" className="p-6">
-      <div className="rounded-md bg-gradient-to-r from-blue-900 via-blue-700 to-blue-600 p-6 text-white shadow-lg">
-        <p className="text-xs uppercase tracking-[0.3em] text-white/60">
-          {messages.focusReport.kicker}
-        </p>
-        <h3 className="mt-3 text-2xl font-semibold">
-          {messages.focusReport.title}
-        </h3>
-        <p className="mt-2 text-sm text-white/70">
-          {messages.focusReport.subtitle}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-4 border-white/40 text-white"
-        >
-          {messages.focusReport.ctaLabel}
-        </Button>
+    <Card as="section">
+      <div className="border-b border-slate-100 px-6 py-4">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800">
+            {messages.focusReport.kicker}
+          </h3>
+          <span className="mt-2 block h-0.5 w-16 rounded-full bg-blue-600" />
+        </div>
       </div>
-      <div className="mt-4 overflow-hidden rounded-md border border-slate-200">
-        <div className="divide-y divide-slate-200">
-          {metrics.map((metric) => {
-            const toneClass =
-              metric.tone === "up"
-                ? "text-emerald-600"
-                : metric.tone === "down"
-                  ? "text-rose-600"
-                  : "text-slate-500";
+      <div className="space-y-4 px-6 pb-6 pt-4">
+        <div className="relative overflow-hidden rounded-md">
+          <img
+            src={heroImage}
+            alt={messages.focusReport.title}
+            className="h-52 w-full object-cover sm:h-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-900/30 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-end gap-2 p-5 text-white">
+            <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
+              {messages.focusReport.kicker}
+            </p>
+            <h4 className="text-xl font-semibold leading-snug">
+              {messages.focusReport.title}
+            </h4>
+            <p className="text-xs text-white/80">
+              {messages.focusReport.subtitle}
+            </p>
+            <Button
+              variant="primary"
+              size="sm"
+              className="mt-2 w-fit rounded-full bg-blue-700 text-white hover:bg-blue-800"
+            >
+              {messages.focusReport.ctaLabel}
+            </Button>
+          </div>
+        </div>
 
-            const initials = metric.label
-              .split(/[^A-Za-z0-9]+/)
-              .filter(Boolean)
-              .map((word) => word[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase();
+        <div className="overflow-hidden rounded-md border border-slate-200">
+          <div className="divide-y divide-slate-200">
+            {metrics.map((metric) => {
+              const toneClass =
+                metric.tone === "up"
+                  ? "text-emerald-600"
+                  : metric.tone === "down"
+                    ? "text-rose-600"
+                    : "text-slate-500";
 
-            return (
-              <div
-                key={metric.key}
-                className="flex items-center justify-between gap-4 bg-white px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-blue-700">
-                    {initials}
-                  </span>
-                  <div>
-                    <p className="text-xs font-semibold uppercase text-slate-500">
-                      {metric.label}
+              return (
+                <div
+                  key={metric.key}
+                  className="flex items-center justify-between gap-4 bg-white px-4 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-9 w-9 items-center justify-center rounded-md text-[10px] font-semibold ${iconTone(
+                        metric.key,
+                      )}`}
+                    >
+                      {metric.label.slice(0, 3).toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase text-slate-500">
+                        {metric.label}
+                      </p>
+                      <p className="text-base font-semibold text-slate-800">
+                        {metric.value}
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        {metric.meta}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xs font-semibold ${toneClass}`}>
+                      {metric.delta}
                     </p>
-                    <p className="text-base font-semibold text-slate-800">
-                      {metric.value}
-                    </p>
-                    <p className="text-[11px] text-slate-400">{metric.meta}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-xs font-semibold ${toneClass}`}>
-                    {metric.delta}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </Card>
