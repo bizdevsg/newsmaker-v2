@@ -36,8 +36,10 @@ type InvestingQuote = {
 };
 
 const LIVE_QUOTES_URL =
-  "https://endpoapi-production-3202.up.railway.app/api/live-quotes";
+  "/api/live-quotes";
 const INVESTING_URL = "/api/investing";
+const REFRESH_INTERVAL_MS = 120_000;
+const INITIAL_DELAY_MS = 300;
 
 const formatNumber = (value: number | undefined, digits = 0) => {
   if (value === undefined || Number.isNaN(value)) return undefined;
@@ -120,8 +122,8 @@ export function ExchangeActivityClient({
         : null;
       try {
         const [liveRes, investingRes] = await Promise.all([
-          fetch(LIVE_QUOTES_URL, { cache: "no-store" }),
-          fetch(INVESTING_URL, { cache: "no-store" }),
+          fetch(LIVE_QUOTES_URL),
+          fetch(INVESTING_URL),
         ]);
 
         const nextStats: Record<string, StatItem[]> = {};
@@ -169,10 +171,15 @@ export function ExchangeActivityClient({
       }
     };
 
-    load();
-    const interval = window.setInterval(load, 30000);
+    const initialTimer = window.setTimeout(load, INITIAL_DELAY_MS);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        load();
+      }
+    }, REFRESH_INTERVAL_MS);
     return () => {
       isActive = false;
+      window.clearTimeout(initialTimer);
       window.clearInterval(interval);
     };
   }, []);

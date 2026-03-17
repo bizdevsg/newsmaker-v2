@@ -68,6 +68,7 @@ const SLUG_TO_LABEL: Record<string, string> = {
   "fiscal-moneter": "Fiscal & Monetary",
   "global-economics": "Global & Economy",
   "fiscal-monetary": "Fiscal & Monetary",
+  "analisis-market": "Analisis Market",
 };
 
 // Economic news slugs - these link back to /economic-news
@@ -223,16 +224,16 @@ export function NewsCategoryList({
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredBySearch = normalizedSearch
     ? articles.filter((item: any) => {
-      const title = (item.titles?.default || item.title || "")
-        .toString()
-        .toLowerCase();
-      const content = stripHtml(item.content ?? "")
-        .toString()
-        .toLowerCase();
-      return (
-        title.includes(normalizedSearch) || content.includes(normalizedSearch)
-      );
-    })
+        const title = (item.titles?.default || item.title || "")
+          .toString()
+          .toLowerCase();
+        const content = stripHtml(item.content ?? "")
+          .toString()
+          .toLowerCase();
+        return (
+          title.includes(normalizedSearch) || content.includes(normalizedSearch)
+        );
+      })
     : articles;
 
   const totalPages = Math.ceil(filteredBySearch.length / perPage) || 1;
@@ -262,7 +263,11 @@ export function NewsCategoryList({
                 href={`/${locale}/equities`}
                 className="hover:text-blue-600 transition"
               >
-                {isEconomic ? nc.economicNewsTitle : isAll ? nc.allArticles : nc.marketNewsTitle}
+                {isEconomic
+                  ? nc.economicNewsTitle
+                  : isAll
+                    ? nc.allArticles
+                    : nc.marketNewsTitle}
               </Link>
               <span>/</span>
               <span className="text-slate-700 font-semibold">{label}</span>
@@ -411,7 +416,7 @@ export function NewsCategoryList({
             </Link>
           </div>
         </div>
-      </div >
+      </div>
     );
   }
 
@@ -425,7 +430,11 @@ export function NewsCategoryList({
               href={`/${locale}/equities`}
               className="hover:text-blue-600 transition"
             >
-              {isEconomic ? nc.economicNewsTitle : isAll ? nc.allArticles : nc.marketNewsTitle}
+              {isEconomic
+                ? nc.economicNewsTitle
+                : isAll
+                  ? nc.allArticles
+                  : nc.marketNewsTitle}
             </Link>
             <span>/</span>
             <span className="text-slate-700 font-semibold">{label}</span>
@@ -600,10 +609,12 @@ export function NewsCategoryList({
                   </div>
                 )}
                 {/* Category badge */}
-                <div className="absolute top-2 left-3 select-none">
-                  <span className="rounded-full bg-blue-700/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                    {catName}
-                  </span>
+                <div className="absolute top-2 left-3">
+                  <div className=" bg-blue-700/50 group-hover:bg-blue-700 rounded-full px-2 py-0.5 transition duration-300">
+                    <p className=" text-[10px] font-bold uppercase tracking-wider text-white">
+                      {catName}
+                    </p>
+                  </div>
                 </div>
               </div>
 

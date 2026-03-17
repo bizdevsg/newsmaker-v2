@@ -27,7 +27,7 @@ export function ToolsCard() {
     <div className="bg-white rounded-lg">
       <SectionHeader title="Tools" />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 md:px-5 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 md:px-5 py-4">
         {toolItems.map((item) => (
           <div
             key={item.title}

@@ -56,6 +56,47 @@ function ImpactStars({ count }: { count: number }) {
   return <span className="text-slate-300 text-sm">—</span>;
 }
 
+const CURRENCY_TO_COUNTRY: Record<string, string> = {
+  US: "US",
+  EU: "EU",
+  JP: "JP",
+  UK: "GB",
+  AU: "AU",
+  CA: "CA",
+  CH: "CH",
+  CN: "CN",
+  HK: "HK",
+  SG: "SG",
+  ID: "ID",
+  NZ: "NZ",
+  KR: "KR",
+  IN: "IN",
+  USD: "US",
+  EUR: "EU",
+  JPY: "JP",
+  GBP: "GB",
+  AUD: "AU",
+  CAD: "CA",
+  CHF: "CH",
+  CNY: "CN",
+  JPN: "JP",
+  CHN: "CN",
+  HKD: "HK",
+  SGD: "SG",
+  IDR: "ID",
+  NZD: "NZ",
+  KRW: "KR",
+  INR: "IN",
+};
+
+const flagFromCurrency = (currency?: string) => {
+  if (!currency) return null;
+  const normalized = currency.replace(/\./g, "").toUpperCase();
+  const country = CURRENCY_TO_COUNTRY[normalized] ?? "";
+  if (!country || country.length !== 2) return null;
+  return country.toLowerCase();
+};
+
 // ── Main ───────────────────────────────────────────────────────────────────
 export function PolicyQuickDataCalendar({
   calendarTimeFrame,
@@ -163,7 +204,12 @@ export function PolicyQuickDataCalendar({
                     </span>
                   )}
                   {item.currency && (
-                    <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                    <span className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-700">
+                      {flagFromCurrency(item.currency) ? (
+                        <span className={`fi fi-${flagFromCurrency(item.currency)} rounded-sm`} />
+                      ) : (
+                        <i className="fa-solid fa-globe text-[10px]" />
+                      )}
                       {item.currency}
                     </span>
                   )}
@@ -246,7 +292,7 @@ export function PolicyQuickDataCalendar({
             <tr className="border-b border-slate-200 bg-slate-50">
               <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[16%]">{t?.columns?.date || "Date"}</th>
               <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[10%]">{t?.columns?.time || "Time"}</th>
-              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[8%]">{t?.columns?.currency || "Currency"}</th>
+              <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[8%]">{t?.columns?.currency || "Country"}</th>
               <th className="py-3 px-3 text-xs font-bold text-slate-700 text-center w-[12%]">{t?.columns?.impact || "Impact"}</th>
               <th className="py-3 px-3 text-xs font-bold text-slate-700 w-[54%]">{t?.columns?.event || "Event & Figures"}</th>
             </tr>
@@ -303,7 +349,12 @@ export function PolicyQuickDataCalendar({
                     <td className="py-3.5 px-3 text-[13px] text-slate-700">{dateLabel || dateStr}</td>
                     <td className="py-3.5 px-3 text-[13px] text-slate-600 whitespace-nowrap">{timeStr}</td>
                     <td className="py-3.5 px-3 text-[13px]">
-                      <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                      <span className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
+                        {flagFromCurrency(item.currency) ? (
+                          <span className={`fi fi-${flagFromCurrency(item.currency)} rounded-sm`} />
+                        ) : (
+                          <i className="fa-solid fa-globe text-xs" />
+                        )}
                         {item.currency}
                       </span>
                     </td>

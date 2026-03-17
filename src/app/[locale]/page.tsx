@@ -18,6 +18,11 @@ import { RegulatoryWatch } from "@/components/organisms/RegulatoryWatch";
 import { FocusReport } from "@/components/organisms/FocusReport";
 import { ExchangeActivity } from "@/components/organisms/ExchangeActivity";
 import { ToolsCard } from "@/components/organisms/ToolsCard";
+import { HomeDownloadModal } from "@/components/organisms/HomeDownloadModal";
+import {
+  MarketHighlightNews,
+  MarketOutlookNews,
+} from "@/components/organisms/MarketNewsSections";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -34,6 +39,7 @@ export default async function Home({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
+      <HomeDownloadModal locale={locale} messages={messages} />
       <MarketBrief locale={locale} messages={messages} />
       <MarketInsightHero />
 
@@ -63,8 +69,16 @@ export default async function Home({
         </div>
       </div>
 
-      <DisclaimerCard />
-      <NmAiStatementCard />
+      <div className="grid lg:grid-cols-2 gap-4">
+        <MarketOutlookNews locale={locale} />
+        <MarketHighlightNews locale={locale} />
+      </div>
+
+      {/* <div className="grid lg:grid-cols-2 gap-4">
+        <DisclaimerCard />
+
+        <NmAiStatementCard />
+      </div> */}
     </MarketPageTemplate>
   );
 }

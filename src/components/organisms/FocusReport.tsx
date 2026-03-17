@@ -1,33 +1,20 @@
+"use client";
+
 import React from "react";
 import { Card } from "../atoms/Card";
 import { Button } from "../atoms/Button";
 import type { Messages } from "@/locales";
-import type {
-  FxResponse,
-  IhsgResponse,
-} from "@/types/indonesiaMarket";
+import type { LiveQuoteItem, LiveQuoteResponse } from "@/types/indonesiaMarket";
 
 type FocusReportProps = {
   messages: Messages;
 };
 
-const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
-const API_BASE = process.env.ENDPO_NM23_BASE ?? "";
-
-const API_ENDPOINTS = {
-  fx: `${API_BASE}/api/newsmaker-v2/fx`,
-  ihsg: `${API_BASE}/api/newsmaker-v2/market`,
-};
+const LIVE_QUOTES_ENDPOINT = "/api/live-quotes";
 
 const fetchJson = async <T,>(url: string): Promise<T | null> => {
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-      },
-      next: { revalidate: 60 },
-    });
+    const response = await fetch(url);
     if (!response.ok) return null;
     return (await response.json()) as T;
   } catch {
@@ -64,117 +51,178 @@ const formatChangePoints = (value?: number) => {
   return `${sign}${formatNumber(value, 2)}`;
 };
 
-const buildIndexMetric = (
-  ihsgResponse: IhsgResponse | null | undefined,
-  key: "composite" | "idx30" | "lq45" | "kompas100",
+const buildMetricFromQuote = (
+  key: string,
   label: string,
+  quote: LiveQuoteItem | undefined,
   fallback?: { value: string; delta: string; tone?: string; meta?: string },
+  decimals?: number,
 ) => {
-  const data = ihsgResponse?.indices?.[key];
-  const value = formatNumber(parseNumber(data?.last));
-  const delta = formatPercent(parseNumber(data?.change_percent));
+  const price = parseNumber(quote?.last ?? quote?.price);
+  const percent = parseNumber(quote?.percentChange);
+  const value = formatNumber(price, decimals ?? (price && price < 10 ? 4 : 2));
+  const delta = formatPercent(percent);
   const tone =
-    data?.direction === "down"
-      ? "down"
-      : data?.direction === "up"
-        ? "up"
-        : "flat";
-  const meta = formatChangePoints(parseNumber(data?.change));
+    percent !== undefined
+      ? percent < 0
+        ? "down"
+        : percent > 0
+          ? "up"
+          : "flat"
+      : "flat";
+  const meta =
+    formatChangePoints(parseNumber(quote?.valueChange)) ??
+    quote?.serverTime ??
+    quote?.serverDateTime ??
+    "";
   return {
-    key: key === "composite" ? "ihsg" : key,
+    key,
     label,
     value: value ?? fallback?.value ?? "-",
     delta: delta ?? fallback?.delta ?? "-",
     tone: (tone ?? fallback?.tone ?? "flat") as "up" | "down" | "flat",
-    meta: meta ?? fallback?.meta ?? "",
+    meta: meta || fallback?.meta || "",
   };
 };
 
-export async function FocusReport({ messages }: FocusReportProps) {
-  const [fxResponse, ihsgResponse] = await Promise.all([
-    fetchJson<FxResponse>(API_ENDPOINTS.fx),
-    fetchJson<IhsgResponse>(API_ENDPOINTS.ihsg),
-  ]);
+const preferredOrder = [
+  "XUL10",
+  "BCO10_BBJ",
+  "AU10F_BBJ",
+  "HKK50_BBJ",
+  "JPK50_BBJ",
+  "UJ10F_BBJ",
+];
 
-  const usdRow = fxResponse?.data?.find((row) => row.currency === "USD");
-  const usdValue = formatNumber(usdRow?.sell);
+const displayMeta: Record<
+  string,
+  {
+    label: string;
+    subtitle: string;
+    icon?: string;
+    iconBg: string;
+    imageSrc?: string;
+    decimals: number;
+  }
+> = {
+  XUL10: {
+    label: "GOLD",
+    subtitle: "XAUUSD",
+    imageSrc: "/assets/goldIMG.png",
+    iconBg: "bg-amber-100 text-amber-700",
+    decimals: 2,
+  },
+  BCO10_BBJ: {
+    label: "UKOIL",
+    subtitle: "BCOUSD",
+    imageSrc: "/assets/BCOimg.png",
+    iconBg: "bg-slate-200 text-slate-700",
+    decimals: 2,
+  },
+  AU10F_BBJ: {
+    label: "SILVER",
+    subtitle: "XAGUSD",
+    imageSrc: "/assets/silverlogo.png",
+    iconBg: "bg-slate-100 text-slate-700",
+    decimals: 5,
+  },
+  HKK50_BBJ: {
+    label: "HANGSENG",
+    subtitle: "HSI",
+    imageSrc: "/assets/HangSengLogo.png",
+    iconBg: "bg-rose-100 text-rose-600",
+    decimals: 2,
+  },
+  JPK50_BBJ: {
+    label: "NIKKEI",
+    subtitle: "NIKKEI 255",
+    imageSrc: "/assets/NikkeiLogo.png",
+    iconBg: "bg-blue-100 text-blue-700",
+    decimals: 0,
+  },
+  UJ10F_BBJ: {
+    label: "USD/JPY",
+    subtitle: "UJ10F",
+    icon: "fa-solid fa-dollar-sign",
+    iconBg: "bg-emerald-100 text-emerald-700",
+    decimals: 2,
+  },
+};
 
-  const ihsgData = ihsgResponse?.indices?.composite;
-  const ihsgValue = parseNumber(ihsgData?.last) ?? undefined;
-  const ihsgChange = parseNumber(ihsgData?.change);
-  const ihsgDelta =
-    parseNumber(ihsgData?.change_percent) ??
-    (ihsgValue && ihsgChange ? (ihsgChange / ihsgValue) * 100 : undefined);
-  const ihsgTone =
-    ihsgData?.direction === "down"
-      ? "down"
-      : ihsgData?.direction === "up"
-        ? "up"
-        : ihsgDelta !== undefined
-          ? ihsgDelta < 0
-            ? "down"
-            : "up"
-          : undefined;
+type DisplayMetric = {
+  key: string;
+  label: string;
+  subtitle: string;
+  icon: string;
+  imageSrc?: string;
+  value: string;
+  delta: string;
+  tone: "up" | "down" | "flat";
+  meta: string;
+};
 
-  const metrics = ihsgResponse?.indices
-    ? [
-        buildIndexMetric(
-          ihsgResponse,
-          "composite",
-          "IHSG",
-          messages.focusReport.metrics[0],
-        ),
-        buildIndexMetric(
-          ihsgResponse,
-          "idx30",
-          "IDX30",
-          messages.focusReport.metrics[1],
-        ),
-        buildIndexMetric(
-          ihsgResponse,
-          "lq45",
-          "LQ45",
-          messages.focusReport.metrics[2],
-        ),
-        buildIndexMetric(
-          ihsgResponse,
-          "kompas100",
-          "Kompas100",
-          messages.focusReport.metrics[3],
-        ),
-      ]
-    : messages.focusReport.metrics.map((metric) => {
-        if (metric.key === "ihsg") {
-          return {
-            ...metric,
-            value: ihsgValue ? (formatNumber(ihsgValue) ?? metric.value) : metric.value,
-            delta: ihsgDelta ? (formatPercent(ihsgDelta) ?? metric.delta) : metric.delta,
-            tone: (ihsgTone ?? metric.tone) as "up" | "down" | "flat",
-            meta: formatChangePoints(ihsgChange) ?? metric.meta,
-          };
-        }
-        if (metric.key === "usd") {
-          return {
-            ...metric,
-            value: usdValue ?? metric.value,
-          };
-        }
-        return metric;
-      });
+const buildMetrics = (quotes: LiveQuoteItem[]): DisplayMetric[] => {
+  const quoteMap = new Map(quotes.map((item) => [item.symbol, item]));
+  const ordered = preferredOrder
+    .map((symbol) => quoteMap.get(symbol))
+    .filter(Boolean) as LiveQuoteItem[];
 
-  const iconTone = (key: string) => {
-    switch (key) {
-      case "gold":
-        return "bg-amber-100 text-amber-700";
-      case "oil":
-        return "bg-slate-200 text-slate-700";
-      case "usd":
-        return "bg-emerald-100 text-emerald-700";
-      default:
-        return "bg-blue-100 text-blue-700";
-    }
-  };
+  const remaining = quotes.filter(
+    (item) => !preferredOrder.includes(item.symbol),
+  );
+  const selected = [...ordered, ...remaining].slice(0, 5);
 
+  return selected.map((quote) => {
+    const meta = displayMeta[quote.symbol] ?? {
+      label: quote.symbol,
+      subtitle: quote.symbol,
+      icon: "fa-solid fa-chart-line",
+      iconBg: "bg-slate-200 text-slate-700",
+      decimals: 2,
+    };
+    return {
+      ...buildMetricFromQuote(
+        quote.symbol,
+        meta.label,
+        quote,
+        undefined,
+        meta.decimals,
+      ),
+      subtitle: meta.subtitle,
+      icon: meta.icon ?? "fa-solid fa-chart-line",
+      iconBg: meta.iconBg,
+      imageSrc: meta.imageSrc,
+    };
+  });
+};
+
+export function FocusReport({ messages }: FocusReportProps) {
+  const [metrics, setMetrics] = React.useState<DisplayMetric[]>([]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    let timer: number | undefined;
+
+    const load = async () => {
+      const liveQuotes =
+        await fetchJson<LiveQuoteResponse>(LIVE_QUOTES_ENDPOINT);
+      if (!isMounted) return;
+      setMetrics(buildMetrics(liveQuotes?.data ?? []));
+    };
+
+    const initialTimer = window.setTimeout(load, 300);
+    timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        load();
+      }
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(initialTimer);
+      if (timer) window.clearInterval(timer);
+    };
+  }, []);
   const heroImage = "/assets/tourism-guangzhou-rivers-city-river.jpg";
 
   return (
@@ -215,7 +263,7 @@ export async function FocusReport({ messages }: FocusReportProps) {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-md border border-slate-200">
+        <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
           <div className="divide-y divide-slate-200">
             {metrics.map((metric) => {
               const toneClass =
@@ -228,32 +276,45 @@ export async function FocusReport({ messages }: FocusReportProps) {
               return (
                 <div
                   key={metric.key}
-                  className="flex items-center justify-between gap-4 bg-white px-4 py-3"
+                  className="flex items-center justify-between gap-4 px-4 py-4"
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`flex h-9 w-9 items-center justify-center rounded-md text-[10px] font-semibold ${iconTone(
-                        metric.key,
-                      )}`}
+                      className={`flex h-12 w-12 items-center justify-center rounded-full text-lg`}
                     >
-                      {metric.label.slice(0, 3).toUpperCase()}
+                      {metric.imageSrc ? (
+                        <img
+                          src={metric.imageSrc}
+                          alt={`${metric.label} logo`}
+                          className="h-12 w-12 object-contain"
+                        />
+                      ) : (
+                        <i className={metric.icon}></i>
+                      )}
                     </span>
                     <div>
-                      <p className="text-xs font-semibold uppercase text-slate-500">
+                      <p className="text-sm font-semibold text-slate-800">
                         {metric.label}
                       </p>
-                      <p className="text-base font-semibold text-slate-800">
-                        {metric.value}
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        {metric.meta}
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        {metric.subtitle}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-xs font-semibold ${toneClass}`}>
-                      {metric.delta}
-                    </p>
+                  <div className="flex flex-col justify-end items-end gap-1">
+                    <div className="bg-slate-100 px-2 py-0.5 rounded-full w-fit text-xs text-right">
+                      <p className="font-semibold text-slate-900">
+                        {metric.value}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-end gap-3">
+                      <span className={`text-xs font-semibold ${toneClass}`}>
+                        {metric.meta}
+                      </span>
+                      <span className={`text-xs font-semibold ${toneClass}`}>
+                        {metric.delta}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -264,5 +325,3 @@ export async function FocusReport({ messages }: FocusReportProps) {
     </Card>
   );
 }
-
-

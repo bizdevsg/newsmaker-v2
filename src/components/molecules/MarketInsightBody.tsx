@@ -14,13 +14,15 @@ export function MarketInsightBody({
   ctaHref = "#",
 }: MarketInsightBodyProps) {
   return (
-    <div className="relative z-10 p-4 flex flex-col justify-between gap-10 max-w-lg">
+    <div className="relative z-10 p-4 flex flex-col justify-between gap-10">
       <div className="space-y-3">
         <div className="w-fit space-y-3">
-          <h2 className="text-2xl text-white font-semibold">{title}</h2>
+          <h2 className="text-2xl text-white font-semibold max-w-xl">
+            {title}
+          </h2>
           <hr className="border-white/40" />
         </div>
-        <p className="line-clamp-3 text-white/90">{description}</p>
+        <p className="line-clamp-3 text-white/90 max-w-lg">{description}</p>
       </div>
 
       <div>

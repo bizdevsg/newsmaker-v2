@@ -117,7 +117,6 @@ const formatPrice = (value: number) => {
   }).format(value);
 };
 
-const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
 
 export function LiveChartSection({
   locale: propLocale,
@@ -125,7 +124,7 @@ export function LiveChartSection({
   initialItems = [],
   initialUpdatedAt,
   initialServerTime,
-  refreshMs = 15000,
+  refreshMs = 30000,
 }: LiveChartSectionProps) {
   const loading = useLoading();
   const [items, setItems] = useState<LiveChartItem[]>(initialItems);
@@ -140,7 +139,8 @@ export function LiveChartSection({
   const { locale: routeLocale } = useParams<{ locale?: string }>();
   const locale = propLocale || routeLocale;
   const initialLoad = useRef(true);
-  const apiUrl = `${ENDPOAPI_BASE}/api/live-quotes`;
+  const apiUrl = `/api/live-quotes`;
+  const safeRefreshMs = Math.max(refreshMs, 30000);
 
   useEffect(() => {
     let isMounted = true;
@@ -148,7 +148,7 @@ export function LiveChartSection({
     const fetchQuotes = async () => {
       const token = initialLoad.current ? loading.start("live-chart") : null;
       try {
-        const response = await fetch(apiUrl, { cache: "no-store" });
+        const response = await fetch(apiUrl);
         if (!response.ok) return;
         const data = (await response.json()) as LiveQuotesResponse;
         if (!isMounted) return;
@@ -163,13 +163,18 @@ export function LiveChartSection({
       }
     };
 
-    fetchQuotes();
-    const id = window.setInterval(fetchQuotes, refreshMs);
+    const initialTimer = window.setTimeout(fetchQuotes, 300);
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchQuotes();
+      }
+    }, safeRefreshMs);
     return () => {
       isMounted = false;
+      window.clearTimeout(initialTimer);
       window.clearInterval(id);
     };
-  }, [apiUrl, refreshMs]);
+  }, [apiUrl, safeRefreshMs]);
 
   const loopItems =
     items.length > 0 ? [...items, ...items] : ([] as LiveChartItem[]);

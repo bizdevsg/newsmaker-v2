@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-
 import { useLoading } from "../providers/LoadingProvider";
+
 
 type TickerBarProps = {
   ticks?: string[];
@@ -37,10 +37,9 @@ type NewsItem = {
   };
 };
 
-const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
 const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const API_URL = `${ENDPOAPI_BASE}/api/live-quotes`;
+const API_URL = `/api/live-quotes`;
 const REFRESH_INTERVAL_MS = 300_000;
 
 const formatNumber = (value: number) =>
@@ -123,7 +122,7 @@ export function TickerBar({
 
     const loadLive = async () => {
       try {
-        const response = await fetch(API_URL, { cache: "no-store" });
+        const response = await fetch(API_URL);
         if (!response.ok) return;
         const payload = await response.json();
         if (!isActive || payload?.status !== "success") return;
@@ -141,7 +140,6 @@ export function TickerBar({
     const loadNews = async () => {
       try {
         const response = await fetch(NEWS_API_URL, {
-          cache: "no-store",
           headers: {
             Authorization: `Bearer ${NEWS_TOKEN}`,
           },
@@ -169,14 +167,17 @@ export function TickerBar({
       }
     };
 
-    loadAll();
+    const initialTimer = window.setTimeout(loadAll, 200);
     const interval = window.setInterval(() => {
-      loadLive();
-      loadNews();
+      if (document.visibilityState === "visible") {
+        loadLive();
+        loadNews();
+      }
     }, REFRESH_INTERVAL_MS);
 
     return () => {
       isActive = false;
+      window.clearTimeout(initialTimer);
       window.clearInterval(interval);
     };
   }, [locale, start, stop]);
@@ -268,7 +269,7 @@ export function TickerBar({
       <div className="ticker-wrapper py-1 flex w-full max-w-7xl items-center gap-4 overflow-hidden text-[11px] font-medium text-white shadow-lg sm:text-xs">
         {/* Top News / Label */}
         <div className="bg-linear-to-r from-blue-950 z-10">
-          <div className="flex shrink-0 items-center ml-2 sm:ml-0 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 to-white/0 p-0.5 pr-16">
+          <div className="flex shrink-0 items-center ml-2 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 to-white/0 p-0.5 pr-16">
             <p className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
               <i className="fa-solid fa-bolt text-[10px]" aria-hidden="true" />
             </p>

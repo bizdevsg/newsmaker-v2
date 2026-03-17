@@ -100,12 +100,13 @@ export function SiteHeader() {
 
   return (
     <header className="bg-linear-to-r from-blue-900 via-blue-700 to-blue-600 text-white shadow-xl">
+      <div className="bg-[url(/assets/bg-cover.pg)]" />
       <div className="px-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-4">
           <div className="flex items-center gap-4">
             <Link href={`/${currentLocale}`}>
               <img
-                src="/assets/NewsMaker-23-logo-white.png"
+                src="/assets/NewsMaker-White 1.png"
                 alt="NewsMaker 23"
                 className="h-10 w-auto sm:h-12 lg:h-14"
               />

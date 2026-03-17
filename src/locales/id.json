@@ -296,24 +296,8 @@
     "ctaLabel": "Lihat Laporan",
     "metrics": [
       {
-        "key": "ihsg",
-        "label": "IHSG",
-        "value": "7,150",
-        "delta": "+0.68%",
-        "tone": "up",
-        "meta": "AS 04:44, 00024"
-      },
-      {
-        "key": "usd",
-        "label": "USD",
-        "value": "15,680",
-        "delta": "+6.92%",
-        "tone": "up",
-        "meta": "USD/IDR 20"
-      },
-      {
         "key": "gold",
-        "label": "Emas",
+        "label": "GOLD",
         "value": "1,254,000",
         "delta": "+0.32%",
         "tone": "up",
@@ -321,11 +305,35 @@
       },
       {
         "key": "oil",
-        "label": "Minyak",
+        "label": "UKOIL",
         "value": "83.20",
         "delta": "-0.15%",
         "tone": "down",
         "meta": "FT 18:20"
+      },
+      {
+        "key": "silver",
+        "label": "SILVER",
+        "value": "0",
+        "delta": "0.00%",
+        "tone": "flat",
+        "meta": "-"
+      },
+      {
+        "key": "hsi",
+        "label": "HSI",
+        "value": "0",
+        "delta": "0.00%",
+        "tone": "flat",
+        "meta": "-"
+      },
+      {
+        "key": "nikkei",
+        "label": "NIKKEI",
+        "value": "0",
+        "delta": "0.00%",
+        "tone": "flat",
+        "meta": "-"
       }
     ]
   },
@@ -347,53 +355,183 @@
   },
   "footer": {
     "brand": "NEWSMAKER 23",
-    "reports": "Laporan",
-    "footerLinks": [
+    "brandDescription": [
+      "Market & Economic Intelligence",
+      "Platform Insight On Macro,",
+      "Commodities, Equities & Policy"
+    ],
+    "columns": [
       {
-        "key": "about",
-        "label": "Tentang",
-        "href": "#"
+        "key": "navigation",
+        "title": "Navigation",
+        "links": [
+          {
+            "key": "home",
+            "label": "Beranda",
+            "href": "#"
+          }
+        ]
       },
       {
-        "key": "research",
-        "label": "Riset",
-        "href": "#"
+        "key": "news",
+        "title": "News",
+        "links": [
+          {
+            "key": "index",
+            "label": "Indeks",
+            "href": "#"
+          },
+          {
+            "key": "commodity",
+            "label": "Komoditas",
+            "href": "#"
+          },
+          {
+            "key": "currencies",
+            "label": "Mata Uang",
+            "href": "#"
+          },
+          {
+            "key": "economy",
+            "label": "Ekonomi",
+            "href": "#"
+          },
+          {
+            "key": "fiscal",
+            "label": "Fiskal & Moneter",
+            "href": "#"
+          },
+          {
+            "key": "market-analysis",
+            "label": "Analisis Pasar",
+            "href": "#"
+          },
+          {
+            "key": "opinion",
+            "label": "Analisis & Opini",
+            "href": "#"
+          },
+          {
+            "key": "crypto",
+            "label": "Kripto",
+            "href": "#"
+          }
+        ]
       },
       {
-        "key": "insights",
-        "label": "Insight",
-        "href": "#"
+        "key": "tools",
+        "title": "Tools",
+        "links": [
+          {
+            "key": "live-chart",
+            "label": "Grafik Langsung",
+            "href": "#"
+          },
+          {
+            "key": "economic-calendar",
+            "label": "Kalender Ekonomi",
+            "href": "#"
+          },
+          {
+            "key": "historical-data",
+            "label": "Data Historis",
+            "href": "#"
+          },
+          {
+            "key": "pivot-fibonacci",
+            "label": "Pivot & Fibonacci",
+            "href": "#"
+          },
+          {
+            "key": "education",
+            "label": "Edukasi",
+            "href": "#"
+          }
+        ]
       },
       {
         "key": "contact",
-        "label": "Kontak",
-        "href": "#"
-      },
-      {
-        "key": "careers",
-        "label": "Karier",
-        "href": "#"
+        "title": "Talk To Us",
+        "links": [
+          {
+            "key": "email",
+            "label": "support@newsmaker.id",
+            "href": "mailto:support@newsmaker.id"
+          },
+          {
+            "key": "tiktok",
+            "label": "TikTok",
+            "href": "https://www.tiktok.com/@newsmaker23"
+          },
+          {
+            "key": "instagram",
+            "label": "Instagram",
+            "href": "https://www.instagram.com/news.maker23/"
+          },
+          {
+            "key": "youtube",
+            "label": "YouTube",
+            "href": "https://youtube.com/@newsmaker23"
+          },
+          {
+            "key": "whatsapp",
+            "label": "WhatsApp",
+            "href": "#"
+          }
+        ]
       }
     ],
-    "legalLinks": [
+    "socials": [
       {
-        "key": "privacy",
-        "label": "Privasi",
-        "href": "#"
+        "key": "facebook",
+        "label": "Newsmaker 23 Facebook",
+        "href": "https://www.facebook.com/share/PhK7sFfYqgPoqHWf",
+        "icon": "fa-brands fa-facebook-f"
       },
       {
-        "key": "terms",
-        "label": "Ketentuan",
-        "href": "#"
+        "key": "instagram",
+        "label": "Newsmaker 23 Instagram",
+        "href": "https://www.instagram.com/news.maker23/",
+        "icon": "fa-brands fa-instagram"
       },
       {
-        "key": "disclaimer",
-        "label": "Disclaimer",
-        "href": "#"
+        "key": "tiktok",
+        "label": "Newsmaker 23 TikTok",
+        "href": "https://www.tiktok.com/@newsmaker23",
+        "icon": "fa-brands fa-tiktok"
+      },
+      {
+        "key": "twitter",
+        "label": "Newsmaker 23 X",
+        "href": "#",
+        "icon": "fa-brands fa-x-twitter"
+      },
+      {
+        "key": "youtube",
+        "label": "Newsmaker 23 YouTube",
+        "href": "https://youtube.com/@newsmaker23",
+        "icon": "fa-brands fa-youtube"
       }
     ],
-    "coverage": "Newsmaker Research · Cakupan Pasar Indonesia",
-    "copyright": "© 2026 Newsmaker Research. Hak cipta dilindungi."
+    "appBadges": [
+      {
+        "key": "google-play",
+        "kicker": "GET IT ON",
+        "label": "Google Play",
+        "img": "/assets/PlayStore.png",
+        "href": "https://play.google.com/store/apps/details?id=com.nm23.newsmaker23",
+        "icon": "fa-brands fa-google-play"
+      },
+      {
+        "key": "app-store",
+        "kicker": "Download on the",
+        "label": "App Store",
+        "img": "/assets/Appstore.png",
+        "href": "https://apps.apple.com/id/app/newsmaker-23/id6754815466?l=id",
+        "icon": "fa-brands fa-apple"
+      }
+    ],
+    "copyright": "\u00A9 {year} News.Maker23 - Hak cipta dilindungi."
   },
   "equities": {
     "marketOverview": {
@@ -557,7 +695,7 @@
         "columns": {
           "date": "Tanggal",
           "time": "Waktu",
-          "currency": "Mata Uang",
+          "currency": "Negara",
           "event": "Peristiwa",
           "impact": "Dampak",
           "previous": "Sebelumnya",

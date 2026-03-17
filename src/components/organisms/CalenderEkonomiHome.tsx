@@ -24,6 +24,8 @@ type CalendarResponse = {
 
 const ENDPOAPI_BASE = process.env.NEXT_PUBLIC_ENDPOAPI_BASE ?? "";
 const CALENDAR_URL = `${ENDPOAPI_BASE}/api/calendar/today`;
+const REFRESH_INTERVAL_MS = 120_000;
+const INITIAL_DELAY_MS = 200;
 
 import type { Messages } from "@/locales";
 
@@ -49,7 +51,7 @@ export default function CalenderEkonomiHome({
     const fetchCalendar = async () => {
       const token = initialLoad.current ? loading.start("calendar-home") : null;
       try {
-        const response = await fetch(CALENDAR_URL, { cache: "no-store" });
+        const response = await fetch(CALENDAR_URL);
         if (!response.ok) return;
         const data = (await response.json()) as CalendarResponse;
         if (!isMounted) return;
@@ -63,10 +65,15 @@ export default function CalenderEkonomiHome({
       }
     };
 
-    fetchCalendar();
-    const id = window.setInterval(fetchCalendar, 30000);
+    const initialTimer = window.setTimeout(fetchCalendar, INITIAL_DELAY_MS);
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchCalendar();
+      }
+    }, REFRESH_INTERVAL_MS);
     return () => {
       isMounted = false;
+      window.clearTimeout(initialTimer);
       window.clearInterval(id);
     };
   }, []);
@@ -80,24 +87,52 @@ export default function CalenderEkonomiHome({
     : "";
 
   const toFlagClass = (currency: string) => {
-    const upper = currency?.toUpperCase();
+    const normalized = currency?.replace(/\./g, "").toUpperCase();
     const map: Record<string, string> = {
-      USD: "fi-us",
-      EUR: "fi-eu",
-      GBP: "fi-gb",
-      JPY: "fi-jp",
-      AUD: "fi-au",
-      CAD: "fi-ca",
-      CHF: "fi-ch",
-      NZD: "fi-nz",
-      CNY: "fi-cn",
-      IDR: "fi-id",
+      US: "US",
+      EU: "EU",
+      JP: "JP",
+      UK: "GB",
+      AU: "AU",
+      CA: "CA",
+      CH: "CH",
+      CN: "CN",
+      HK: "HK",
+      SG: "SG",
+      ID: "ID",
+      NZ: "NZ",
+      KR: "KR",
+      IN: "IN",
+      USD: "US",
+      EUR: "EU",
+      JPY: "JP",
+      GBP: "GB",
+      AUD: "AU",
+      CAD: "CA",
+      CHF: "CH",
+      CNY: "CN",
+      HKD: "HK",
+      SGD: "SG",
+      IDR: "ID",
+      NZD: "NZ",
+      KRW: "KR",
+      INR: "IN",
     };
-    return map[upper] || "fi-un";
+    const country = map[normalized] || "UN";
+    return `fi-${country.toLowerCase()}`;
   };
 
   const impactStars = (impact: string) => {
-    const level = impact?.toLowerCase();
+    if (!impact) return 0;
+    const starMatches = impact.match(/\u2605/g);
+    if (starMatches && starMatches.length > 0) {
+      return Math.min(3, starMatches.length);
+    }
+    const numeric = Number(impact.replace(/[^0-9]/g, ""));
+    if (!Number.isNaN(numeric) && numeric > 0) {
+      return Math.min(3, Math.max(1, numeric));
+    }
+    const level = impact.toLowerCase();
     if (level.includes("high")) return 3;
     if (level.includes("medium")) return 2;
     if (level.includes("low")) return 1;
@@ -127,7 +162,9 @@ export default function CalenderEkonomiHome({
             return (
               <div
                 key={`${item.time}-${item.event}-${index}`}
-                className="flex items-center gap-3 px-4 py-3"
+                className={`flex items-center gap-3 px-4 py-3 ${
+                  stars >= 3 ? "bg-rose-50" : "bg-white"
+                }`}
               >
                 <div className="flex h-10 w-12 items-center justify-center rounded-md border border-slate-200 bg-white">
                   <span
@@ -175,31 +212,33 @@ export default function CalenderEkonomiHome({
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="inline-flex items-center justify-center rounded-full bg-emerald-100 p-1 text-emerald-600">
-                    <svg
-                      className="h-4 w-4"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 2.5l2.86 5.79 6.39.93-4.62 4.5 1.09 6.36L12 17.77l-5.72 3.01 1.09-6.36-4.62-4.5 6.39-.93L12 2.5z" />
-                    </svg>
+                  <span
+                    className={`inline-flex items-center rounded-full px-1 py-0.5 ${
+                      stars >= 3
+                        ? "bg-red-200 text-red-500"
+                        : stars === 2
+                          ? "bg-amber-100 text-amber-600"
+                          : stars === 1
+                            ? "bg-emerald-100 text-emerald-600"
+                            : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    {stars === 0 ? (
+                      <span className="text-[10px] font-semibold">-</span>
+                    ) : (
+                      Array.from({ length: stars }).map((_, starIndex) => (
+                        <svg
+                          key={starIndex}
+                          className="h-3.5 w-3.5"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 2.5l2.86 5.79 6.39.93-4.62 4.5 1.09 6.36L12 17.77l-5.72 3.01 1.09-6.36-4.62-4.5 6.39-.93L12 2.5z" />
+                        </svg>
+                      ))
+                    )}
                   </span>
-                  <div className="flex items-center gap-0.5">
-                    {Array.from({ length: 3 }).map((_, starIndex) => (
-                      <svg
-                        key={starIndex}
-                        className={`h-4 w-4 ${
-                          starIndex < stars ? "text-rose-500" : "text-slate-300"
-                        }`}
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path d="M12 2.5l2.86 5.79 6.39.93-4.62 4.5 1.09 6.36L12 17.77l-5.72 3.01 1.09-6.36-4.62-4.5 6.39-.93L12 2.5z" />
-                      </svg>
-                    ))}
-                  </div>
                 </div>
               </div>
             );

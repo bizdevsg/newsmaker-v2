@@ -16,6 +16,13 @@ const stripHtml = (html: string) =>
     .replace(/&[a-z]+;/gi, " ")
     .trim();
 
+const decodeHtml = (value: string) => {
+  if (typeof document === "undefined") return value;
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = value;
+  return textarea.value;
+};
+
 type NewsArticleDetailProps = {
   slug: string;
   categorySlug: string;
@@ -246,7 +253,7 @@ export function NewsArticleDetail({
           <button
             onClick={copyLink}
             title="Copy link"
-            className={`transition text-lg ${copiedLink ? "text-blue-600" : "hover:text-blue-500"}`}
+            className={`transition text-lg cursor-pointer ${copiedLink ? "text-blue-600" : "hover:text-blue-500"}`}
           >
             <i
               className={`fa-solid ${copiedLink ? "fa-check" : "fa-link"}`}
@@ -277,7 +284,7 @@ export function NewsArticleDetail({
                         prose-strong:text-slate-800
                         prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
                         prose-ul:list-disc prose-ul:pl-6 prose-li:mb-1"
-          dangerouslySetInnerHTML={{ __html: article.content ?? "" }}
+          dangerouslySetInnerHTML={{ __html: decodeHtml(article.content ?? "") }}
         />
 
         {/* Source */}

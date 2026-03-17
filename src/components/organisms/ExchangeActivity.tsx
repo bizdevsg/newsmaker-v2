@@ -11,7 +11,7 @@ type ExchangeActivityProps = {
 };
 
 const LIVE_QUOTES_URL =
-  "https://endpoapi-production-3202.up.railway.app/api/live-quotes";
+  "/api/live-quotes";
 const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
 const API_BASE = process.env.ENDPO_NM23_BASE ?? "";
 

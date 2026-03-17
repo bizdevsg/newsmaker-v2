@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { MarketInsightHeader } from "../molecules/MarketInsightHeader";
 import { MarketInsightBody } from "../molecules/MarketInsightBody";
 import { useLoading } from "../providers/LoadingProvider";
@@ -10,6 +11,7 @@ type NewsItem = {
   title?: string;
   content?: string;
   slug?: string;
+  updated_at?: string;
   created_at?: string;
   kategori?: {
     name?: string;
@@ -18,9 +20,7 @@ type NewsItem = {
   images?: string[];
 };
 
-const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const NEWS_IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+const PORTALNEWS_API_ENDPOINT = "/api/portalnews?limit=1";
 
 const fallbackHero = {
   title: "",
@@ -30,9 +30,10 @@ const fallbackHero = {
 };
 
 export function MarketInsightHero() {
+  const { locale } = useParams<{ locale?: string }>();
   const [hero, setHero] = useState(fallbackHero);
   const [isLoading, setIsLoading] = useState(true);
-  const loading = useLoading();
+  const { start, stop } = useLoading();
 
   useEffect(() => {
     let isActive = true;
@@ -50,70 +51,60 @@ export function MarketInsightHero() {
       return text.length > 180 ? `${text.slice(0, 180).trim()}...` : text;
     };
 
-    const pickImage = (images?: string[]) => {
+    const pickImage = (images?: string[], imageBase = "") => {
       if (!images || images.length === 0) return fallbackHero.image;
       const first = images[0] ?? "";
       if (!first) return fallbackHero.image;
-      return first.startsWith("http") ? first : `${NEWS_IMAGE_BASE}${first}`;
+      if (first.startsWith("http")) return first;
+      const normalizedPath = first.startsWith("/") ? first : `/${first}`;
+      return imageBase ? `${imageBase}${normalizedPath}` : normalizedPath;
     };
 
     const load = async () => {
-      const token = loading.start("market-insight");
+      const token = start("market-insight");
       try {
-        const response = await fetch(NEWS_API_URL, {
+        const response = await fetch(PORTALNEWS_API_ENDPOINT, {
           cache: "no-store",
-          headers: {
-            Authorization: `Bearer ${NEWS_TOKEN}`,
-          },
         });
-        if (!response.ok) return;
-        const payload = await response.json();
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !payload) return;
         if (!isActive || payload?.status !== "success") return;
 
-        const items: NewsItem[] = Array.isArray(payload.data)
-          ? payload.data
-          : [];
-
-        const marketUpdates = items.filter(
-          (item) => item.kategori?.name?.toLowerCase() === "market update",
-        );
-
-        if (!marketUpdates.length) return;
-
-        const latest = [...marketUpdates].sort((a, b) => {
-          const aTime = a.created_at ? Date.parse(a.created_at) : 0;
-          const bTime = b.created_at ? Date.parse(b.created_at) : 0;
-          return bTime - aTime;
-        })[0];
+        const items: NewsItem[] = Array.isArray(payload.data) ? payload.data : [];
+        const imageBase =
+          typeof payload.imageBase === "string" ? payload.imageBase : "";
+        const latest = items[0];
 
         if (!latest) return;
 
         const categorySlug = latest.kategori?.slug?.trim();
         const articleSlug = latest.slug?.trim();
+        const localePrefix = locale ? `/${locale}` : "";
 
         setHero({
-          title: latest.title?.trim() || "Market Update",
+          title: latest.title?.trim() || "Market Insight",
           description: toSummary(latest.content),
-          image: pickImage(latest.images),
+          image: pickImage(latest.images, imageBase),
           ctaHref:
             categorySlug && articleSlug
-              ? `/news/${categorySlug}/${articleSlug}`
+              ? `${localePrefix}/news/${categorySlug}/${articleSlug}`
               : "#",
         });
       } catch {
         // keep fallback
       } finally {
         if (isActive) setIsLoading(false);
-        loading.stop(token);
+        stop(token);
       }
     };
 
-    load();
+    const initialTimer = window.setTimeout(load, 300);
 
     return () => {
       isActive = false;
+      window.clearTimeout(initialTimer);
     };
-  }, []);
+  }, [locale, start, stop]);
 
   return (
     <section

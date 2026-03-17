@@ -19,6 +19,7 @@ type LoadingContextValue = {
 };
 
 const LoadingContext = createContext<LoadingContextValue | null>(null);
+const MAX_LOADING_MS = 10000;
 
 function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
   return (
@@ -45,17 +46,28 @@ function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [pendingCount, setPendingCount] = useState(0);
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const tokens = useRef(new Set<symbol>());
+  const tokenTimers = useRef(new Map<symbol, number>());
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchKey = searchParams?.toString() ?? "";
+  const showTimerRef = useRef<number | null>(null);
 
   const start = useCallback((label?: string) => {
     const token = Symbol(label ?? "loading");
     tokens.current.add(token);
     setPendingCount((count) => count + 1);
+    const timer = window.setTimeout(() => {
+      // Safety: auto-stop if a request hangs
+      if (tokens.current.has(token)) {
+        tokens.current.delete(token);
+        setPendingCount((count) => Math.max(0, count - 1));
+      }
+      tokenTimers.current.delete(token);
+    }, MAX_LOADING_MS);
+    tokenTimers.current.set(token, timer);
     return token;
   }, []);
 
@@ -63,6 +75,11 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     if (!tokens.current.has(token)) return;
     tokens.current.delete(token);
     setPendingCount((count) => Math.max(0, count - 1));
+    const timer = tokenTimers.current.get(token);
+    if (timer) {
+      window.clearTimeout(timer);
+      tokenTimers.current.delete(token);
+    }
   }, []);
 
   useEffect(() => {
@@ -84,9 +101,18 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (value.isLoading) {
-      setShowOverlay(true);
-      setFadeOut(false);
+      if (showTimerRef.current) return;
+      showTimerRef.current = window.setTimeout(() => {
+        setShowOverlay(true);
+        setFadeOut(false);
+        showTimerRef.current = null;
+      }, 0);
       return;
+    }
+
+    if (showTimerRef.current) {
+      window.clearTimeout(showTimerRef.current);
+      showTimerRef.current = null;
     }
 
     if (showOverlay) {
@@ -115,6 +141,14 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       document.body.style.paddingRight = originalPaddingRight;
     };
   }, [showOverlay]);
+
+  useEffect(() => {
+    return () => {
+      tokenTimers.current.forEach((timer) => window.clearTimeout(timer));
+      tokenTimers.current.clear();
+      tokens.current.clear();
+    };
+  }, []);
 
   return (
     <LoadingContext.Provider value={value}>

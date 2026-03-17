@@ -73,7 +73,7 @@ export function PolicyQuickData({ messages, locale = "id" }: PolicyQuickDataProp
           ? loading.start("policy-live-quotes")
           : null;
         try {
-          const res = await fetch(`${ENDPOAPI_BASE}/api/live-quotes`);
+          const res = await fetch(`/api/live-quotes`);
           const json = await res.json();
           if (json && json.data) {
             const mappedStats = json.data.map((item: any) => {

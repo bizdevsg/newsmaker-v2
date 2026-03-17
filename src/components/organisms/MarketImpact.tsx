@@ -11,34 +11,31 @@ type MarketImpactProps = {
   locale?: string;
 };
 
-const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
 const NEWS_IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
 
 export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   const loading = useLoading();
   const [newsData, setNewsData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageBase, setImageBase] = useState("");
 
   useEffect(() => {
     const fetchNews = async () => {
       const token = loading.start("market-impact");
       try {
-        const res = await fetch(NEWS_API_URL, {
-          headers: {
-            Authorization: `Bearer ${NEWS_TOKEN}`,
-          },
-        });
-        const json = await res.json();
+        const res = await fetch("/api/portalnews?limit=2");
+        const json = await res.json().catch(() => null);
+        if (!res.ok) {
+          const message =
+            json?.message ? `${json.message}` : `API error: ${res.status}`;
+          const cause = json?.cause ? ` (${json.cause})` : "";
+          throw new Error(`${message}${cause}`);
+        }
         if (json && json.data) {
-          // Sort data descending by date so we get the latest news
-          const sortedData = json.data.sort((a: any, b: any) => {
-            const dateA = new Date(a.updated_at || a.created_at).getTime();
-            const dateB = new Date(b.updated_at || b.created_at).getTime();
-            return dateB - dateA;
-          });
-          // Taking top 3 items
-          setNewsData(sortedData.slice(0, 2));
+          setNewsData(json.data);
+          if (typeof json.imageBase === "string") {
+            setImageBase(json.imageBase);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch news", err);
@@ -47,7 +44,8 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
         loading.stop(token);
       }
     };
-    fetchNews();
+    const initialTimer = window.setTimeout(fetchNews, 300);
+    return () => window.clearTimeout(initialTimer);
   }, []);
 
   // Helper to strip html tags for summary safely on client side
@@ -73,10 +71,16 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
       summary: stripHtml(item.content).substring(0, 150) + "...",
       date: formattedDate,
       href,
-      imageLabel:
-        item.images && item.images.length > 0
-          ? `${NEWS_IMAGE_BASE}${item.images[0]}`
-          : "./assets/Screenshot-2024-10-29-at-11.27.48.png",
+      imageLabel: (() => {
+        if (item.images && item.images.length > 0) {
+          const base = imageBase || NEWS_IMAGE_BASE;
+          const imagePath = item.images[0].startsWith("/")
+            ? item.images[0]
+            : `/${item.images[0]}`;
+          return `${base}${imagePath}`;
+        }
+        return "./assets/Screenshot-2024-10-29-at-11.27.48.png";
+      })(),
     };
   });
 
