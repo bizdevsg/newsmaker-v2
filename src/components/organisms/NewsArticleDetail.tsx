@@ -86,8 +86,8 @@ export function NewsArticleDetail({
         // Latest: most recent 5
         const sorted = [...all].sort(
           (a, b) =>
-            new Date(b.updated_at || b.created_at).getTime() -
-            new Date(a.updated_at || a.created_at).getTime(),
+            (Date.parse(b.updated_at ?? b.created_at ?? "") || 0) -
+            (Date.parse(a.updated_at ?? a.created_at ?? "") || 0),
         );
         setLatest(sorted.slice(0, 5));
 

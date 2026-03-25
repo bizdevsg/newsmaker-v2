@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 const FRANKFURTER_BASE_URL = process.env.FRANKFURTER_BASE_URL ?? "";
 
 export async function GET() {
   try {
-    const response = await fetch(`${FRANKFURTER_BASE_URL}/currencies`, {
+    const response = await fetchWithTimeout(`${FRANKFURTER_BASE_URL}/currencies`, {
       cache: "no-store",
     });
 

@@ -5,6 +5,7 @@ import type {
   IhsgResponse,
   LiveQuoteResponse,
 } from "@/types/indonesiaMarket";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 type ExchangeActivityProps = {
   messages: Messages;
@@ -22,9 +23,12 @@ const API_ENDPOINTS = {
 
 const fetchJson = async <T,>(url: string): Promise<T | null> => {
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: "GET",
-      headers: url === LIVE_QUOTES_URL ? undefined : { Authorization: `Bearer ${API_TOKEN}` },
+      headers:
+        url === LIVE_QUOTES_URL
+          ? undefined
+          : { Authorization: `Bearer ${API_TOKEN}` },
       next: { revalidate: 30 },
     });
     if (!response.ok) return null;

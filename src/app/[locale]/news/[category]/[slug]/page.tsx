@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getMessages, type Locale } from "@/locales";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { NewsArticleDetail } from "@/components/organisms/NewsArticleDetail";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
@@ -40,7 +41,7 @@ export async function generateMetadata({
 
   if (NEWS_API) {
     try {
-      const res = await fetch(NEWS_API, {
+      const res = await fetchWithTimeout(NEWS_API, {
         cache: "no-store",
         headers: {
           Authorization: `Bearer ${NEWS_TOKEN}`,

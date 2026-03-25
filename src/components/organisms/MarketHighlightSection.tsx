@@ -1,4 +1,5 @@
 import React from "react";
+import type { Messages } from "@/locales";
 import { MarketHighlightItem } from "../molecules/MarketHighlightItem";
 import { MarketHighlightCard } from "../molecules/MarketHighlightCard";
 import { SectionHeader } from "../molecules/SectionHeader";
@@ -33,9 +34,7 @@ const highlightCards = [
   },
 ];
 
-const highlightTabs = ["Markets", "Aktivitas", "Headlines", "Snapshot"];
-
-export function MarketHighlightSection({ locale, messages }: { locale?: string; messages: any }) {
+export function MarketHighlightSection({ locale, messages }: { locale?: string; messages?: Messages }) {
   const currentHighlightItems = messages?.widgets?.marketHighlight?.items || (locale === "id" ? [
     { title: "Teknikal Emas Mencapai Level Baru", subtitle: "Peluang trading" },
     { title: "Pasar Potensial Tertekan Usai Data China", subtitle: "Peluang trading" },

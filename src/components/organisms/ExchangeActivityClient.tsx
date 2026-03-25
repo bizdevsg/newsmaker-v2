@@ -11,6 +11,7 @@ import type {
   LiveQuoteItem,
   LiveQuoteResponse,
 } from "@/types/indonesiaMarket";
+import { SectionHeader } from "../molecules/SectionHeader";
 
 type ExchangeActivityClientProps = {
   messages: Messages;
@@ -27,6 +28,9 @@ type StatItem = {
   tone: "up" | "down" | "flat";
 };
 
+const normalizeStatTone = (tone: unknown): StatItem["tone"] =>
+  tone === "up" || tone === "down" || tone === "flat" ? tone : "flat";
+
 type InvestingQuote = {
   symbol: string;
   last: number;
@@ -35,8 +39,7 @@ type InvestingQuote = {
   currency?: string;
 };
 
-const LIVE_QUOTES_URL =
-  "/api/live-quotes";
+const LIVE_QUOTES_URL = "/api/live-quotes";
 const INVESTING_URL = "/api/investing";
 const REFRESH_INTERVAL_MS = 120_000;
 const INITIAL_DELAY_MS = 300;
@@ -65,7 +68,9 @@ export function ExchangeActivityClient({
   const tabs = messages.exchangeActivity.tabs;
   const initialKey =
     tabs.find((tab) => tab.key === messages.exchangeActivity.activeTabKey)
-      ?.key ?? tabs[0]?.key ?? "markets";
+      ?.key ??
+    tabs[0]?.key ??
+    "markets";
   const [activeKey, setActiveKey] = useState(initialKey);
   const [liveStats, setLiveStats] = useState<Record<string, StatItem[]>>({});
   const [updatedAt, setUpdatedAt] = useState<string | null>(
@@ -186,15 +191,12 @@ export function ExchangeActivityClient({
 
   const fallbackStatsByTab = useMemo<Record<string, StatItem[]>>(() => {
     const quotes = Array.isArray(liveQuotes?.data) ? liveQuotes?.data : [];
-    const baseStats = messages.exchangeActivity.stats.map((stat) => ({
+    const baseStats: StatItem[] = messages.exchangeActivity.stats.map((stat) => ({
       key: stat.key,
       label: stat.label,
       value: stat.value,
       delta: stat.delta,
-      tone:
-        stat.tone === "up" || stat.tone === "down" || stat.tone === "flat"
-          ? stat.tone
-          : "flat",
+      tone: normalizeStatTone(stat.tone),
     }));
 
     const liveByTab: Record<string, StatItem[]> = {};
@@ -206,7 +208,8 @@ export function ExchangeActivityClient({
 
     // Enrich base stats with fx/ihsg for the markets tab when available
     const usdRow = fxResponse?.data?.find((row) => row.currency === "USD");
-    const usdValue = typeof usdRow?.sell === "number" ? formatNumber(usdRow.sell) : undefined;
+    const usdValue =
+      typeof usdRow?.sell === "number" ? formatNumber(usdRow.sell) : undefined;
 
     const ihsgData = ihsgResponse?.indices?.composite;
     const ihsgValue =
@@ -234,9 +237,13 @@ export function ExchangeActivityClient({
       if (stat.key === "ihsg") {
         return {
           ...stat,
-          value: ihsgValue ? (formatNumber(ihsgValue) ?? stat.value) : stat.value,
-          delta: ihsgDelta ? (formatPercent(ihsgDelta) ?? stat.delta) : stat.delta,
-          tone: (ihsgTone ?? stat.tone) as "up" | "down" | "flat",
+          value: ihsgValue
+            ? (formatNumber(ihsgValue) ?? stat.value)
+            : stat.value,
+          delta: ihsgDelta
+            ? (formatPercent(ihsgDelta) ?? stat.delta)
+            : stat.delta,
+          tone: normalizeStatTone(ihsgTone ?? stat.tone),
         };
       }
       if (stat.key === "idr-usd") {
@@ -267,15 +274,18 @@ export function ExchangeActivityClient({
 
   return (
     <Card as="section">
-      <div className="border-b border-slate-100 px-6 py-4">
+      {/* <div className="border-b border-slate-100 px-6 py-4">
         <div>
           <h3 className="text-lg font-semibold text-slate-800">
             {messages.exchangeActivity.title}
           </h3>
           <span className="mt-2 block h-0.5 w-16 rounded-full bg-blue-600" />
         </div>
-      </div>
-      <div className="px-6 pb-6 pt-4">
+      </div> */}
+
+      <SectionHeader title={messages.exchangeActivity.title} />
+
+      <div className="px-4 py-5">
         <div className="inline-flex items-center overflow-hidden rounded-md border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-800">
           {tabs.map((tab) => (
             <button
@@ -304,7 +314,7 @@ export function ExchangeActivityClient({
             />
           ))}
         </div>
-        <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-100 p-4 text-xs text-slate-500">
+        <div className="mt-4 rounded border border-dashed border-slate-200 bg-slate-100 p-4 text-xs text-slate-500">
           {updatedAt
             ? `Updated ${updatedAt}`
             : messages.exchangeActivity.heatmapNote}

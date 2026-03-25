@@ -1,6 +1,7 @@
 import React from "react";
 import type { Messages } from "@/locales";
 import type { BiRateResponse, BiRateRow } from "@/types/indonesiaMarket";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 type BiRateTableProps = {
   messages: Messages;
@@ -13,7 +14,7 @@ const API_ENDPOINT = `${API_BASE}/api/newsmaker-v2/bi-rate`;
 
 const fetchJson = async <T,>(url: string): Promise<T | null> => {
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: "GET",
       headers: { Authorization: `Bearer ${API_TOKEN}` },
       next: { revalidate: 60 },

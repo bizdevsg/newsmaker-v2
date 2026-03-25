@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 // Cache the response for 5 minutes (300s) to avoid hammering the external API
 export const revalidate = 300;
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
     const limitParam = Number(searchParams.get("limit") || "6");
     const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 6;
 
-    const res = await fetch(TIKTOK_API, {
+    const res = await fetchWithTimeout(TIKTOK_API, {
       headers: NEWS_TOKEN ? { Authorization: `Bearer ${NEWS_TOKEN}` } : undefined,
       cache: "no-store",
     });
@@ -39,8 +40,8 @@ export async function GET(request: Request) {
     const data = Array.isArray(json?.data) ? json.data : [];
 
     const sortedData = data.sort((a: any, b: any) => {
-      const dateA = new Date(a.updated_at || a.created_at).getTime();
-      const dateB = new Date(b.updated_at || b.created_at).getTime();
+      const dateA = Date.parse(a.updated_at ?? a.created_at ?? "") || 0;
+      const dateB = Date.parse(b.updated_at ?? b.created_at ?? "") || 0;
       return dateB - dateA;
     });
 

@@ -4,6 +4,7 @@ import { Card } from "../atoms/Card";
 import { SnapshotCard } from "../molecules/SnapshotCard";
 import type { Locale, Messages } from "@/locales";
 import type { BiRateResponse } from "@/types/indonesiaMarket";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 type PolicySnapshotProps = {
   messages: Messages;
@@ -19,7 +20,7 @@ const API_ENDPOINTS = {
 
 const fetchJson = async <T,>(url: string): Promise<T | null> => {
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,

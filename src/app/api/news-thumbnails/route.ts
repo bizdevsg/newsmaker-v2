@@ -2,6 +2,7 @@
 
 // Cache the response for 5 minutes (300s) to avoid hammering the external API
 export const revalidate = 300;
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
 const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
@@ -9,7 +10,7 @@ const IMAGE_BASE = (process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "").replace
 
 export async function GET() {
     try {
-        const res = await fetch(NEWS_API, {
+        const res = await fetchWithTimeout(NEWS_API, {
             headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
             cache: "no-store",
         });

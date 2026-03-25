@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { SectionHeader } from "../molecules/SectionHeader";
 import type { Messages } from "@/locales";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 type MarketOutlookSectionProps = {
   locale: string;
@@ -94,7 +95,7 @@ async function fetchMarketOverview(
   messages?: Messages
 ) {
   try {
-    const response = await fetch(NEWS_API, {
+    const response = await fetchWithTimeout(NEWS_API, {
       headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
       cache: "no-store",
     });

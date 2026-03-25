@@ -156,13 +156,13 @@ export default function CalenderEkonomiHome({
             </Link>
           }
         />
-        <div className="divide-y divide-slate-200">
+        <div className="divide-y divide-slate-200 px-4 pb-4">
           {items.slice(0, 6).map((item, index) => {
             const stars = impactStars(item.impact);
             return (
               <div
                 key={`${item.time}-${item.event}-${index}`}
-                className={`flex items-center gap-3 px-4 py-3 ${
+                className={`flex items-center gap-3 py-3 ${
                   stars >= 3 ? "bg-rose-50" : "bg-white"
                 }`}
               >

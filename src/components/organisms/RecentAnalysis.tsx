@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import type { Messages } from "@/locales";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 type RecentAnalysisProps = {
   messages: Messages;
@@ -92,7 +93,7 @@ async function fetchRecentAnalysis(
   messages?: Messages
 ) {
   try {
-    const response = await fetch(NEWS_API, {
+    const response = await fetchWithTimeout(NEWS_API, {
       headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
       cache: "no-store",
     });

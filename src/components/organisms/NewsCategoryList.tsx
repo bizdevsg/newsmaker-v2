@@ -170,8 +170,8 @@ export function NewsCategoryList({
           // Sort by most recent
           filtered.sort((a: any, b: any) => {
             return (
-              new Date(b.updated_at || b.created_at).getTime() -
-              new Date(a.updated_at || a.created_at).getTime()
+              (Date.parse(b.updated_at ?? b.created_at ?? "") || 0) -
+              (Date.parse(a.updated_at ?? a.created_at ?? "") || 0)
             );
           });
           setArticles(filtered);

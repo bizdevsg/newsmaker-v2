@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 // Cache the response for 5 minutes (300s) to avoid hammering the external API
 export const revalidate = 300;
@@ -37,6 +38,17 @@ const normalizeCategory = (value: unknown) =>
     .replace(/\s+/g, " ")
     .trim();
 
+const getItemTimestamp = (item: PortalNewsItem) => {
+  const dateValue = item.updated_at ?? item.created_at;
+
+  if (!dateValue) {
+    return 0;
+  }
+
+  const timestamp = new Date(dateValue).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
 export async function GET(request: Request) {
   try {
     if (!NEWS_API) {
@@ -52,7 +64,7 @@ export async function GET(request: Request) {
     const category = normalizeCategory(searchParams.get("category"));
     const excludeCategory = normalizeCategory(searchParams.get("excludeCategory"));
 
-    const res = await fetch(NEWS_API, {
+    const res = await fetchWithTimeout(NEWS_API, {
       headers: NEWS_TOKEN ? { Authorization: `Bearer ${NEWS_TOKEN}` } : undefined,
       cache: "no-store",
     });
@@ -71,8 +83,8 @@ export async function GET(request: Request) {
     }
 
     const sortedData = [...json.data].sort((a, b) => {
-      const dateA = new Date(a.updated_at || a.created_at).getTime();
-      const dateB = new Date(b.updated_at || b.created_at).getTime();
+      const dateA = getItemTimestamp(a);
+      const dateB = getItemTimestamp(b);
       return dateB - dateA;
     });
     const filteredData = sortedData.filter((item) => {

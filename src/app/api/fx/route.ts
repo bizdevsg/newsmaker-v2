@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 const FRANKFURTER_BASE_URL = process.env.FRANKFURTER_BASE_URL ?? "";
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     const url = `${FRANKFURTER_BASE_URL}/latest?base=${encodeURIComponent(from)}&symbols=${encodeURIComponent(to)}`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       cache: "no-store",
     });
 
