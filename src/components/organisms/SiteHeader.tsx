@@ -129,7 +129,7 @@ export function SiteHeader() {
                   />
                 </button>
                 {isLangOpenDesktop && (
-                  <div className="absolute right-0 mt-2 w-24 rounded-md border border-slate-200 bg-white py-1 text-xs font-semibold text-slate-700 shadow-lg">
+                  <div className="absolute right-0 mt-2 w-24 rounded-md border border-slate-200 bg-white py-1 text-xs font-semibold text-slate-700 shadow-lg z-50">
                     <button
                       type="button"
                       onClick={() => {
