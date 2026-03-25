@@ -162,7 +162,7 @@ export default function CalenderEkonomiHome({
             return (
               <div
                 key={`${item.time}-${item.event}-${index}`}
-                className={`flex items-center gap-3 py-3 ${
+                className={`flex items-center gap-3 py-3 px-3 ${
                   stars >= 3 ? "bg-rose-50" : "bg-white"
                 }`}
               >
