@@ -1,31 +1,15 @@
-import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
-import { MarketBrief } from "@/components/organisms/MarketBrief";
-import { MarketInsightHero } from "@/components/organisms/MarketInsightHero";
-import { MarketSnapshot } from "@/components/organisms/MarketSnapshot";
-import { LiveChartSection } from "@/components/organisms/LiveChartSection";
-import { SectionGridCard } from "@/components/organisms/SectionGridCard";
-import { SectionHomeOutlook } from "@/components/organisms/SectionHomeOutlook";
-import { MarketInsightSection } from "@/components/organisms/MarketInsightSection";
-import { getMessages, type Locale } from "@/locales";
-import CalenderEkonomiHome from "@/components/organisms/CalenderEkonomiHome";
-import { TikTokEmbedCard } from "@/components/organisms/TikTokEmbedCard";
-import { DisclaimerCard } from "@/components/organisms/DisclaimerCard";
-import { NmAiStatementCard } from "@/components/organisms/NmAiStatementCard";
 import type { Metadata } from "next";
-import { MarketOutlookSection } from "@/components/organisms/MarketOutlookSection";
-import { MarketImpact } from "@/components/organisms/MarketImpact";
+import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import { HeroSection } from "@/components/organisms/HeroSection";
+import { PolicySnapshot } from "@/components/organisms/PolicySnapshot";
 import { RegulatoryWatch } from "@/components/organisms/RegulatoryWatch";
+import { MarketImpact } from "@/components/organisms/MarketImpact";
 import { FocusReport } from "@/components/organisms/FocusReport";
-import { ExchangeActivity } from "@/components/organisms/ExchangeActivity";
-import { ToolsCard } from "@/components/organisms/ToolsCard";
-import { HomeDownloadModal } from "@/components/organisms/HomeDownloadModal";
-import {
-  MarketHighlightNews,
-  MarketOutlookNews,
-} from "@/components/organisms/MarketNewsSections";
+import { RecentAnalysis } from "@/components/organisms/RecentAnalysis";
+import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: "Indonesia Market",
 };
 
 export default async function Home({
@@ -39,46 +23,34 @@ export default async function Home({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <HomeDownloadModal locale={locale} messages={messages} />
-      <MarketBrief locale={locale} messages={messages} />
-      <MarketInsightHero />
-
-      <div className="grid lg:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <CalenderEkonomiHome locale={locale} messages={messages} />
-
-          <RegulatoryWatch messages={messages} />
-
-          <ExchangeActivity messages={messages} />
+      <HeroSection messages={messages} locale={locale} />
+      <PolicySnapshot messages={messages} locale={locale} />
+      <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
+          <div className="order-4">
+            <RegulatoryWatch messages={messages} />
+          </div>
+          <div className="order-2">
+            <RecentAnalysis
+              messages={messages}
+              locale={locale}
+              limit={4}
+              includeCategoryName="Analysis Market Indonesia"
+              includeMainCategorySlug="analysis-market-indonesia"
+              link={`/${locale}/indonesia-market/analysis`}
+              linkLabel={messages.equities.newsCategories.viewAll}
+            />
+          </div>
         </div>
-        <div className="space-y-4">
-          <MarketImpact messages={messages} locale={locale} />
-
-          <FocusReport messages={messages} />
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
+          <div className="order-1">
+            <MarketImpact messages={messages} locale={locale} />
+          </div>
+          <div className="order-3">
+            <FocusReport messages={messages} />
+          </div>
         </div>
       </div>
-
-      <div className="grid lg:grid-cols-[2.5fr_1fr] gap-4 w-full min-w-0">
-        <div className="min-w-0 space-y-4">
-          <LiveChartSection />
-
-          <ToolsCard />
-        </div>
-        <div className="min-w-0 space-y-4">
-          <TikTokEmbedCard />
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-4">
-        <MarketOutlookNews locale={locale} />
-        <MarketHighlightNews locale={locale} />
-      </div>
-
-      {/* <div className="grid lg:grid-cols-2 gap-4">
-        <DisclaimerCard />
-
-        <NmAiStatementCard />
-      </div> */}
     </MarketPageTemplate>
   );
 }

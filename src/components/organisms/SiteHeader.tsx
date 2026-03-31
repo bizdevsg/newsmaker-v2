@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "../atoms/Button";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { getMessages } from "@/locales";
-import { WorldTimeBar } from "./WorldTimeBar";
+import { buildSearchPath } from "@/lib/portalnews-search";
+import { getMessages, type Locale } from "@/locales";
+
+const decodePathSegment = (value: string) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
 
 export function SiteHeader() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -15,6 +22,7 @@ export function SiteHeader() {
   const langMobileRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const currentLocale = useMemo(() => {
     const segment = pathname.split("/")[1] || "id";
@@ -25,6 +33,23 @@ export function SiteHeader() {
   const nextLocaleLabel = nextLocale.toUpperCase();
   const localeFlagClass = currentLocale === "en" ? "fi-gb" : "fi-id";
   const messages = getMessages(currentLocale);
+  const searchPlaceholder =
+    messages.equities?.newsCategories?.searchPlaceholder || "Search news...";
+  const searchButtonLabel =
+    messages.equities?.newsCategories?.searchBtn || "Search";
+  const currentSearchQuery = useMemo(() => {
+    const queryParam = searchParams?.get("q")?.trim();
+    if (queryParam) return queryParam;
+
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments[1] !== "search" || segments.length <= 2) return "";
+
+    return segments.slice(2).map(decodePathSegment).join(" ");
+  }, [pathname, searchParams]);
+  const [desktopSearchValue, setDesktopSearchValue] = useState("");
+  const [mobileSearchValue, setMobileSearchValue] = useState("");
+  const homeHref = `/${currentLocale}`;
+  const navItems = messages.header.navItems.filter((item) => item.key === "home");
   const changeLanguageLabel = messages.header.changeLanguageAria.replace(
     "{locale}",
     nextLocaleLabel,
@@ -39,25 +64,26 @@ export function SiteHeader() {
     }).format(new Date());
   }, [currentLocale]);
 
-  const buildNavHref = (key: string) =>
-    key === "home" ? `/${currentLocale}` : `/${currentLocale}/${key}`;
   const normalizedPath = pathname.replace(/\/$/, "") || `/${currentLocale}`;
-  const isNavActive = (key: string) => {
-    const itemHref = buildNavHref(key);
-    if (key === "home") {
-      return normalizedPath === itemHref;
-    }
-    return (
-      normalizedPath === itemHref || normalizedPath.startsWith(`${itemHref}/`)
-    );
-  };
+  const isNavActive = normalizedPath === homeHref;
 
   const setLanguage = (value: string) => {
     const next = value === "en" ? "en" : "id";
     const segments = pathname.split("/");
     segments[1] = next;
     const nextPath = segments.join("/") || `/${next}`;
-    router.push(nextPath);
+    const nextSearch = searchParams?.toString();
+    router.push(nextSearch ? `${nextPath}?${nextSearch}` : nextPath);
+  };
+
+  const submitSearch = (value: string, options?: { closeMobile?: boolean }) => {
+    const query = value.trim();
+
+    if (options?.closeMobile) {
+      setIsMobileOpen(false);
+    }
+
+    router.push(buildSearchPath(currentLocale as Locale, query));
   };
 
   useEffect(() => {
@@ -98,13 +124,18 @@ export function SiteHeader() {
     setIsLangOpenMobile(false);
   }, [pathname]);
 
+  useEffect(() => {
+    setDesktopSearchValue(currentSearchQuery);
+    setMobileSearchValue(currentSearchQuery);
+  }, [currentSearchQuery]);
+
   return (
-    <header className="bg-linear-to-r from-blue-900 via-blue-700 to-blue-600 text-white shadow-xl">
+    <header className="bg-[#1061B3] text-white shadow-xl">
       <div className="bg-[url(/assets/bg-cover.pg)]" />
       <div className="px-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href={`/${currentLocale}`}>
+            <Link href={homeHref}>
               <img
                 src="/assets/NewsMaker-White 1.png"
                 alt="NewsMaker 23"
@@ -164,19 +195,32 @@ export function SiteHeader() {
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <div className="relative">
+              <form
+                className="relative"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitSearch(desktopSearchValue);
+                }}
+              >
                 <input
+                  name="q"
+                  onChange={(event) => setDesktopSearchValue(event.target.value)}
                   type="search"
-                  placeholder="Search..."
-                  className="w-44 rounded border border-white/40 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white placeholder:text-white/60 outline-none transition focus:border-white/70"
+                  placeholder={searchPlaceholder}
+                  value={desktopSearchValue}
+                  className="w-44 rounded border border-white/40 bg-white/10 px-3 py-1.5 pr-9 text-xs font-semibold text-white placeholder:text-white/60 outline-none transition focus:border-white/70"
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-white/80">
+                <button
+                  aria-label={searchButtonLabel}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[11px] text-white/80"
+                  type="submit"
+                >
                   <i
                     className="fa-solid fa-magnifying-glass"
                     aria-hidden="true"
                   />
-                </span>
-              </div>
+                </button>
+              </form>
               {/* <Button
               variant="outline"
               size="sm"
@@ -199,21 +243,19 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <hr className="border border-white/20" />
+      {/* <hr className="border border-white/20" /> */}
 
-      <div className="px-4">
+      {/* <div className="px-4">
         <div className="mx-auto max-w-7xl">
           <nav className="hidden items-center gap-6 py-0 sm:px-6 md:px-8 text-sm text-white/80 md:flex md:flex-wrap sm:justify-between">
-            {messages.header.navItems.map((item) =>
+            {navItems.map((item) =>
               (() => {
-                const itemHref = buildNavHref(item.key);
-                const isActive = isNavActive(item.key);
                 return (
                   <Link
                     key={item.key}
-                    href={itemHref}
+                    href={homeHref}
                     className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${
-                      isActive
+                      isNavActive
                         ? "text-white after:scale-x-100"
                         : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
                     }`}
@@ -225,7 +267,7 @@ export function SiteHeader() {
             )}
           </nav>
         </div>
-      </div>
+      </div> */}
 
       <div
         id="mobile-nav"
@@ -311,35 +353,46 @@ export function SiteHeader() {
                 E-Book
               </Link>
             </div>
-            <div className="relative mt-3">
+            <form
+              className="relative mt-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitSearch(mobileSearchValue, { closeMobile: true });
+              }}
+            >
               <input
+                name="q"
+                onChange={(event) => setMobileSearchValue(event.target.value)}
                 type="search"
-                placeholder="Search..."
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-600 placeholder:text-slate-400 outline-none transition focus:border-blue-300"
+                placeholder={searchPlaceholder}
+                value={mobileSearchValue}
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 pr-9 text-xs font-semibold text-slate-600 placeholder:text-slate-400 outline-none transition focus:border-blue-300"
               />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">
+              <button
+                aria-label={searchButtonLabel}
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[11px] text-slate-400"
+                type="submit"
+              >
                 <i
                   className="fa-solid fa-magnifying-glass"
                   aria-hidden="true"
                 />
-              </span>
-            </div>
+              </button>
+            </form>
           </div>
 
           <hr className="border-blue-500/20" />
 
           <nav className="flex flex-col gap-2 px-4 pb-4 mt-4">
-            {messages.header.navItems.map((item) =>
+            {navItems.map((item) =>
               (() => {
-                const itemHref = buildNavHref(item.key);
-                const isActive = isNavActive(item.key);
                 return (
                   <Link
                     key={item.key}
-                    href={itemHref}
+                    href={homeHref}
                     onClick={() => setIsMobileOpen(false)}
                     className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                      isActive
+                      isNavActive
                         ? "bg-blue-100 text-blue-700"
                         : "text-slate-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
                     }`}

@@ -1,8 +1,13 @@
-import { NewsCategoryList } from "@/components/organisms/NewsCategoryList";
+import type { Metadata } from "next";
+import { BiRateTable } from "@/components/organisms/BiRateTable";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { getMessages, type Locale } from "@/locales";
 
-export default async function NewsIndexPage({
+export const metadata: Metadata = {
+  title: "BI-Rate",
+};
+
+export default async function BiRatePage({
   params,
 }: {
   params: Promise<{ locale?: string }>;
@@ -15,19 +20,13 @@ export default async function NewsIndexPage({
     ...messages,
     header: {
       ...messages.header,
-      activeNavKey: "equities",
+      activeNavKey: "policy",
     },
   };
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
-      <section className="min-h-[60vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
-        <NewsCategoryList
-          categorySlug="all"
-          locale={locale}
-          messages={customMessages}
-        />
-      </section>
+      <BiRateTable messages={customMessages} />
     </MarketPageTemplate>
   );
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 type SectionHeaderProps = {
   title: string;
@@ -15,6 +16,8 @@ export function SectionHeader({
   linkLabel,
   actions,
 }: SectionHeaderProps) {
+  const resolvedLinkLabel = linkLabel?.trim();
+
   return (
     <div className="space-y-5 px-4 pt-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -29,13 +32,13 @@ export function SectionHeader({
               optional
             )
           ) : null}
-          {link && linkLabel ? (
-            <a
+          {link && resolvedLinkLabel ? (
+            <Link
               href={link}
               className="text-sm text-blue-600 hover:text-blue-800 font-semibold transition"
             >
-              {linkLabel}
-            </a>
+              {resolvedLinkLabel}
+            </Link>
           ) : null}
           {actions}
         </div>

@@ -24,12 +24,7 @@ type StatItem = {
   key: string;
   label: string;
   value: string;
-  delta: string;
-  tone: "up" | "down" | "flat";
 };
-
-const normalizeStatTone = (tone: unknown): StatItem["tone"] =>
-  tone === "up" || tone === "down" || tone === "flat" ? tone : "flat";
 
 type InvestingQuote = {
   symbol: string;
@@ -52,19 +47,13 @@ const formatNumber = (value: number | undefined, digits = 0) => {
   }).format(value);
 };
 
-const formatPercent = (value: number | undefined) => {
-  if (value === undefined || Number.isNaN(value)) return undefined;
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
-};
-
 export function ExchangeActivityClient({
   messages,
   liveQuotes,
   fxResponse,
   ihsgResponse,
 }: ExchangeActivityClientProps) {
-  const loading = useLoading();
+  const { start, stop } = useLoading();
   const tabs = messages.exchangeActivity.tabs;
   const initialKey =
     tabs.find((tab) => tab.key === messages.exchangeActivity.activeTabKey)
@@ -79,8 +68,6 @@ export function ExchangeActivityClient({
   const initialLoad = useRef(true);
 
   const toStat = (item: LiveQuoteItem): StatItem => {
-    const percent = item.percentChange ?? 0;
-    const tone = percent > 0 ? "up" : percent < 0 ? "down" : "flat";
     const value =
       typeof item.price === "number"
         ? formatNumber(item.price, 2)
@@ -91,21 +78,15 @@ export function ExchangeActivityClient({
       key: item.symbol,
       label: item.symbol,
       value: value ?? "-",
-      delta: formatPercent(percent) ?? "-",
-      tone,
     };
   };
 
   const toStatInvesting = (item: InvestingQuote): StatItem => {
-    const percent = item.change_percent ?? 0;
-    const tone = percent > 0 ? "up" : percent < 0 ? "down" : "flat";
     const value = formatNumber(item.last, 2);
     return {
       key: item.symbol,
       label: item.symbol,
       value: value ?? "-",
-      delta: formatPercent(percent) ?? "-",
-      tone,
     };
   };
 
@@ -123,7 +104,7 @@ export function ExchangeActivityClient({
 
     const load = async () => {
       const token = initialLoad.current
-        ? loading.start("exchange-activity")
+        ? start("exchange-activity")
         : null;
       try {
         const [liveRes, investingRes] = await Promise.all([
@@ -171,7 +152,7 @@ export function ExchangeActivityClient({
       } catch {
         // keep previous stats
       } finally {
-        if (token) loading.stop(token);
+        if (token) stop(token);
         initialLoad.current = false;
       }
     };
@@ -187,7 +168,7 @@ export function ExchangeActivityClient({
       window.clearTimeout(initialTimer);
       window.clearInterval(interval);
     };
-  }, []);
+  }, [start, stop]);
 
   const fallbackStatsByTab = useMemo<Record<string, StatItem[]>>(() => {
     const quotes = Array.isArray(liveQuotes?.data) ? liveQuotes?.data : [];
@@ -195,8 +176,6 @@ export function ExchangeActivityClient({
       key: stat.key,
       label: stat.label,
       value: stat.value,
-      delta: stat.delta,
-      tone: normalizeStatTone(stat.tone),
     }));
 
     const liveByTab: Record<string, StatItem[]> = {};
@@ -214,25 +193,6 @@ export function ExchangeActivityClient({
     const ihsgData = ihsgResponse?.indices?.composite;
     const ihsgValue =
       typeof ihsgData?.last === "number" ? ihsgData.last : undefined;
-    const ihsgChange =
-      typeof ihsgData?.change === "number" ? ihsgData.change : undefined;
-    const ihsgDelta =
-      typeof ihsgData?.change_percent === "number"
-        ? ihsgData.change_percent
-        : ihsgValue && ihsgChange
-          ? (ihsgChange / ihsgValue) * 100
-          : undefined;
-    const ihsgTone =
-      ihsgData?.direction === "down"
-        ? "down"
-        : ihsgData?.direction === "up"
-          ? "up"
-          : ihsgDelta !== undefined
-            ? ihsgDelta < 0
-              ? "down"
-              : "up"
-            : undefined;
-
     const enrichedBaseStats = baseStats.map((stat) => {
       if (stat.key === "ihsg") {
         return {
@@ -240,10 +200,6 @@ export function ExchangeActivityClient({
           value: ihsgValue
             ? (formatNumber(ihsgValue) ?? stat.value)
             : stat.value,
-          delta: ihsgDelta
-            ? (formatPercent(ihsgDelta) ?? stat.delta)
-            : stat.delta,
-          tone: normalizeStatTone(ihsgTone ?? stat.tone),
         };
       }
       if (stat.key === "idr-usd") {
@@ -305,15 +261,13 @@ export function ExchangeActivityClient({
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {activeStats.map((stat) => (
-            <StatTile
-              key={stat.key}
-              label={stat.label}
-              value={stat.value}
-              delta={stat.delta}
-              tone={stat.tone}
-            />
-          ))}
-        </div>
+          <StatTile
+            key={stat.key}
+            label={stat.label}
+            value={stat.value}
+          />
+        ))}
+      </div>
         <div className="mt-4 rounded border border-dashed border-slate-200 bg-slate-100 p-4 text-xs text-slate-500">
           {updatedAt
             ? `Updated ${updatedAt}`

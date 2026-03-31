@@ -2,63 +2,38 @@ import React from "react";
 import Link from "next/link";
 import type { Messages } from "@/locales";
 import { SectionHeader } from "../molecules/SectionHeader";
-import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import {
+  resolvePortalNewsContent,
+  resolvePortalNewsTitle,
+} from "@/lib/portalnews-shared";
+import {
+  buildPortalNewsImageUrl,
+  getPortalNewsCategorySlug,
+  fetchPortalNewsList,
+  getPortalNewsMainCategorySlug,
+  normalizePortalNewsCategory,
+} from "@/lib/portalnews";
 
 type RecentAnalysisProps = {
   messages: Messages;
   locale: string;
   limit?: number;
+  stackOnDesktopWhenTwo?: boolean;
   includeCategoryName?: string | null;
+  includeMainCategorySlug?: string | null;
   excludeCategoryNames?: string[];
+  link?: string;
+  linkLabel?: string;
 };
 
-const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
-
-type NewsItem = {
-  id: number;
-  title?: string;
-  titles?: { default?: string };
-  slug?: string;
-  content?: string;
-  kategori?: { name?: string; slug?: string };
-  images?: string[];
-  updated_at?: string;
-  created_at?: string;
+type RecentAnalysisItem = {
+  key?: string;
+  title: string;
+  summary: string;
+  image: string;
+  href?: string;
+  date: string;
 };
-
-const fallbackItems = [
-  {
-    title: "Gold Steady Updates",
-    summary: "Investors look for direction amid global cues.",
-    image: "/assets/Screenshot-2024-10-29-at-11.27.48.png",
-    href: "#",
-    date: "",
-  },
-  {
-    title: "Oil Rises After OPEC",
-    summary: "Tight supply backdrop lifts prices.",
-    image: "/assets/tourism-guangzhou-rivers-city-river.jpg",
-    href: "#",
-    date: "",
-  },
-  {
-    title: "Bitcoin Bounce Back",
-    summary: "Crypto regains momentum with risk-on flows.",
-    image:
-      "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp",
-    href: "#",
-    date: "",
-  },
-  {
-    title: "US Data Softens",
-    summary: "Macro releases nudge rate expectations.",
-    image: "/assets/Screenshot-2024-10-29-at-11.27.48.png",
-    href: "#",
-    date: "",
-  },
-];
 
 const stripHtml = (value: string) =>
   value
@@ -67,7 +42,9 @@ const stripHtml = (value: string) =>
     .trim();
 
 const toSummary = (value?: string, messages?: Messages) => {
-  const fallback = messages?.widgets?.recentAnalysis?.fallbackSummary || "Latest market analysis summary.";
+  const fallback =
+    messages?.widgets?.recentAnalysis?.fallbackSummary ||
+    "Latest market analysis summary.";
   if (!value) return fallback;
   const text = stripHtml(value);
   if (!text) return fallback;
@@ -85,39 +62,82 @@ const formatDate = (value: string | undefined, locale: string) => {
   });
 };
 
+const expandCategoryAliases = (values: string[]) => {
+  const normalized = new Set<string>();
+
+  values.forEach((value) => {
+    const key = normalizePortalNewsCategory(value);
+    if (!key) return;
+
+    normalized.add(key);
+
+    if (
+      key === "analisis market" ||
+      key === "market analysis" ||
+      key === "analysis market indonesia" ||
+      key === "analisis market indonesia"
+    ) {
+      normalized.add("analysis market indonesia");
+      normalized.add("analisis market indonesia");
+      normalized.add("market analysis");
+      normalized.add("analisis market");
+    }
+  });
+
+  return normalized;
+};
+
 async function fetchRecentAnalysis(
   locale: string,
   limit: number,
   includeCategoryName: string | null,
+  includeMainCategorySlug: string | null,
   excludeCategoryNames: string[],
-  messages?: Messages
-) {
+  messages?: Messages,
+): Promise<RecentAnalysisItem[]> {
   try {
-    const response = await fetchWithTimeout(NEWS_API, {
-      headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
-      cache: "no-store",
-    });
-    if (!response.ok) return fallbackItems;
-    const payload = await response.json();
-    if (!Array.isArray(payload?.data)) return fallbackItems;
-
-    const items: NewsItem[] = payload.data;
-    const includeName =
+    const { items } = await fetchPortalNewsList();
+    const includeSet =
       includeCategoryName === null
         ? null
-        : (includeCategoryName ?? "Analisis Market").toLowerCase();
-    const excludeSet = new Set(
-      excludeCategoryNames.map((name) => name.toLowerCase()),
+        : expandCategoryAliases([includeCategoryName ?? "Analisis Market"]);
+    const mainCategoryKey = normalizePortalNewsCategory(
+      includeMainCategorySlug,
     );
+    const excludeSet = expandCategoryAliases(excludeCategoryNames);
 
     const analysis = items.filter((item) => {
-      const name = item.kategori?.name?.toLowerCase() ?? "";
-      if (includeName) return name === includeName;
-      if (excludeSet.size > 0) return !excludeSet.has(name);
+      const mainCategorySlug = normalizePortalNewsCategory(
+        getPortalNewsMainCategorySlug(item),
+      );
+
+      if (mainCategoryKey && mainCategorySlug !== mainCategoryKey) {
+        return false;
+      }
+
+      if (includeSet) {
+        const mainCategoryName = normalizePortalNewsCategory(
+          item.main_category?.name,
+        );
+        if (!mainCategoryName || !includeSet.has(mainCategoryName)) {
+          return false;
+        }
+      }
+
+      if (excludeSet.size > 0) {
+        const mainCategoryName = normalizePortalNewsCategory(
+          item.main_category?.name,
+        );
+        return !(
+          (mainCategorySlug && excludeSet.has(mainCategorySlug)) ||
+          (mainCategoryName && excludeSet.has(mainCategoryName))
+        );
+      }
+
       return true;
     });
 
-    if (!analysis.length) return fallbackItems;
+    if (!analysis.length) return [];
 
     const sorted = [...analysis].sort((a, b) => {
       const aTime = Date.parse(a.updated_at || a.created_at || "") || 0;
@@ -125,12 +145,15 @@ async function fetchRecentAnalysis(
       return bTime - aTime;
     });
 
-    return sorted.slice(0, limit).map((item, idx) => {
-      const title = item.titles?.default || item.title || "Analisis Market";
-      const image = item.images?.[0]
-        ? `${IMAGE_BASE}${item.images[0]}`
-        : "/assets/Screenshot-2024-10-29-at-11.27.48.png";
-      const categorySlug = item.kategori?.slug?.trim() || "market-update";
+    const mappedItems = sorted.slice(0, limit).map((item, idx) => {
+      const title = resolvePortalNewsTitle(item, locale, "Analisis Market");
+      const image =
+        buildPortalNewsImageUrl(item.images?.[0]) ??
+        "/assets/Screenshot-2024-10-29-at-11.27.48.png";
+      const categorySlug = getPortalNewsCategorySlug(
+        item,
+        "analysis-market-indonesia",
+      );
       const articleSlug = item.slug?.trim() || "";
       const href = articleSlug
         ? `/${locale}/news/${categorySlug}/${articleSlug}`
@@ -139,14 +162,16 @@ async function fetchRecentAnalysis(
       return {
         key: `${item.id ?? idx}-analysis`,
         title,
-        summary: toSummary(item.content, messages),
+        summary: toSummary(resolvePortalNewsContent(item, locale), messages),
         image,
         href,
         date,
       };
     });
+
+    return limit <= 0 ? [] : mappedItems.slice(0, limit);
   } catch {
-    return fallbackItems;
+    return [];
   }
 }
 
@@ -154,63 +179,79 @@ export async function RecentAnalysis({
   messages,
   locale,
   limit = 4,
+  stackOnDesktopWhenTwo = false,
   includeCategoryName = "Analisis Market",
+  includeMainCategorySlug = null,
   excludeCategoryNames = [],
+  link,
+  linkLabel,
 }: RecentAnalysisProps) {
   const items = await fetchRecentAnalysis(
     locale,
     limit,
     includeCategoryName,
+    includeMainCategorySlug,
     excludeCategoryNames,
-    messages
+    messages,
   );
-  const gridCols =
-    items.length <= 1
-      ? "sm:grid-cols-1 lg:grid-cols-1"
-      : items.length === 2
-        ? "sm:grid-cols-2 lg:grid-cols-2"
-        : items.length === 3
-          ? "sm:grid-cols-2 lg:grid-cols-3"
-          : "sm:grid-cols-2 lg:grid-cols-4";
 
   return (
     <section className="bg-white rounded-lg shadow">
-      <SectionHeader title={messages?.widgets?.recentAnalysis?.title || "Recent Analysis"} link={`/${locale}/news/analisis-market`} linkLabel={messages?.widgets?.recentAnalysis?.cta || "Recent >"} />
-      <div className={`grid items-stretch gap-4 px-4 pb-6 pt-4 ${gridCols}`}>
-        {items.map((item) => (
-          <article
-            key={item.title}
-            className="flex h-full flex-col overflow-hidden rounded-md border border-slate-200 bg-white"
-          >
-            <div className="aspect-video flex-shrink-0 overflow-hidden bg-slate-100">
-              <img
-                src={item.image}
-                alt={item.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="flex flex-1 flex-col gap-2 p-3">
-              <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
-                {item.title}
-              </h4>
-              {item.date ? (
-                <p className="text-[11px] font-semibold text-slate-400">
-                  {item.date}
+      <SectionHeader
+        title={messages?.widgets?.recentAnalysis?.title || "Recent Analysis"}
+        link={link}
+        linkLabel={linkLabel}
+      />
+      {items.length > 0 ? (
+        <div
+          className={`grid items-stretch gap-4 px-4 pb-6 pt-4 sm:grid-cols-1 lg:grid-cols-2`}
+        >
+          {items.map((item) => (
+            <article
+              key={item.key ?? item.title}
+              className="flex h-full flex-col overflow-hidden rounded-md border border-slate-200 bg-white"
+            >
+              <div className="aspect-video flex-shrink-0 overflow-hidden bg-slate-100">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex flex-1 flex-col gap-2 p-3">
+                <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
+                  {item.title}
+                </h4>
+                {item.date ? (
+                  <p className="text-[11px] font-semibold text-slate-400">
+                    {item.date}
+                  </p>
+                ) : null}
+                <p className="line-clamp-3 flex-1 text-xs text-slate-500">
+                  {item.summary}
                 </p>
-              ) : null}
-              <p className="line-clamp-3 flex-1 text-xs text-slate-500">
-                {item.summary}
-              </p>
-              <Link
-                href={item.href}
-                className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
-              >
-                {messages?.widgets?.recentAnalysis?.itemCta || "Read More >"}
-              </Link>
-            </div>
-          </article>
-        ))}
-      </div>
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
+                  >
+                    {messages?.widgets?.recentAnalysis?.itemCta ||
+                      "Read More >"}
+                  </Link>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="px-4 pb-6 pt-4">
+          <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm font-semibold text-slate-500">
+            {locale === "en"
+              ? "No analysis is available yet."
+              : "Belum ada analisis yang tersedia."}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { getMessages, type Locale } from "@/locales";
-import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import { notFound } from "next/navigation";
 import { NewsArticleDetail } from "@/components/organisms/NewsArticleDetail";
-import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import { buildPortalNewsImageUrl } from "@/lib/portalnews";
+import { fetchPortalNewsDetail } from "@/lib/portalnews-detail";
+import {
+  resolvePortalNewsContent,
+  resolvePortalNewsTitle,
+} from "@/lib/portalnews-shared";
+import { getMessages, type Locale } from "@/locales";
 
-const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
 const stripHtml = (html: string) =>
@@ -16,63 +19,35 @@ const stripHtml = (html: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-type NewsItem = {
-  title?: string;
-  titles?: { default?: string };
-  content?: string;
-  slug?: string;
-  images?: string[];
-  kategori?: { slug?: string; name?: string };
-  updated_at?: string;
-  created_at?: string;
-};
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale?: string; category: string; slug: string }>;
 }): Promise<Metadata> {
   const { locale: rawLocale, category, slug } = await params;
-  const locale = rawLocale === "en" ? "en" : "id";
+  const locale: Locale = rawLocale === "en" ? "en" : "id";
+  const detail = await fetchPortalNewsDetail(slug, {
+    latestLimit: 1,
+    popularLimit: 1,
+    relatedLimit: 1,
+  });
+  const article = detail.article;
 
-  let title = "Newsmaker 23";
-  let description = "Latest market update from Newsmaker 23.";
-  let imageUrl: string | undefined;
-
-  if (NEWS_API) {
-    try {
-      const res = await fetchWithTimeout(NEWS_API, {
-        cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${NEWS_TOKEN}`,
-        },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const all: NewsItem[] = Array.isArray(json?.data) ? json.data : [];
-        const found = all.find((item) => item.slug === slug);
-        if (found) {
-          title = found.titles?.default || found.title || title;
-          const plain = stripHtml(found.content ?? "");
-          if (plain) {
-            description =
-              plain.length > 160 ? `${plain.slice(0, 160).trim()}...` : plain;
-          }
-          const img = found.images?.[0];
-          if (img) {
-            imageUrl = img.startsWith("http")
-              ? img
-              : `${IMAGE_BASE}${img}`;
-          }
-        }
-      }
-    } catch {
-      // keep defaults
-    }
+  if (!article) {
+    return {
+      title: "News Article",
+      description: "Market news detail page",
+    };
   }
 
-  const absoluteUrl = SITE_URL
-    ? `${SITE_URL}/${locale}/news/${category}/${slug}`
+  const title = resolvePortalNewsTitle(article, locale, "News Article");
+  const description =
+    stripHtml(resolvePortalNewsContent(article, locale)).slice(0, 160) ||
+    "Market news detail page";
+  const articleCategorySlug = article.kategori?.slug ?? category;
+  const imageUrl = buildPortalNewsImageUrl(article.images?.[0]) ?? undefined;
+  const canonicalUrl = SITE_URL
+    ? `${SITE_URL}/${locale}/news/${articleCategorySlug}/${slug}`
     : undefined;
 
   return {
@@ -81,9 +56,9 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      type: "article",
-      url: absoluteUrl,
       images: imageUrl ? [{ url: imageUrl }] : undefined,
+      type: "article",
+      url: canonicalUrl,
     },
     twitter: {
       card: imageUrl ? "summary_large_image" : "summary",
@@ -95,33 +70,46 @@ export async function generateMetadata({
 }
 
 export default async function NewsArticlePage({
-    params,
+  params,
 }: {
-    params: Promise<{ locale?: string; category: string; slug: string }>;
+  params: Promise<{ locale?: string; category: string; slug: string }>;
 }) {
-    const { locale: rawLocale, category, slug } = await params;
-    const locale: Locale = rawLocale === "en" ? "en" : "id";
-    const messages = getMessages(locale);
+  const { locale: rawLocale, category, slug } = await params;
+  const locale: Locale = rawLocale === "en" ? "en" : "id";
+  const detail = await fetchPortalNewsDetail(slug);
 
-    const customMessages = {
-        ...messages,
-        header: {
-            ...messages.header,
-            activeNavKey: "equities",
-        },
-    };
+  if (!detail.article) {
+    notFound();
+  }
 
-    return (
-        <MarketPageTemplate locale={locale} messages={customMessages}>
-            <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100 min-h-[80vh]">
-                <NewsArticleDetail
-                    slug={slug}
-                    categorySlug={category}
-                    locale={locale}
-                    messages={customMessages}
-                    isEconomic={false}
-                />
-            </section>
-        </MarketPageTemplate>
-    );
+  const messages = getMessages(locale);
+
+  const customMessages = {
+    ...messages,
+    header: {
+      ...messages.header,
+      activeNavKey: "equities",
+    },
+  };
+
+  return (
+    <MarketPageTemplate locale={locale} messages={customMessages}>
+      <section className="min-h-[80vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <NewsArticleDetail
+          slug={slug}
+          categorySlug={category}
+          initialData={{
+            data: detail.article,
+            imageBase: detail.imageBase,
+            latest: detail.latest,
+            popular: detail.popular,
+            related: detail.related,
+            status: "success",
+          }}
+          locale={locale}
+          messages={customMessages}
+        />
+      </section>
+    </MarketPageTemplate>
+  );
 }

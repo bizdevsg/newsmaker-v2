@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "flag-icons/css/flag-icons.min.css";
+@import "../../node_modules/tailwindcss/index.css";
+@import "../../node_modules/flag-icons/css/flag-icons.min.css";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #f7f8fb;
@@ -30,6 +31,39 @@ h4 {
 
 * {
   box-sizing: border-box;
+}
+
+.news-article-prose {
+  --tw-prose-body: #334155;
+  --tw-prose-headings: #0f172a;
+  --tw-prose-links: #1d4ed8;
+  --tw-prose-bold: #0f172a;
+  --tw-prose-counters: #1d4ed8;
+  --tw-prose-bullets: #1d4ed8;
+  --tw-prose-hr: #cbd5e1;
+  --tw-prose-quotes: #0f172a;
+  --tw-prose-quote-borders: #2563eb;
+  --tw-prose-captions: #64748b;
+}
+
+.news-article-prose :where(h2, h3, h4):not(:where(.not-prose, .not-prose *)) {
+  text-wrap: balance;
+}
+
+.news-article-prose :where(p):not(:where(.not-prose, .not-prose *)) {
+  text-wrap: pretty;
+}
+
+.news-article-prose :where(ul, ol):not(:where(.not-prose, .not-prose *)) {
+  padding-left: 1.25rem;
+}
+
+.news-article-prose :where(li):not(:where(.not-prose, .not-prose *)) {
+  margin-block: 0.55rem;
+}
+
+.news-article-prose :where(ol > li)::marker {
+  font-weight: 700;
 }
 
 .hide-scrollbar {

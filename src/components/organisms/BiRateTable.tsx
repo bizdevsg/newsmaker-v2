@@ -36,12 +36,6 @@ const parseRateNumber = (value: unknown) => {
   return undefined;
 };
 
-const formatPercent = (value: number | undefined) => {
-  if (value === undefined || Number.isNaN(value)) return "-";
-  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
-  return `${sign}${Math.abs(value).toFixed(2)}%`;
-};
-
 const formatRate = (row: BiRateRow) => {
   if (row.raw_rate) return row.raw_rate.replace(/\s+/g, "");
   const value = parseRateNumber(row.rate);
@@ -117,23 +111,6 @@ export async function BiRateTable({ messages }: BiRateTableProps) {
         <div className="mt-6">
           <div className="space-y-3">
             {rows.map((row, index) => {
-              const currentRate = parseRateNumber(row.raw_rate ?? row.rate);
-              const nextRate = parseRateNumber(
-                rows[index + 1]?.raw_rate ?? rows[index + 1]?.rate,
-              );
-              const deltaValue =
-                currentRate !== undefined && nextRate !== undefined
-                  ? currentRate - nextRate
-                  : undefined;
-              const deltaTone =
-                deltaValue === undefined
-                  ? "text-slate-500"
-                  : deltaValue > 0
-                    ? "text-emerald-700"
-                    : deltaValue < 0
-                      ? "text-rose-700"
-                      : "text-slate-500";
-
               return (
                 <div
                   key={`${row.raw_date ?? row.date ?? "bi-rate"}-${index}`}
@@ -154,19 +131,6 @@ export async function BiRateTable({ messages }: BiRateTableProps) {
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800 ring-1 ring-blue-100">
                         {formatRate(row)}
-                      </span>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                          deltaValue === undefined
-                            ? "text-slate-500 ring-slate-200 bg-slate-50"
-                            : deltaValue > 0
-                              ? "text-emerald-700 ring-emerald-200 bg-emerald-50"
-                              : deltaValue < 0
-                                ? "text-rose-700 ring-rose-200 bg-rose-50"
-                                : "text-slate-500 ring-slate-200 bg-slate-50"
-                        }`}
-                      >
-                        {formatPercent(deltaValue)}
                       </span>
                       <div>
                         {row.press_release_url ? (

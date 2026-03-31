@@ -61,13 +61,15 @@ const buildItems = (
 
 export async function PolicySnapshot({
   messages,
-  locale,
+  locale = "id",
 }: PolicySnapshotProps) {
-  const policyHref = locale ? `/${locale}/policy` : "#";
-  const biRateHref = locale ? `/${locale}/indonesia-market/bi-rate` : "#";
   const externalLinks: Record<string, string> = {
     "ojk-update": "https://www.ojk.go.id/",
     "bappebti-circular": "https://bappebti.go.id/",
+    "bbj-activity": "https://www.bbj-jfx.com/",
+  };
+  const internalLinks: Record<string, string> = {
+    "bi-rate": `/${locale}/bi-rate`,
   };
   const biRateResponse = await fetchJson<BiRateResponse>(API_ENDPOINTS.biRate);
   const items = buildItems(messages, biRateResponse);
@@ -77,36 +79,47 @@ export async function PolicySnapshot({
         <h3 className="text-lg font-semibold text-slate-800">
           {messages.policySnapshot.title}
         </h3>
-        <Link
-          href={policyHref}
-          className="text-xs font-semibold text-blue-700 transition-colors hover:text-slate-800"
-        >
-          {messages.policySnapshot.ctaLabel}
-        </Link>
       </div>
       <div className="grid gap-4 px-6 pb-6 pt-5 md:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => {
-          const isBiRate = item.key === "bi-rate";
-          const externalHref = externalLinks[item.key];
-          const href = isBiRate ? biRateHref : externalHref ?? policyHref;
-          const isExternal = Boolean(externalHref);
+          const internalHref = internalLinks[item.key];
+          const href = externalLinks[item.key];
+          const card = (
+            <SnapshotCard
+              icon={item.icon}
+              title={item.title}
+              value={item.value}
+              subtitle={item.subtitle}
+              meta={item.meta}
+            />
+          );
+
+          if (internalHref) {
+            return (
+              <Link key={item.key} href={internalHref} className="block">
+                {card}
+              </Link>
+            );
+          }
+
+          if (!href) {
+            return (
+              <div key={item.key} className="block">
+                {card}
+              </div>
+            );
+          }
 
           return (
-            <Link
+            <a
               key={item.key}
               href={href}
               className="block"
-              target={isExternal ? "_blank" : undefined}
-              rel={isExternal ? "noreferrer" : undefined}
+              target="_blank"
+              rel="noreferrer"
             >
-              <SnapshotCard
-                icon={item.icon}
-                title={item.title}
-                value={item.value}
-                subtitle={item.subtitle}
-                meta={item.meta}
-              />
-            </Link>
+              {card}
+            </a>
           );
         })}
       </div>

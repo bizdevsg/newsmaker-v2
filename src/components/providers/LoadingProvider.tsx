@@ -25,7 +25,7 @@ function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
   return (
     <div
       className={[
-        "fixed inset-0 z-100 grid place-items-center bg-blue-500 backdrop-blur-sm",
+        "fixed inset-0 z-100 grid place-items-center bg-[#1061B3] backdrop-blur-sm",
         "transition-opacity duration-300 ease-out",
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100",
       ].join(" ")}
@@ -83,11 +83,23 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const routeToken = start("route");
-    const timeout = setTimeout(() => {
-      stop(routeToken);
+    let routeToken: symbol | null = null;
+    const startTimeout = window.setTimeout(() => {
+      routeToken = start("route");
+    }, 0);
+    const stopTimeout = window.setTimeout(() => {
+      if (routeToken) {
+        stop(routeToken);
+      }
     }, 150);
-    return () => clearTimeout(timeout);
+
+    return () => {
+      window.clearTimeout(startTimeout);
+      window.clearTimeout(stopTimeout);
+      if (routeToken) {
+        stop(routeToken);
+      }
+    };
   }, [pathname, searchKey, start, stop]);
 
   const value = useMemo(
@@ -116,12 +128,17 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (showOverlay) {
-      setFadeOut(true);
-      const timeout = setTimeout(() => {
+      const fadeTimeout = window.setTimeout(() => {
+        setFadeOut(true);
+      }, 0);
+      const hideTimeout = window.setTimeout(() => {
         setShowOverlay(false);
         setFadeOut(false);
       }, 300);
-      return () => clearTimeout(timeout);
+      return () => {
+        window.clearTimeout(fadeTimeout);
+        window.clearTimeout(hideTimeout);
+      };
     }
   }, [value.isLoading, showOverlay]);
 
@@ -143,10 +160,13 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   }, [showOverlay]);
 
   useEffect(() => {
+    const tokenTimersRef = tokenTimers.current;
+    const tokensRef = tokens.current;
+
     return () => {
-      tokenTimers.current.forEach((timer) => window.clearTimeout(timer));
-      tokenTimers.current.clear();
-      tokens.current.clear();
+      tokenTimersRef.forEach((timer) => window.clearTimeout(timer));
+      tokenTimersRef.clear();
+      tokensRef.clear();
     };
   }, []);
 

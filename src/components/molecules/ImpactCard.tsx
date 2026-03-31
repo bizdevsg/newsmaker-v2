@@ -36,12 +36,14 @@ export function ImpactCard({
         </div>
         <div className="mt-2 flex items-center justify-between">
           <p className="text-[11px] text-slate-500">{date}</p>
-          <a
-            href={href}
-            className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
-          >
-            {ctaLabel}
-          </a>
+          {href ? (
+            <a
+              href={href}
+              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+            >
+              {ctaLabel}
+            </a>
+          ) : null}
         </div>
       </div>
     </div>

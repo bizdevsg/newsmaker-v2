@@ -1,12 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { Card } from "../atoms/Card";
 import { ImpactCard } from "../molecules/ImpactCard";
 import type { Messages } from "@/locales";
 import { useLoading } from "../providers/LoadingProvider";
 import { SectionHeader } from "../molecules/SectionHeader";
+import {
+  resolvePortalNewsContent,
+  resolvePortalNewsTitle,
+} from "@/lib/portalnews-shared";
 
 type MarketImpactProps = {
   messages: Messages;
@@ -25,13 +28,18 @@ type MarketImpactNewsItem = {
   updated_at?: string;
   images?: string[];
   kategori?: {
+    name?: string;
     slug?: string;
   };
 };
 
-const NEWS_IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+const NEWS_IMAGE_BASE =
+  process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE?.replace(/\/$/, "") ?? "";
+const INDONESIA_MARKET_CATEGORY = "indonesia-market";
+const DISPLAY_LIMIT = 2;
+const SKIP_LATEST_COUNT = 1;
 
-const formatNewsDate = (value: string | undefined) => {
+const formatNewsDate = (value: string | undefined, locale: string) => {
   if (!value) {
     return "-";
   }
@@ -39,7 +47,7 @@ const formatNewsDate = (value: string | undefined) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "-"
-    : date.toLocaleDateString("id-ID", {
+    : date.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -51,12 +59,20 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   const [newsData, setNewsData] = useState<MarketImpactNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [imageBase, setImageBase] = useState("");
+  const fullListHref = `/${locale}/indonesia-market/news`;
+  const viewAllLabel =
+    messages?.equities?.newsCategories?.viewAll ||
+    (locale === "en" ? "View All" : "Lihat Semua");
 
   useEffect(() => {
     const fetchNews = async () => {
       const token = start("market-impact");
       try {
-        const res = await fetch("/api/portalnews?limit=2");
+        const res = await fetch(
+          `/api/portalnews?category=${INDONESIA_MARKET_CATEGORY}&limit=${
+            DISPLAY_LIMIT + SKIP_LATEST_COUNT
+          }`,
+        );
         const json = await res.json().catch(() => null);
         if (!res.ok) {
           const message = json?.message
@@ -66,7 +82,13 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
           throw new Error(`${message}${cause}`);
         }
         if (json && json.data) {
-          setNewsData(json.data);
+          const nextItems = Array.isArray(json.data)
+            ? json.data.slice(SKIP_LATEST_COUNT, SKIP_LATEST_COUNT + DISPLAY_LIMIT)
+            : [];
+          const fallbackItems = Array.isArray(json.data)
+            ? json.data.slice(0, DISPLAY_LIMIT)
+            : [];
+          setNewsData(nextItems.length > 0 ? nextItems : fallbackItems);
           if (typeof json.imageBase === "string") {
             setImageBase(json.imageBase);
           }
@@ -91,27 +113,31 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   };
 
   const displayItems = newsData.map((item, index) => {
-    const formattedDate = formatNewsDate(item.updated_at ?? item.created_at);
-    const categorySlug = item.kategori?.slug?.trim() || "market-update";
-    const articleSlug = item.slug?.trim() || "";
-    const title =
-      item.titles?.default?.trim() || item.title?.trim() || "Judul berita";
-    const href = articleSlug
-      ? `/${locale}/news/${categorySlug}/${articleSlug}`
-      : `/${locale}/news`;
+    const categorySlug = item.kategori?.slug?.trim() || INDONESIA_MARKET_CATEGORY;
+    const articleSlug = item.slug?.trim();
+    const formattedDate = formatNewsDate(
+      item.updated_at ?? item.created_at,
+      locale,
+    );
+    const title = resolvePortalNewsTitle(item, locale, "Judul berita");
+    const summaryText = stripHtml(resolvePortalNewsContent(item, locale));
 
     return {
       key: `news-${item.id || index}`,
       title,
-      summary: stripHtml(item.content ?? "").substring(0, 150) + "...",
+      summary: summaryText ? `${summaryText.substring(0, 150)}...` : "-",
       date: formattedDate,
-      href,
+      href: articleSlug ? `/${locale}/news/${categorySlug}/${articleSlug}` : undefined,
       imageLabel: (() => {
         if (item.images && item.images.length > 0) {
+          const firstImage = item.images[0];
+          if (firstImage.startsWith("http")) {
+            return firstImage;
+          }
           const base = imageBase || NEWS_IMAGE_BASE;
-          const imagePath = item.images[0].startsWith("/")
-            ? item.images[0]
-            : `/${item.images[0]}`;
+          const imagePath = firstImage.startsWith("/")
+            ? firstImage
+            : `/${firstImage}`;
           return `${base}${imagePath}`;
         }
         return "./assets/Screenshot-2024-10-29-at-11.27.48.png";
@@ -123,14 +149,8 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
     <Card as="section">
       <SectionHeader
         title={messages.marketImpact.title}
-        optional={
-          <Link
-            href={`/${locale}/news`}
-            className="text-xs font-semibold text-blue-700 transition hover:text-blue-800"
-          >
-            {messages.marketImpact.ctaLabel}
-          </Link>
-        }
+        link={fullListHref}
+        linkLabel={viewAllLabel}
       />
       <div className="px-4 py-5 space-y-4">
         {isLoading ? (

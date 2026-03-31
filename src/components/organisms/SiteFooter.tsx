@@ -12,28 +12,22 @@ type SiteFooterProps = {
 
 const FOOTER_ROUTE_MAP: Record<string, string> = {
   "navigation:home": "",
-  "news:index": "news",
-  "news:commodity": "commodities",
-  "news:currencies": "markets",
-  "news:economy": "economic-news/economy",
-  "news:fiscal": "economic-news/fiscal-moneter",
-  "news:market-analysis": "news/analisis-market",
-  "news:opinion": "insight",
-  "news:crypto": "news/crypto",
-  "tools:live-chart": "markets",
-  "tools:economic-calendar": "data",
-  "tools:historical-data": "policy",
-  "tools:pivot-fibonacci": "policy",
-  "tools:education": "reports",
   "contact:whatsapp": "https://wa.me/?text=Hello%20Newsmaker%2023",
 };
 
-const isExternalHref = (href: string) =>
-  /^(https?:|mailto:|tel:)/i.test(href);
+const isExternalHref = (href: string) => /^(https?:|mailto:|tel:)/i.test(href);
 
 export function SiteFooter({ locale, messages }: SiteFooterProps) {
   const currentYear = new Date().getFullYear();
-  const resolveFooterHref = (columnKey: string, linkKey: string, href: string) => {
+  const homeHref = `/${locale}`;
+  const footerColumns = messages.footer.columns.filter(
+    (column) => column.key === "navigation" || column.key === "contact",
+  );
+  const resolveFooterHref = (
+    columnKey: string,
+    linkKey: string,
+    href: string,
+  ) => {
     if (href && href !== "#") return href;
 
     const mappedHref = FOOTER_ROUTE_MAP[`${columnKey}:${linkKey}`];
@@ -47,13 +41,13 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
   );
 
   return (
-    <footer className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 text-white">
+    <footer className="bg-[#1061B3] text-white">
       {/* Top Section: Brand + Link Columns */}
       <div className="mx-auto w-full max-w-7xl px-6 py-10">
         <div className="flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
           {/* Brand Block */}
           <div className="flex flex-col gap-4 min-w-50">
-            <Link href={`/${locale}/`} className="w-fit">
+            <Link href={homeHref} className="w-fit">
               <img
                 src="/assets/NewsMaker-White 1.png"
                 alt={messages.footer.brand}
@@ -67,8 +61,8 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
             </div>
           </div>
           {/* Link Columns */}
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
-            {messages.footer.columns.map((column) => (
+          <div className="grid gap-8 sm:grid-cols-2">
+            {footerColumns.map((column) => (
               <div key={column.key} className="space-y-3">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/90">
                   {column.title}

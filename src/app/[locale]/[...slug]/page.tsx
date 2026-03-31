@@ -1,6 +1,6 @@
-import { permanentRedirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
-export default async function BiRatePage({
+export default async function LocaleCatchAllPage({
   params,
 }: {
   params: Promise<{ locale?: string }>;
@@ -8,5 +8,5 @@ export default async function BiRatePage({
   const { locale: rawLocale } = await params;
   const locale = rawLocale === "en" ? "en" : "id";
 
-  permanentRedirect(`/${locale}/bi-rate`);
+  redirect(`/${locale}`);
 }

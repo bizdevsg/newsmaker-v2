@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
-import "@fortawesome/fontawesome-free/css/all.min.css";
+import "../../node_modules/@fortawesome/fontawesome-free/css/all.min.css";
 import "./globals.css";
 import { cookies } from "next/headers";
 import { LoadingProvider } from "@/components/providers/LoadingProvider";

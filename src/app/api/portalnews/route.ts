@@ -1,127 +1,95 @@
 import { NextResponse } from "next/server";
-import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { fetchPortalNewsDetail } from "@/lib/portalnews-detail";
+import {
+  fetchPortalNewsList,
+  getPortalNewsCategoryKeys,
+  getPortalNewsItemTimestamp,
+  normalizePortalNewsCategory,
+  PORTALNEWS_IMAGE_BASE,
+  type PortalNewsItem,
+} from "@/lib/portalnews";
 
-// Cache the response for 5 minutes (300s) to avoid hammering the external API
 export const revalidate = 300;
 
-const NEWS_API =
-  process.env.PORTALNEWS_API_URL ??
-  process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
-  "";
-const NEWS_TOKEN =
-  process.env.PORTALNEWS_TOKEN ??
-  process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ??
-  "";
-const IMAGE_BASE = (
-  process.env.PORTALNEWS_IMAGE_BASE ??
-  process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ??
-  ""
-).replace(/\/$/, "");
+const parsePositiveInt = (value: string | null) => {
+  if (!value) return null;
 
-type PortalNewsItem = {
-  updated_at?: string;
-  created_at?: string;
-  kategori?: {
-    slug?: string;
-    name?: string;
-  };
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-type PortalNewsResponse = {
-  data?: PortalNewsItem[];
-};
+const applyLimit = (items: PortalNewsItem[], limit: number | null) =>
+  typeof limit === "number" ? items.slice(0, limit) : items;
 
-const normalizeCategory = (value: unknown) =>
-  String(value ?? "")
-    .toLowerCase()
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+const matchesCategory = (item: PortalNewsItem, value: string) => {
+  const normalizedValue = normalizePortalNewsCategory(value);
 
-const getItemTimestamp = (item: PortalNewsItem) => {
-  const dateValue = item.updated_at ?? item.created_at;
-
-  if (!dateValue) {
-    return 0;
-  }
-
-  const timestamp = new Date(dateValue).getTime();
-  return Number.isNaN(timestamp) ? 0 : timestamp;
+  return (
+    !normalizedValue ||
+    getPortalNewsCategoryKeys(item).some((key) => key === normalizedValue)
+  );
 };
 
 export async function GET(request: Request) {
   try {
-    if (!NEWS_API) {
-      return NextResponse.json(
-        { status: "error", message: "NEWS_API_URL is not configured" },
-        { status: 500 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
-    const limitParam = Number(searchParams.get("limit") || "2");
-    const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 2;
-    const category = normalizeCategory(searchParams.get("category"));
-    const excludeCategory = normalizeCategory(searchParams.get("excludeCategory"));
+    const slug = searchParams.get("slug")?.trim();
 
-    const res = await fetchWithTimeout(NEWS_API, {
-      headers: NEWS_TOKEN ? { Authorization: `Bearer ${NEWS_TOKEN}` } : undefined,
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      return NextResponse.json(
-        { status: "error", message: `Upstream error: ${res.status}` },
-        { status: res.status }
-      );
+    if (slug) {
+      const latestLimit = parsePositiveInt(searchParams.get("latestLimit")) ?? 5;
+      const relatedLimit =
+        parsePositiveInt(searchParams.get("relatedLimit")) ?? 3;
+      const popularLimit =
+        parsePositiveInt(searchParams.get("popularLimit")) ?? 5;
+      const detail = await fetchPortalNewsDetail(slug, {
+        latestLimit,
+        popularLimit,
+        relatedLimit,
+      });
+
+      return NextResponse.json({
+        status: "success",
+        source: detail.source,
+        imageBase: detail.imageBase,
+        data: detail.article,
+        latest: detail.latest,
+        related: detail.related,
+        popular: detail.popular,
+      });
     }
-    const json = (await res.json()) as PortalNewsResponse;
-    if (!Array.isArray(json.data)) {
-      return NextResponse.json(
-        { status: "error", message: "Invalid upstream response" },
-        { status: 500 }
-      );
-    }
 
-    const sortedData = [...json.data].sort((a, b) => {
-      const dateA = getItemTimestamp(a);
-      const dateB = getItemTimestamp(b);
-      return dateB - dateA;
-    });
-    const filteredData = sortedData.filter((item) => {
-      const itemCategorySlug = normalizeCategory(item?.kategori?.slug);
-      const itemCategoryName = normalizeCategory(item?.kategori?.name);
-      const matchesCategory =
-        !category ||
-        itemCategorySlug === category ||
-        itemCategoryName === category;
-      const matchesExcludedCategory =
-        excludeCategory &&
-        (itemCategorySlug === excludeCategory ||
-          itemCategoryName === excludeCategory);
+    const limit = parsePositiveInt(searchParams.get("limit"));
+    const category = searchParams.get("category")?.trim() ?? "";
+    const excludeCategory = searchParams.get("excludeCategory")?.trim() ?? "";
 
-      return matchesCategory && !matchesExcludedCategory;
+    const { items, source } = await fetchPortalNewsList();
+    const sortedItems = [...items].sort(
+      (left, right) =>
+        getPortalNewsItemTimestamp(right) - getPortalNewsItemTimestamp(left),
+    );
+
+    const filteredItems = sortedItems.filter((item) => {
+      const matchesIncluded = category ? matchesCategory(item, category) : true;
+      const matchesExcluded = excludeCategory
+        ? matchesCategory(item, excludeCategory)
+        : false;
+
+      return matchesIncluded && !matchesExcluded;
     });
 
     return NextResponse.json({
       status: "success",
-      imageBase: IMAGE_BASE,
-      data: filteredData.slice(0, limit),
+      source,
+      imageBase: PORTALNEWS_IMAGE_BASE,
+      data: applyLimit(filteredItems, limit),
     });
-  } catch (err: unknown) {
-    const cause =
-      err instanceof Error &&
-      err.cause &&
-      typeof err.cause === "object" &&
-      "code" in err.cause
-        ? (err.cause as { code: string }).code
-        : undefined;
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         status: "error",
-        message: err instanceof Error ? err.message : "Unknown error",
-        cause,
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

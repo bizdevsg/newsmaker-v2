@@ -128,10 +128,6 @@
         "label": "Kebijakan"
       },
       {
-        "key": "indonesia-market",
-        "label": "Pasar Indonesia"
-      },
-      {
         "key": "data",
         "label": "Data"
       },
@@ -140,7 +136,7 @@
         "label": "Laporan"
       }
     ],
-    "activeNavKey": "indonesia-market",
+    "activeNavKey": "home",
     "reports": "Laporan",
     "register": "Daftar",
     "changeLanguageAria": "Ganti bahasa ke {locale}"

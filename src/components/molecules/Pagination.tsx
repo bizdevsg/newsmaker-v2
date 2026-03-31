@@ -27,7 +27,7 @@ export function Pagination({
   const WINDOW = 5;
   const half = Math.floor(WINDOW / 2);
   let start = Math.max(1, page - half);
-  let end = Math.min(totalPages, start + WINDOW - 1);
+  const end = Math.min(totalPages, start + WINDOW - 1);
   if (end - start < WINDOW - 1) start = Math.max(1, end - WINDOW + 1);
 
   const btnBase =

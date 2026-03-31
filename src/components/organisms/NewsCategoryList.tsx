@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Pagination } from "../molecules/Pagination";
 import { useLoading } from "../providers/LoadingProvider";
 import Image from "next/image";
+import {
+  resolvePortalNewsContent,
+  resolvePortalNewsTitle,
+} from "@/lib/portalnews-shared";
+import { normalizePortalNewsCategory } from "@/lib/portalnews";
 
 import type { Messages } from "@/locales";
 
@@ -12,12 +17,61 @@ type NewsCategoryListProps = {
   categorySlug: string;
   locale: string;
   emptyLabel?: string;
+  labelOverride?: string;
+  excludeCategoryValues?: string[];
+  requiredMainCategorySlug?: string;
   messages?: Messages;
+  parentHref?: string;
+  parentLabel?: string;
 };
 
-const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+type NewsListItem = {
+  id?: number | string;
+  title?: string;
+  titles?: {
+    default?: string;
+  };
+  slug?: string;
+  content?: string;
+  category_id?: number;
+  created_at?: string;
+  updated_at?: string;
+  images?: string[];
+  kategori?: {
+    id?: number;
+    name?: string;
+    slug?: string;
+  };
+  main_category?: {
+    id?: number;
+    name?: string;
+    slug?: string;
+  };
+  sub_category?: {
+    id?: number;
+    name?: string;
+    slug?: string;
+  };
+};
+
+type NewsCategoryItem = {
+  id?: number;
+  name?: string;
+  slug?: string;
+};
+
+type NewsListPayload = {
+  status?: string;
+  imageBase?: string;
+  data?: NewsListItem[];
+};
+
+type NewsCategoriesPayload = {
+  status?: string;
+  data?: NewsCategoryItem[];
+};
+
+const EMPTY_CATEGORY_VALUES: string[] = [];
 
 // Map slugs to category IDs
 const SLUG_TO_IDS: Record<string, number[]> = {
@@ -64,6 +118,8 @@ const SLUG_TO_LABEL: Record<string, string> = {
   gbpusd: "GBP / USD",
   "us-dollar": "US Dollar",
   "market-update": "Market Update",
+  "indonesia-market": "Indonesia Market",
+  "analysis-market-indonesia": "Analysis Market Indonesia",
   economy: "Global & Economy",
   "fiscal-moneter": "Fiscal & Monetary",
   "global-economics": "Global & Economy",
@@ -87,13 +143,34 @@ const stripHtml = (html: string) => {
     .trim();
 };
 
+const getCategoryKeys = (item: NewsListItem) =>
+  [item.kategori, item.sub_category, item.main_category]
+    .flatMap((category) => [
+      normalizePortalNewsCategory(category?.slug),
+      normalizePortalNewsCategory(category?.name),
+    ])
+    .filter(Boolean);
+
+const getCategoryIds = (item: NewsListItem) =>
+  [
+    item.category_id,
+    item.kategori?.id,
+    item.sub_category?.id,
+    item.main_category?.id,
+  ].filter((value): value is number => typeof value === "number");
+
 export function NewsCategoryList({
   categorySlug,
   locale,
   emptyLabel,
+  labelOverride,
+  excludeCategoryValues,
+  requiredMainCategorySlug,
   messages,
+  parentHref,
+  parentLabel,
 }: NewsCategoryListProps) {
-  const globalLoading = useLoading();
+  const { start, stop } = useLoading();
 
   // Bilingual labels — fallback to English if messages not provided
   const nc = messages?.equities?.newsCategories ?? {
@@ -120,71 +197,165 @@ export function NewsCategoryList({
     closeSearch: "Close",
     searchNews: "Search News",
   };
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<NewsListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [imageBase, setImageBase] = useState("");
   const perPage = 16;
+  const resolvedExcludeCategoryValues =
+    excludeCategoryValues ?? EMPTY_CATEGORY_VALUES;
 
   const isAll = categorySlug === "all";
-  const label = isAll
-    ? "All News"
-    : (SLUG_TO_LABEL[categorySlug] ?? categorySlug);
-  const targetIds = SLUG_TO_IDS[categorySlug] ?? [];
-  const keywords = SLUG_KEYWORDS[categorySlug] ?? [];
   const isEconomic = ECONOMIC_SLUGS.has(categorySlug);
+  const label =
+    labelOverride ??
+    (isAll ? nc.allArticles : (SLUG_TO_LABEL[categorySlug] ?? categorySlug));
+  const resolvedParentHref = parentHref ?? `/${locale}/news`;
+  const resolvedParentLabel =
+    parentLabel ??
+    (isEconomic
+      ? nc.economicNewsTitle
+      : isAll
+        ? nc.allArticles
+        : nc.marketNewsTitle);
+  const targetIds = useMemo(() => SLUG_TO_IDS[categorySlug] ?? [], [categorySlug]);
+  const keywords = useMemo(
+    () => SLUG_KEYWORDS[categorySlug] ?? [],
+    [categorySlug],
+  );
+  const excludedCategorySignature = resolvedExcludeCategoryValues.join("|");
+  const excludedCategoryKeys = useMemo(
+    () =>
+      (excludedCategorySignature
+        ? excludedCategorySignature.split("|")
+        : EMPTY_CATEGORY_VALUES
+      )
+        .map((value) => normalizePortalNewsCategory(value))
+        .filter(Boolean),
+    [excludedCategorySignature],
+  );
+  const normalizedRequiredMainCategorySlug = normalizePortalNewsCategory(
+    requiredMainCategorySlug,
+  );
 
   useEffect(() => {
+    let isActive = true;
+
     const fetchArticles = async () => {
-      const token = globalLoading.start("news-category-list");
+      const token = start("news-category-list");
       try {
-        const res = await fetch(NEWS_API, {
-          headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
-        });
-        const json = await res.json();
+        const [articlesRes, categoriesRes] = await Promise.all([
+          fetch("/api/portalnews", {
+            cache: "no-store",
+          }),
+          fetch("/api/portalnews/categories", {
+            cache: "no-store",
+          }),
+        ]);
+
+        const json = (await articlesRes.json().catch(() => null)) as
+          | NewsListPayload
+          | null;
+        const categoriesJson = (await categoriesRes.json().catch(() => null)) as
+          | NewsCategoriesPayload
+          | null;
+
         if (json?.data) {
-          let filtered: any[] = [];
+          const categories = Array.isArray(categoriesJson?.data)
+            ? categoriesJson.data
+            : [];
+          const dynamicTargetId = categories.find(
+            (item) => item.slug === categorySlug,
+          )?.id;
+          const effectiveTargetIds =
+            typeof dynamicTargetId === "number"
+              ? [dynamicTargetId]
+              : targetIds;
+
+          let filtered: NewsListItem[] = [];
           if (isAll) {
             filtered = json.data;
-          } else if (targetIds.length > 0) {
+          } else if (effectiveTargetIds.length > 0) {
             // Direct ID match
-            filtered = json.data.filter((item: any) =>
-              targetIds.includes(item.category_id),
-            );
+            filtered = json.data.filter((item) => {
+              const ids = getCategoryIds(item);
+              const keys = getCategoryKeys(item);
+              return (
+                ids.some((id) => effectiveTargetIds.includes(id)) ||
+                keys.includes(categorySlug)
+              );
+            });
           } else if (keywords.length > 0) {
             // Fuzzy keyword match against category slug/name
-            filtered = json.data.filter((item: any) => {
-              const catSlug = (item.kategori?.slug ?? "").toLowerCase();
-              const catName = (item.kategori?.name ?? "").toLowerCase();
+            filtered = json.data.filter((item) => {
+              const keys = getCategoryKeys(item);
               return keywords.some(
-                (kw) => catSlug.includes(kw) || catName.includes(kw),
+                (kw) => keys.some((key) => key.includes(kw)),
               );
             });
           } else {
             // Fallback: match by exact slug
             filtered = json.data.filter(
-              (item: any) => item.kategori?.slug === categorySlug,
+              (item) => getCategoryKeys(item).includes(categorySlug),
             );
           }
+
+          if (excludedCategoryKeys.length > 0) {
+            filtered = filtered.filter((item) => {
+              const itemCategoryKeys = getCategoryKeys(item);
+              return !excludedCategoryKeys.some((key) =>
+                itemCategoryKeys.some(
+                  (itemKey) => itemKey === key || itemKey.includes(key),
+                ),
+              );
+            });
+          }
+
+          if (normalizedRequiredMainCategorySlug) {
+            filtered = filtered.filter(
+              (item) =>
+                normalizePortalNewsCategory(item.main_category?.slug) ===
+                normalizedRequiredMainCategorySlug,
+            );
+          }
+
           // Sort by most recent
-          filtered.sort((a: any, b: any) => {
+          filtered.sort((a, b) => {
             return (
               (Date.parse(b.updated_at ?? b.created_at ?? "") || 0) -
               (Date.parse(a.updated_at ?? a.created_at ?? "") || 0)
             );
           });
+          if (!isActive) return;
           setArticles(filtered);
+          setImageBase(typeof json.imageBase === "string" ? json.imageBase : "");
         }
       } catch (err) {
         console.error("Failed to fetch articles", err);
       } finally {
-        setLoading(false);
-        globalLoading.stop(token);
+        if (isActive) {
+          setLoading(false);
+        }
+        stop(token);
       }
     };
     fetchArticles();
-  }, [categorySlug]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    categorySlug,
+    excludedCategoryKeys,
+    isAll,
+    keywords,
+    normalizedRequiredMainCategorySlug,
+    start,
+    stop,
+    targetIds,
+  ]);
 
   const [copiedId, setCopiedId] = useState<number | string | null>(null);
 
@@ -223,13 +394,11 @@ export function NewsCategoryList({
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredBySearch = normalizedSearch
-    ? articles.filter((item: any) => {
-        const title = (item.titles?.default || item.title || "")
-          .toString()
-          .toLowerCase();
-        const content = stripHtml(item.content ?? "")
-          .toString()
-          .toLowerCase();
+    ? articles.filter((item) => {
+        const title = resolvePortalNewsTitle(item, locale).toLowerCase();
+        const content = stripHtml(
+          resolvePortalNewsContent(item, locale),
+        ).toLowerCase();
         return (
           title.includes(normalizedSearch) || content.includes(normalizedSearch)
         );
@@ -242,6 +411,14 @@ export function NewsCategoryList({
     page * perPage,
   );
 
+  const resolveImage = (path?: string) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return imageBase ? `${imageBase}${normalizedPath}` : normalizedPath;
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-slate-400">
@@ -252,7 +429,6 @@ export function NewsCategoryList({
   }
 
   if (articles.length === 0) {
-    const message = emptyLabel ?? `No articles found for "${label}"`;
     return (
       <div>
         {/* Category Header */}
@@ -260,14 +436,10 @@ export function NewsCategoryList({
           <div className="mb-8">
             <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
               <Link
-                href={`/${locale}/equities`}
+                href={resolvedParentHref}
                 className="hover:text-blue-600 transition"
               >
-                {isEconomic
-                  ? nc.economicNewsTitle
-                  : isAll
-                    ? nc.allArticles
-                    : nc.marketNewsTitle}
+                {resolvedParentLabel}
               </Link>
               <span>/</span>
               <span className="text-slate-700 font-semibold">{label}</span>
@@ -399,14 +571,15 @@ export function NewsCategoryList({
               />
 
               <p className="text-sm md:text-base text-slate-500 font-semibold text-center max-w-lg">
-                {locale === "id"
-                  ? "Belum ada data yang tersedia untuk ditampilkan saat ini. Silakan kembali beberapa saat lagi."
-                  : "No data available at the moment. Please check back later."}
+                {emptyLabel ||
+                  (locale === "id"
+                    ? "Belum ada data yang tersedia untuk ditampilkan saat ini. Silakan kembali beberapa saat lagi."
+                    : "No data available at the moment. Please check back later.")}
               </p>
             </div>
 
             <Link
-              href={`/${locale}/equities`}
+              href={resolvedParentHref}
               className="text-sm md:text-base bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 font-semibold text-white transition"
             >
               <div className="flex items-center gap-2">
@@ -427,14 +600,10 @@ export function NewsCategoryList({
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
             <Link
-              href={`/${locale}/equities`}
+              href={resolvedParentHref}
               className="hover:text-blue-600 transition"
             >
-              {isEconomic
-                ? nc.economicNewsTitle
-                : isAll
-                  ? nc.allArticles
-                  : nc.marketNewsTitle}
+              {resolvedParentLabel}
             </Link>
             <span>/</span>
             <span className="text-slate-700 font-semibold">{label}</span>
@@ -559,7 +728,7 @@ export function NewsCategoryList({
         <div className="text-center py-16">
           <i className="fa-solid fa-magnifying-glass text-3xl text-slate-200 mb-3"></i>
           <p className="text-slate-500 font-semibold">
-            {nc.noResults} "{searchTerm.trim()}"
+            {nc.noResults} <span className="font-semibold">{searchTerm.trim()}</span>
           </p>
         </div>
       )}
@@ -567,14 +736,14 @@ export function NewsCategoryList({
       {/* Article Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {paginated.map((item, idx) => {
-          const thumb = item.images?.[0]
-            ? `${IMAGE_BASE}${item.images[0]}`
-            : null;
-          const title = item.titles?.default || item.title;
-          const summary = stripHtml(item.content ?? "").substring(0, 140);
+          const thumb = resolveImage(item.images?.[0]);
+          const title = resolvePortalNewsTitle(item, locale, "Judul berita");
+          const summary = stripHtml(
+            resolvePortalNewsContent(item, locale),
+          ).substring(0, 140);
           const date = new Date(
-            item.updated_at || item.created_at,
-          ).toLocaleDateString("id-ID", {
+            item.updated_at ?? item.created_at ?? "",
+          ).toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
             day: "numeric",
             month: "short",
             year: "numeric",

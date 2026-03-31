@@ -3,7 +3,7 @@ import React from "react";
 type StatTileProps = {
   label: string;
   value: string;
-  delta: string;
+  delta?: string;
   tone?: "up" | "down" | "flat";
 };
 
@@ -13,12 +13,6 @@ export function StatTile({
   delta,
   tone = "flat",
 }: StatTileProps) {
-  const toneClass =
-    tone === "up"
-      ? "text-blue-600"
-      : tone === "down"
-        ? "text-rose-600"
-        : "text-slate-500";
   const pillClass =
     tone === "up"
       ? "bg-green-200 text-green-800"
@@ -45,11 +39,13 @@ export function StatTile({
           </p>
           <p className="text-lg font-semibold text-slate-800">{value}</p>
         </div>
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${pillClass}`}
-        >
-          {delta}
-        </span>
+        {delta ? (
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${pillClass}`}
+          >
+            {delta}
+          </span>
+        ) : null}
       </div>
     </div>
   );

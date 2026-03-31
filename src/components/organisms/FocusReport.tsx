@@ -5,6 +5,7 @@ import { Card } from "../atoms/Card";
 import { Button } from "../atoms/Button";
 import type { Messages } from "@/locales";
 import type { LiveQuoteItem, LiveQuoteResponse } from "@/types/indonesiaMarket";
+import { SectionHeader } from "../molecules/SectionHeader";
 
 type FocusReportProps = {
   messages: Messages;
@@ -39,12 +40,6 @@ const formatNumber = (value: number | undefined, digits = 0) => {
   }).format(value);
 };
 
-const formatPercent = (value: number | undefined) => {
-  if (value === undefined || Number.isNaN(value)) return undefined;
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
-};
-
 const formatChangePoints = (value?: number) => {
   if (value === undefined || Number.isNaN(value)) return undefined;
   const sign = value > 0 ? "+" : "";
@@ -59,19 +54,18 @@ const buildMetricFromQuote = (
   decimals?: number,
 ) => {
   const price = parseNumber(quote?.last ?? quote?.price);
-  const percent = parseNumber(quote?.percentChange);
+  const absoluteChange = parseNumber(quote?.valueChange);
   const value = formatNumber(price, decimals ?? (price && price < 10 ? 4 : 2));
-  const delta = formatPercent(percent);
   const tone =
-    percent !== undefined
-      ? percent < 0
+    absoluteChange !== undefined
+      ? absoluteChange < 0
         ? "down"
-        : percent > 0
+        : absoluteChange > 0
           ? "up"
           : "flat"
       : "flat";
   const meta =
-    formatChangePoints(parseNumber(quote?.valueChange)) ??
+    formatChangePoints(absoluteChange) ??
     quote?.serverTime ??
     quote?.serverDateTime ??
     "";
@@ -79,7 +73,6 @@ const buildMetricFromQuote = (
     key,
     label,
     value: value ?? fallback?.value ?? "-",
-    delta: delta ?? fallback?.delta ?? "-",
     tone: (tone ?? fallback?.tone ?? "flat") as "up" | "down" | "flat",
     meta: meta || fallback?.meta || "",
   };
@@ -156,7 +149,6 @@ type DisplayMetric = {
   icon: string;
   imageSrc?: string;
   value: string;
-  delta: string;
   tone: "up" | "down" | "flat";
   meta: string;
 };
@@ -201,7 +193,6 @@ export function FocusReport({ messages }: FocusReportProps) {
 
   React.useEffect(() => {
     let isMounted = true;
-    let timer: number | undefined;
 
     const load = async () => {
       const liveQuotes =
@@ -211,7 +202,7 @@ export function FocusReport({ messages }: FocusReportProps) {
     };
 
     const initialTimer = window.setTimeout(load, 300);
-    timer = window.setInterval(() => {
+    const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") {
         load();
       }
@@ -220,29 +211,22 @@ export function FocusReport({ messages }: FocusReportProps) {
     return () => {
       isMounted = false;
       window.clearTimeout(initialTimer);
-      if (timer) window.clearInterval(timer);
+      window.clearInterval(timer);
     };
   }, []);
-  const heroImage = "/assets/tourism-guangzhou-rivers-city-river.jpg";
+  const heroImage = "/assets/tourism-guangzhou-rivers-city-river-cp.jpg";
 
   return (
     <Card as="section">
-      <div className="border-b border-slate-100 px-6 py-4">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800">
-            {messages.focusReport.kicker}
-          </h3>
-          <span className="mt-2 block h-0.5 w-16 rounded-full bg-blue-600" />
-        </div>
-      </div>
+      <SectionHeader title={messages.focusReport.kicker} />
       <div className="space-y-4 px-6 pb-6 pt-4">
         <div className="relative overflow-hidden rounded-md">
           <img
             src={heroImage}
             alt={messages.focusReport.title}
-            className="h-52 w-full object-cover sm:h-60"
+            className="h-40 w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-900/30 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-blue-950/70 via-blue-900/30 to-transparent" />
           <div className="absolute inset-0 flex flex-col justify-end gap-2 p-5 text-white">
             <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
               {messages.focusReport.kicker}
@@ -310,9 +294,6 @@ export function FocusReport({ messages }: FocusReportProps) {
                     <div className="flex items-center justify-end gap-3">
                       <span className={`text-xs font-semibold ${toneClass}`}>
                         {metric.meta}
-                      </span>
-                      <span className={`text-xs font-semibold ${toneClass}`}>
-                        {metric.delta}
                       </span>
                     </div>
                   </div>

@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 const locales = ["en", "id"] as const;
 
@@ -23,5 +22,5 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  return <LoadingProvider>{children}</LoadingProvider>;
+  return children;
 }

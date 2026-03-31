@@ -128,10 +128,6 @@
         "label": "Policy"
       },
       {
-        "key": "indonesia-market",
-        "label": "Indonesia Market"
-      },
-      {
         "key": "data",
         "label": "Data"
       },
@@ -140,7 +136,7 @@
         "label": "Reports"
       }
     ],
-    "activeNavKey": "indonesia-market",
+    "activeNavKey": "home",
     "reports": "Reports",
     "register": "Register",
     "changeLanguageAria": "Change language to {locale}"

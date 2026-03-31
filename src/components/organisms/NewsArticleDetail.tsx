@@ -5,10 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLoading } from "../providers/LoadingProvider";
 import type { Messages } from "@/locales";
-
-const NEWS_API = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
-const IMAGE_BASE = process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ?? "";
+import {
+  resolvePortalNewsContent,
+  resolvePortalNewsTitle,
+} from "@/lib/portalnews-shared";
 
 const stripHtml = (html: string) =>
   html
@@ -16,29 +16,59 @@ const stripHtml = (html: string) =>
     .replace(/&[a-z]+;/gi, " ")
     .trim();
 
-const decodeHtml = (value: string) => {
-  if (typeof document === "undefined") return value;
-  const textarea = document.createElement("textarea");
-  textarea.innerHTML = value;
-  return textarea.value;
-};
+const formatArticleHtml = (value: string) =>
+  value
+    .replace(/<o:p\b[^>]*>[\s\S]*?<\/o:p>/gi, "")
+    .replace(/\s(?:class|style|lang|align)=(["']).*?\1/gi, "")
+    .replace(/\s(?:class|style|lang|align)=([^\s>]+)/gi, "")
+    .replace(/<p>\s*(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/gi, "");
 
 type NewsArticleDetailProps = {
   slug: string;
   categorySlug: string;
+  initialData?: NewsArticlePayload;
   locale: string;
   isEconomic?: boolean;
   messages?: Messages;
 };
 
+type NewsArticleItem = {
+  id?: number;
+  title?: string;
+  titles?: {
+    default?: string;
+  };
+  content?: string;
+  slug?: string;
+  source?: string;
+  category_id?: number;
+  created_at?: string;
+  updated_at?: string;
+  images?: string[];
+  kategori?: {
+    name?: string;
+    slug?: string;
+  };
+};
+
+type NewsArticlePayload = {
+  status?: string;
+  imageBase?: string;
+  data?: NewsArticleItem | null;
+  latest?: NewsArticleItem[];
+  related?: NewsArticleItem[];
+  popular?: NewsArticleItem[];
+};
+
 export function NewsArticleDetail({
   slug,
   categorySlug,
+  initialData,
   locale,
   isEconomic = false,
   messages,
 }: NewsArticleDetailProps) {
-  const globalLoading = useLoading();
+  const { start, stop } = useLoading();
 
   // Bilingual labels
   const nc = messages?.equities?.newsCategories ?? {
@@ -59,57 +89,85 @@ export function NewsArticleDetail({
 
   const dateLocale = locale === "id" ? "id-ID" : "en-US";
 
-  const [article, setArticle] = useState<any>(null);
-  const [related, setRelated] = useState<any[]>([]);
-  const [latest, setLatest] = useState<any[]>([]);
-  const [popular, setPopular] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [article, setArticle] = useState<NewsArticleItem | null>(
+    initialData?.data ?? null,
+  );
+  const [related, setRelated] = useState<NewsArticleItem[]>(
+    Array.isArray(initialData?.related) ? initialData.related : [],
+  );
+  const [latest, setLatest] = useState<NewsArticleItem[]>(
+    Array.isArray(initialData?.latest) ? initialData.latest : [],
+  );
+  const [popular, setPopular] = useState<NewsArticleItem[]>(
+    Array.isArray(initialData?.popular) ? initialData.popular : [],
+  );
+  const [loading, setLoading] = useState(!initialData);
   const [copiedLink, setCopiedLink] = useState(false);
   const [heroImageError, setHeroImageError] = useState(false);
+  const [imageBase, setImageBase] = useState(initialData?.imageBase ?? "");
 
   useEffect(() => {
+    if (initialData) {
+      setArticle(initialData.data ?? null);
+      setLatest(Array.isArray(initialData.latest) ? initialData.latest : []);
+      setRelated(Array.isArray(initialData.related) ? initialData.related : []);
+      setPopular(Array.isArray(initialData.popular) ? initialData.popular : []);
+      setImageBase(
+        typeof initialData.imageBase === "string" ? initialData.imageBase : "",
+      );
+      setLoading(false);
+      return;
+    }
+
+    let isActive = true;
+
     const fetchData = async () => {
-      const token = globalLoading.start("news-article-detail");
+      const token = start("news-article-detail");
       try {
-        const res = await fetch(NEWS_API, {
-          headers: { Authorization: `Bearer ${NEWS_TOKEN}` },
-        });
-        const json = await res.json();
-        if (!json?.data) return;
-
-        const all: any[] = json.data;
-
-        // Find current article by slug
-        const found = all.find((a) => a.slug === slug);
-        setArticle(found ?? null);
-
-        // Latest: most recent 5
-        const sorted = [...all].sort(
-          (a, b) =>
-            (Date.parse(b.updated_at ?? b.created_at ?? "") || 0) -
-            (Date.parse(a.updated_at ?? a.created_at ?? "") || 0),
+        const res = await fetch(
+          `/api/portalnews?slug=${encodeURIComponent(slug)}&latestLimit=5&relatedLimit=3&popularLimit=5`,
+          {
+            cache: "no-store",
+          },
         );
-        setLatest(sorted.slice(0, 5));
+        const json = (await res
+          .json()
+          .catch(() => null)) as NewsArticlePayload | null;
+        if (!res.ok || !json) return;
+        if (!isActive) return;
 
-        // Popular: most recent 5 from same category (excluding current)
-        if (found) {
-          const sameCat = all.filter(
-            (a) => a.category_id === found.category_id && a.slug !== slug,
-          );
-          setRelated(sameCat.slice(0, 3));
-          setPopular(sameCat.slice(0, 5));
-        } else {
-          setPopular(sorted.slice(5, 10));
-        }
+        setArticle(json.data ?? null);
+        setLatest(Array.isArray(json.latest) ? json.latest : []);
+        setRelated(Array.isArray(json.related) ? json.related : []);
+        setPopular(Array.isArray(json.popular) ? json.popular : []);
+        setImageBase(typeof json.imageBase === "string" ? json.imageBase : "");
       } catch (err) {
         console.error("Failed to fetch article", err);
       } finally {
-        setLoading(false);
-        globalLoading.stop(token);
+        if (isActive) {
+          setLoading(false);
+        }
+        stop(token);
       }
     };
     fetchData();
-  }, [slug]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [initialData, slug, start, stop]);
+
+  const resolveImage = (path?: string) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const fallbackBase =
+      process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE?.replace(/\/$/, "") ?? "";
+    const base = imageBase || fallbackBase;
+
+    return base ? `${base}${normalizedPath}` : normalizedPath;
+  };
 
   const copyLink = () => {
     const url = window.location.href;
@@ -143,14 +201,15 @@ export function NewsArticleDetail({
     );
   }
 
-  const title = article.titles?.default || article.title;
-  const thumb = article.images?.[0]
-    ? `${IMAGE_BASE}${article.images[0]}`
-    : null;
+  const title = resolvePortalNewsTitle(article, locale, "Judul berita");
+  const articleContent = resolvePortalNewsContent(article, locale, "");
+  const articleHtml = formatArticleHtml(articleContent);
+  const thumb = resolveImage(article.images?.[0]);
+  const articleCategorySlug = article.kategori?.slug ?? categorySlug;
   const catName =
-    article.kategori?.name?.toUpperCase() ?? categorySlug.toUpperCase();
+    article.kategori?.name?.toUpperCase() ?? articleCategorySlug.toUpperCase();
   const dateStr = new Date(
-    article.updated_at || article.created_at,
+    article.updated_at ?? article.created_at ?? "",
   ).toLocaleDateString(dateLocale, {
     day: "numeric",
     month: "long",
@@ -165,7 +224,7 @@ export function NewsArticleDetail({
     return "";
   };
 
-  const articlePath = `/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug}/${article.slug}`;
+  const articlePath = `/${locale}/${isEconomic ? "economic-news" : "news"}/${articleCategorySlug}/${article.slug ?? slug}`;
   const articleUrl = `${getSiteOrigin()}${articlePath}`;
   const encodedUrl = encodeURIComponent(articleUrl);
   const encodedTitle = encodeURIComponent(title);
@@ -184,10 +243,10 @@ export function NewsArticleDetail({
           </Link>
           <span>/</span>
           <Link
-            href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug}`}
+            href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${articleCategorySlug}`}
             className="hover:text-blue-600 transition capitalize"
           >
-            {categorySlug.replace(/-/g, " ")}
+            {articleCategorySlug.replace(/-/g, " ")}
           </Link>
           <span>/</span>
           <span className="text-slate-600 truncate max-w-[12rem] sm:max-w-[18rem]">
@@ -267,24 +326,31 @@ export function NewsArticleDetail({
         </div>
 
         {/* Article Title */}
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight mb-2">
           {title}
         </h1>
 
         {/* Category badge */}
-        <span className="inline-block mb-6 rounded-sm bg-blue-100 text-blue-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
-          {catName}
+        <span className="inline-block rounded-sm bg-blue-100 text-blue-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+          ~ {catName} ~
         </span>
 
         {/* Article body */}
         <div
-          className="prose prose-slate max-w-none text-[15px] leading-relaxed
-                        prose-h2:text-xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-3
-                        prose-p:mb-5 prose-p:text-slate-700
-                        prose-strong:text-slate-800
-                        prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                        prose-ul:list-disc prose-ul:pl-6 prose-li:mb-1"
-          dangerouslySetInnerHTML={{ __html: decodeHtml(article.content ?? "") }}
+          className="news-article-prose prose prose-slate max-w-none text-[15px] leading-8 sm:text-base
+                        prose-headings:font-display prose-headings:font-semibold prose-headings:text-slate-900
+                        prose-h2:mt-10 prose-h2:mb-4 prose-h2:border-t prose-h2:border-slate-200 prose-h2:pt-8 prose-h2:text-2xl
+                        prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl
+                        prose-h4:mt-6 prose-h4:mb-2 prose-h4:text-lg
+                        prose-p:my-5 prose-p:text-slate-700 prose-p:leading-8
+                        prose-strong:font-semibold prose-strong:text-slate-900
+                        prose-a:font-semibold prose-a:text-blue-700 prose-a:no-underline hover:prose-a:text-blue-800 hover:prose-a:underline
+                        prose-ul:my-6 prose-ul:list-disc prose-ul:pl-6
+                        prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-6
+                        prose-li:text-slate-700 prose-li:marker:text-blue-700
+                        prose-blockquote:rounded-r-2xl prose-blockquote:border-l-4 prose-blockquote:border-blue-700 prose-blockquote:bg-blue-50/80 prose-blockquote:px-5 prose-blockquote:py-3 prose-blockquote:not-italic prose-blockquote:text-slate-700
+                        prose-hr:my-8 prose-hr:border-slate-200"
+          dangerouslySetInnerHTML={{ __html: articleHtml }}
         />
 
         {/* Source */}
@@ -303,29 +369,32 @@ export function NewsArticleDetail({
             </h2>
             <div className="mt-5 space-y-5">
               {related.map((rel, i) => {
-                const relThumb = rel.images?.[0]
-                  ? `${IMAGE_BASE}${rel.images[0]}`
-                  : null;
-                const relTitle = rel.titles?.default || rel.title;
+                const relThumb = resolveImage(rel.images?.[0]);
+                const relTitle = resolvePortalNewsTitle(
+                  rel,
+                  locale,
+                  "Judul berita",
+                );
                 const relCat = rel.kategori?.name?.toUpperCase() ?? "";
+                const relCategorySlug =
+                  rel.kategori?.slug ?? articleCategorySlug;
                 const relDate = new Date(
-                  rel.updated_at || rel.created_at,
-                ).toLocaleDateString("id-ID", {
+                  rel.updated_at ?? rel.created_at ?? "",
+                ).toLocaleDateString(dateLocale, {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                   hour: "2-digit",
                   minute: "2-digit",
                 });
-                const relSummary = stripHtml(rel.content ?? "").substring(
-                  0,
-                  160,
-                );
+                const relSummary = stripHtml(
+                  resolvePortalNewsContent(rel, locale),
+                ).substring(0, 160);
 
                 return (
                   <Link
                     key={i}
-                    href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug}/${rel.slug}`}
+                    href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${relCategorySlug}/${rel.slug}`}
                     className="flex flex-col gap-4 group hover:bg-slate-50 rounded-xl p-3 -mx-3 transition sm:flex-row sm:gap-5"
                   >
                     {/* Thumbnail */}
@@ -376,13 +445,13 @@ export function NewsArticleDetail({
           </h2>
           <div className="space-y-4">
             {latest.map((item, i) => {
-              const t = item.titles?.default || item.title;
-              const th = item.images?.[0]
-                ? `${IMAGE_BASE}${item.images[0]}`
-                : null;
+              const t = resolvePortalNewsTitle(item, locale, "Judul berita");
+              const th = resolveImage(item.images?.[0]);
               const cat = item.kategori?.name?.toUpperCase() ?? "";
+              const itemCategorySlug =
+                item.kategori?.slug ?? articleCategorySlug;
               const d = new Date(
-                item.updated_at || item.created_at,
+                item.updated_at ?? item.created_at ?? "",
               ).toLocaleDateString(dateLocale, {
                 day: "numeric",
                 month: "long",
@@ -393,7 +462,7 @@ export function NewsArticleDetail({
               return (
                 <Link
                   key={i}
-                  href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${item.kategori?.slug ?? categorySlug}/${item.slug}`}
+                  href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug}`}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
                   <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
@@ -434,13 +503,13 @@ export function NewsArticleDetail({
           </h2>
           <div className="space-y-4">
             {popular.map((item, i) => {
-              const t = item.titles?.default || item.title;
-              const th = item.images?.[0]
-                ? `${IMAGE_BASE}${item.images[0]}`
-                : null;
+              const t = resolvePortalNewsTitle(item, locale, "Judul berita");
+              const th = resolveImage(item.images?.[0]);
               const cat = item.kategori?.name?.toUpperCase() ?? "";
+              const itemCategorySlug =
+                item.kategori?.slug ?? articleCategorySlug;
               const d = new Date(
-                item.updated_at || item.created_at,
+                item.updated_at ?? item.created_at ?? "",
               ).toLocaleDateString(dateLocale, {
                 day: "numeric",
                 month: "long",
@@ -451,7 +520,7 @@ export function NewsArticleDetail({
               return (
                 <Link
                   key={i}
-                  href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${item.kategori?.slug ?? categorySlug}/${item.slug}`}
+                  href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug}`}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
                   <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">

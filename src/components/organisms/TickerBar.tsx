@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLoading } from "../providers/LoadingProvider";
-
+import { resolvePortalNewsTitle } from "@/lib/portalnews-shared";
 
 type TickerBarProps = {
   ticks?: string[];
@@ -14,21 +14,21 @@ type TickerBarProps = {
 type LiveQuote = {
   symbol: string;
   price: number;
-  percentChange: number;
   serverTime?: string;
 };
 type LiveTick = {
   key: string;
   symbol: string;
   priceText: string;
-  percentText?: string;
-  tone: "up" | "down" | "flat";
   href?: string;
 };
 
 type NewsItem = {
   id: number;
   title?: string;
+  titles?: {
+    default?: string;
+  };
   slug?: string;
   created_at?: string;
   kategori?: {
@@ -37,37 +37,22 @@ type NewsItem = {
   };
 };
 
-const NEWS_API_URL = process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ?? "";
-const NEWS_TOKEN = process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ?? "";
 const API_URL = `/api/live-quotes`;
+const NEWS_API_URL = `/api/portalnews?limit=8`;
 const REFRESH_INTERVAL_MS = 300_000;
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(value);
 
-const formatPercent = (value: number) => {
-  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
-  return `${sign}${Math.abs(value).toFixed(2)}%`;
-};
-
 const parseFallbackTick = (tick: string, index: number): LiveTick => {
   const match = tick.match(/([+-]?\d+(?:\.\d+)?)%/);
   const percentText = match ? `${match[1]}%` : undefined;
-  const tone = percentText
-    ? percentText.startsWith("-")
-      ? "down"
-      : percentText.startsWith("+")
-        ? "up"
-        : "flat"
-    : "flat";
   const cleaned = percentText ? tick.replace(percentText, "").trim() : tick;
   const [symbol, ...rest] = cleaned.split(" ");
   return {
     key: `fallback-${index}`,
     symbol,
     priceText: rest.join(" ").trim(),
-    percentText,
-    tone,
   };
 };
 
@@ -87,38 +72,19 @@ export function TickerBar({
     let isActive = true;
 
     const toTick = (item: LiveQuote): LiveTick => {
-      const tone =
-        item.percentChange > 0
-          ? "up"
-          : item.percentChange < 0
-            ? "down"
-            : "flat";
       const priceText = formatNumber(item.price);
-      const percentText = formatPercent(item.percentChange);
       return {
         key: `${item.symbol}-${item.serverTime ?? "now"}`,
         symbol: item.symbol,
         priceText,
-        percentText,
-        tone,
       };
     };
 
-    const toNewsTick = (item: NewsItem): LiveTick => {
-      const categorySlug = item.kategori?.slug?.trim();
-      const articleSlug = item.slug?.trim();
-      const href =
-        categorySlug && articleSlug
-          ? `/${locale ?? "id"}/news/${categorySlug}/${articleSlug}`
-          : undefined;
-      return {
-        key: `news-${item.id}`,
-        symbol: item.kategori?.name?.toUpperCase() || "NEWS",
-        priceText: item.title?.trim() || "Latest update",
-        tone: "flat",
-        href,
-      };
-    };
+    const toNewsTick = (item: NewsItem): LiveTick => ({
+      key: `news-${item.id}`,
+      symbol: item.kategori?.name?.toUpperCase() || "NEWS",
+      priceText: resolvePortalNewsTitle(item, locale, "Latest update"),
+    });
 
     const loadLive = async () => {
       try {
@@ -139,11 +105,7 @@ export function TickerBar({
 
     const loadNews = async () => {
       try {
-        const response = await fetch(NEWS_API_URL, {
-          headers: {
-            Authorization: `Bearer ${NEWS_TOKEN}`,
-          },
-        });
+        const response = await fetch(NEWS_API_URL);
         if (!response.ok) return;
         const payload = await response.json();
         if (!isActive || payload?.status !== "success") return;
@@ -207,23 +169,12 @@ export function TickerBar({
   ) => {
     const isPrimary = variant === "primary";
     const symbolClass = isPrimary ? "text-white" : "text-white/85";
-    const percentClass =
-      item.tone === "up"
-        ? isPrimary
-          ? "text-emerald-300"
-          : "text-emerald-200"
-        : item.tone === "down"
-          ? "text-rose-300"
-          : "text-white/60";
     const wrapperClass =
       "inline-flex items-center gap-2 transition-colors hover:text-white";
     const content = (
       <>
         <span className={symbolClass}>{item.symbol}</span>
         <span className="text-white/80">{item.priceText}</span>
-        {item.percentText ? (
-          <span className={percentClass}>{item.percentText}</span>
-        ) : null}
       </>
     );
 
@@ -265,17 +216,17 @@ export function TickerBar({
   };
 
   return (
-    <div className="flex justify-center bg-blue-950">
+    <div className="flex justify-center bg-[#1061B3]">
       <div className="ticker-wrapper py-1 flex w-full max-w-7xl items-center gap-4 overflow-hidden text-[11px] font-medium text-white shadow-lg sm:text-xs">
         {/* Top News / Label */}
-        <div className="bg-linear-to-r from-blue-950 z-10">
+        <div className="bg-linear-to-r from-[#1061B3] z-10">
           <div className="flex shrink-0 items-center ml-2 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 to-white/0 p-0.5 pr-16">
             <p className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
               <i className="fa-solid fa-bolt text-[10px]" aria-hidden="true" />
             </p>
 
             <p className="text-[10px] text-nowrap font-bold uppercase tracking-[0.2em] text-red-800 sm:text-[11px]">
-              Trending
+              {topNews}
             </p>
           </div>
         </div>
