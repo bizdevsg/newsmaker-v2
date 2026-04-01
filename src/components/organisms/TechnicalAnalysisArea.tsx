@@ -5,10 +5,10 @@ import { Card } from "../atoms/Card";
 
 const INSTRUMENTS = [
   { label: "Gold (XAUUSD)", name: "Gold Spot / U.S. Dollar", symbol: "OANDA:XAUUSD" },
-  { label: "Silver (SILVER)", name: "Silver Spot / U.S. Dollar", symbol: "OANDA:XAGUSD" },
+  { label: "Silver (SILVER)", name: "Silver Spot / U.S. Dollar", symbol: "TVC:SILVER" },
   { label: "BCO (OIL)", name: "Brent Crude Oil", symbol: "TVC:UKOIL" },
   { label: "Index Dollar (DXY)", name: "U.S. Dollar Index", symbol: "TVC:DXY" },
-  { label: "Gold Rupiah (XAUIDRG)", name: "Gold / Indonesian Rupiah", symbol: "FX_IDC:XAUIDR" },
+  { label: "Gold Rupiah (XAUIDRG)", name: "Gold / Indonesian Rupiah", symbol: "FX_IDC:XAUIDRG" },
   { label: "Bitcoin (BTCUSD)", name: "Bitcoin / U.S. Dollar", symbol: "BINANCE:BTCUSDT" },
 ];
 
@@ -117,9 +117,9 @@ export function TechnicalAnalysisArea() {
             <button
               key={item.symbol}
               onClick={() => setActiveItem(item)}
-              className={`rounded border px-4 py-2 text-xs font-bold shadow-sm transition-all duration-300 ${isActive
-                  ? "bg-blue-700 text-white border-blue-800 shadow-md ring-2 ring-blue-300 ring-offset-1"
-                  : "bg-blue-600 text-white border-blue-700 hover:bg-blue-700 hover:shadow"
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 ${isActive
+                  ? "bg-blue-700 text-white border-blue-700 shadow-sm"
+                  : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
                 }`}
             >
               {item.label}

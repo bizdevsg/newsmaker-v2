@@ -94,7 +94,7 @@ export default async function IndonesiaMarketHome({
             <IndoMarketInsight
                title={locale === "id" ? "Tinjauan Pasar" : "Market Insight"}
                category="analisis-market"
-               limit={4}
+               limit={3}
             />
             <TikTokEmbedCard />
          </div>

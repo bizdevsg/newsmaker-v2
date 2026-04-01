@@ -16,11 +16,11 @@ type InsightItem = {
   images?: string[];
 };
 
-export function IndoMarketInsight({ 
-  title = "Analisis Market", 
-  category = "analisis-market", 
-  limit = 4 
-}: { 
+export function IndoMarketInsight({
+  title = "Analisis Market",
+  category = "analisis-market",
+  limit = 3
+}: {
   title?: string;
   category?: string;
   limit?: number;
@@ -76,12 +76,12 @@ export function IndoMarketInsight({
         <h2 className="text-xl font-medium text-blue-900 border-b-2 border-blue-700 pb-2">
           {title}
         </h2>
-        <Link href={`/${locale}/analysis/analysis-opinion`} className="text-sm font-medium text-blue-600 hover:text-blue-800 transition">
+        <Link href={category === "analysis-opinion" ? `/${locale}/analysis/analysis-opinion` : `/${locale}/news/${category}`} className="text-sm font-medium text-blue-600 hover:text-blue-800 transition">
           Terbaru {`>`}
         </Link>
       </div>
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${limit <= 2 ? "lg:grid-cols-2" : "lg:grid-cols-4"} gap-6`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${limit <= 2 ? "lg:grid-cols-2" : limit === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-6`}>
         {isLoading ? (
           Array.from({ length: limit }).map((_, i) => (
             <div key={i} className="animate-pulse flex flex-col gap-4">

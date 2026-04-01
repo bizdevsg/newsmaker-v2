@@ -30,11 +30,12 @@ export function LiveQuotesWidget() {
           "symbols": [
             { "s": "OANDA:XAUUSD", "d": "XAUUSD" },
             { "s": "OANDA:XAGUSD", "d": "XAGUSD" },
+            { "s": "TVC:UKOIL", "d": "BRENT" },
             { "s": "HSI:HSI", "d": "HANGSENG" },
             { "s": "INDEX:NKY", "d": "NIKKEI" },
             { "s": "FOREXCOM:DJI", "d": "DJIA" },
             { "s": "NASDAQ:NDAQ", "d": "NASDAQ" },
-            { "s": "OANDA:XAUIDRG", "d": "XAUIDRG" }
+            { "s": "FX_IDC:XAUIDRG", "d": "XAUIDRG" }
           ]
         },
         {
@@ -45,7 +46,7 @@ export function LiveQuotesWidget() {
             { "s": "OANDA:GBPUSD" },
             { "s": "OANDA:USDCHF" },
             { "s": "OANDA:USDJPY" },
-            { "s": "OANDA:USDIDR" }
+            { "s": "FX_IDC:USDIDR", "d": "USDIDR" }
           ]
         }
       ]
