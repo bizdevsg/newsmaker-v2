@@ -2,6 +2,7 @@ import {
   fetchPortalNewsArticle,
   getPortalNewsCategoryKeys,
   getPortalNewsCategorySlug,
+  getPortalNewsItemTimestamp,
   fetchPortalNewsList,
   normalizePortalNewsCategory,
   PORTALNEWS_IMAGE_BASE,
@@ -9,6 +10,14 @@ import {
   type PortalNewsItem,
   type PortalNewsSource,
 } from "@/lib/portalnews";
+import {
+  resolvePortalNewsContent,
+  resolvePortalNewsTitle,
+} from "@/lib/portalnews-shared";
+import {
+  INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG,
+  INDONESIA_MARKET_NEWS_CATEGORY_SLUG,
+} from "@/lib/indonesia-market-sections";
 
 export type PortalNewsDetailResult = {
   article: PortalNewsItem | null;
@@ -33,6 +42,144 @@ const matchesCategory = (item: PortalNewsItem, value: string) => {
   const categoryKeys = getPortalNewsCategoryKeys(item);
 
   return !normalizedValue || categoryKeys.includes(normalizedValue);
+};
+
+const stripHtml = (value: string) =>
+  value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&[a-z0-9#]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const STOP_WORDS = new Set([
+  "dan",
+  "yang",
+  "untuk",
+  "dengan",
+  "dari",
+  "pada",
+  "atau",
+  "karena",
+  "dalam",
+  "akan",
+  "ini",
+  "itu",
+  "the",
+  "and",
+  "with",
+  "from",
+  "for",
+  "that",
+  "this",
+  "are",
+  "was",
+  "were",
+  "will",
+  "have",
+  "has",
+  "had",
+  "its",
+  "their",
+]);
+
+const tokenize = (value: string, tokenLimit: number) => {
+  const tokens = stripHtml(value)
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .filter((token) => token.length > 2 && !STOP_WORDS.has(token));
+
+  return tokens.slice(0, tokenLimit);
+};
+
+const toTokenSet = (value: string, tokenLimit: number) =>
+  new Set(tokenize(value, tokenLimit));
+
+const countOverlap = (left: Set<string>, right: Set<string>) => {
+  let overlap = 0;
+
+  left.forEach((token) => {
+    if (right.has(token)) {
+      overlap += 1;
+    }
+  });
+
+  return overlap;
+};
+
+const getRecencyBoost = (item: PortalNewsItem) => {
+  const timestamp = getPortalNewsItemTimestamp(item);
+  if (!timestamp) return 0;
+
+  const ageMs = Date.now() - timestamp;
+  if (ageMs <= 0) return 1.5;
+
+  const ageDays = ageMs / (24 * 60 * 60 * 1000);
+
+  if (ageDays <= 1) return 1.5;
+  if (ageDays <= 3) return 1;
+  if (ageDays <= 7) return 0.75;
+  if (ageDays <= 14) return 0.35;
+  return 0;
+};
+
+type SimilarityContext = {
+  articleTitleTokens: Set<string>;
+  articleContentTokens: Set<string>;
+  normalizedCategory: string;
+  categoryId?: number;
+};
+
+const scoreRelatedCandidate = (
+  candidate: PortalNewsItem,
+  context: SimilarityContext,
+) => {
+  const candidateTitleTokens = toTokenSet(resolvePortalNewsTitle(candidate), 24);
+  const candidateContentTokens = toTokenSet(
+    resolvePortalNewsContent(candidate),
+    240,
+  );
+
+  const titleTitleOverlap = countOverlap(
+    context.articleTitleTokens,
+    candidateTitleTokens,
+  );
+  const titleContentOverlap = countOverlap(
+    context.articleTitleTokens,
+    candidateContentTokens,
+  );
+  const contentTitleOverlap = countOverlap(
+    context.articleContentTokens,
+    candidateTitleTokens,
+  );
+  const contentContentOverlap = countOverlap(
+    context.articleContentTokens,
+    candidateContentTokens,
+  );
+
+  const keywordScore =
+    titleTitleOverlap * 7 +
+    titleContentOverlap * 4 +
+    contentTitleOverlap * 3 +
+    Math.min(contentContentOverlap, 8);
+
+  const sameCategoryIdBonus =
+    typeof context.categoryId === "number" &&
+    candidate.category_id === context.categoryId
+      ? 3
+      : 0;
+  const sameCategoryKeyBonus = matchesCategory(
+    candidate,
+    context.normalizedCategory,
+  )
+    ? 2
+    : 0;
+
+  return (
+    keywordScore +
+    sameCategoryIdBonus +
+    sameCategoryKeyBonus +
+    getRecencyBoost(candidate)
+  );
 };
 
 const resolveSource = (
@@ -78,19 +225,65 @@ export async function fetchPortalNewsDetail(
       })
     : [];
 
+  const latestAllowedCategoryItems = sortedItems.filter((candidate) => {
+    if (matchesCategory(candidate, INDONESIA_MARKET_NEWS_CATEGORY_SLUG)) {
+      return true;
+    }
+
+    return matchesCategory(candidate, INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG);
+  });
+
   const fallbackPopular = article
     ? sortedItems.filter((candidate) => candidate.slug !== article.slug)
     : sortedItems;
+  const articleTitleTokens = article
+    ? toTokenSet(resolvePortalNewsTitle(article), 24)
+    : new Set<string>();
+  const articleContentTokens = article
+    ? toTokenSet(resolvePortalNewsContent(article), 240)
+    : new Set<string>();
+
+  const hasCategoryIdentity =
+    typeof categoryId === "number" || Boolean(normalizedCategory);
+  const relatedCandidates = hasCategoryIdentity
+    ? sameCategoryItems
+    : fallbackPopular;
+
+  const relatedRankedItems = article
+    ? relatedCandidates
+        .map((candidate) => ({
+          item: candidate,
+          score: scoreRelatedCandidate(candidate, {
+            articleTitleTokens,
+            articleContentTokens,
+            normalizedCategory,
+            categoryId,
+          }),
+        }))
+        .sort(
+          (left, right) =>
+            right.score - left.score ||
+            getPortalNewsItemTimestamp(right.item) -
+              getPortalNewsItemTimestamp(left.item),
+        )
+    : [];
+
+  const scoredRelatedItems = relatedRankedItems
+    .filter((entry) => entry.score > 0)
+    .map((entry) => entry.item);
+
+  const relatedItemsPool =
+    scoredRelatedItems.length > 0 ? scoredRelatedItems : relatedCandidates;
 
   return {
     article,
     imageBase: PORTALNEWS_IMAGE_BASE,
-    latest: applyLimit(sortedItems, latestLimit),
+    latest: applyLimit(latestAllowedCategoryItems, latestLimit),
     popular: applyLimit(
       sameCategoryItems.length ? sameCategoryItems : fallbackPopular,
       popularLimit,
     ),
-    related: applyLimit(sameCategoryItems, relatedLimit),
+    related: applyLimit(relatedItemsPool, relatedLimit),
     source: resolveSource(articleSource, listSource),
   };
 }

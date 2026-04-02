@@ -18,6 +18,8 @@ type LiveTick = {
   key: string;
   symbol?: string;
   priceText: string;
+  changePercentText?: string;
+  tone?: "up" | "down" | "flat";
   href?: string;
 };
 
@@ -65,6 +67,14 @@ const MARKET_SYMBOL_LABELS = new Map<string, string>([
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(value);
+
+const formatSignedPercent = (value: number) => {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)}%`;
+};
 
 const resolveTickerSymbol = (symbol: string, shortName?: string) => {
   const predefinedLabel = MARKET_SYMBOL_LABELS.get(symbol);
@@ -146,10 +156,25 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
       }
 
       const priceText = formatNumber(item.price);
+      const changePercentText =
+        typeof item.change_percent === "number" &&
+        Number.isFinite(item.change_percent)
+          ? formatSignedPercent(item.change_percent)
+          : undefined;
+      const tone =
+        typeof item.change === "number" && Number.isFinite(item.change)
+          ? item.change > 0
+            ? "up"
+            : item.change < 0
+              ? "down"
+              : "flat"
+          : "flat";
       return {
         key: `${item.symbol}-${item.price}-${item.change ?? 0}`,
         symbol: resolveTickerSymbol(item.symbol, item.shortName),
         priceText,
+        changePercentText,
+        tone,
       };
     };
 
@@ -260,15 +285,29 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
   ) => {
     const isPrimary = variant === "primary";
     const symbolClass = isPrimary ? "text-white" : "text-white/85";
+    const priceClass = item.symbol
+      ? item.tone === "up"
+        ? isPrimary
+          ? "text-emerald-300"
+          : "text-emerald-200/90"
+        : item.tone === "down"
+          ? isPrimary
+            ? "text-rose-300"
+            : "text-rose-200/90"
+          : "text-white/80"
+      : "text-white/85";
     const wrapperClass =
       "inline-flex items-center gap-2 transition-colors hover:text-white";
     const content = item.symbol ? (
       <>
         <span className={symbolClass}>{item.symbol}</span>
-        <span className="text-white/80">{item.priceText}</span>
+        <span className={priceClass}>{item.priceText}</span>
+        {item.changePercentText ? (
+          <span className={priceClass}>({item.changePercentText})</span>
+        ) : null}
       </>
     ) : (
-      <span className="text-white/85">{item.priceText}</span>
+      <span className={priceClass}>{item.priceText}</span>
     );
 
     if (item.href) {
