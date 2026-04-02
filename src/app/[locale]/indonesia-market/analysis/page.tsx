@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { NewsCategoryList } from "@/components/organisms/NewsCategoryList";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import {
+  INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG,
+  INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH,
+} from "@/lib/indonesia-market-sections";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
@@ -33,11 +37,11 @@ export default async function IndonesiaMarketAnalysisPage({
     <MarketPageTemplate locale={locale} messages={customMessages}>
       <section className="min-h-[60vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
         <NewsCategoryList
-          categorySlug="analysis-market-indonesia"
+          categorySlug={INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG}
           locale={locale}
           messages={customMessages}
           labelOverride={analysisLabel}
-          requiredMainCategorySlug="analysis-market-indonesia"
+          detailBasePath={INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH}
           parentHref={`/${locale}`}
           parentLabel={messages.hero.title}
           emptyLabel={

@@ -5,6 +5,11 @@ import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { buildPortalNewsImageUrl } from "@/lib/portalnews";
 import { fetchPortalNewsDetail } from "@/lib/portalnews-detail";
 import {
+  INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG,
+  INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH,
+  isIndonesiaMarketAnalysisArticle,
+} from "@/lib/indonesia-market-sections";
+import {
   resolvePortalNewsContent,
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
@@ -22,9 +27,9 @@ const stripHtml = (html: string) =>
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale?: string; category: string; slug: string }>;
+  params: Promise<{ locale?: string; slug: string }>;
 }): Promise<Metadata> {
-  const { locale: rawLocale, category, slug } = await params;
+  const { locale: rawLocale, slug } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const detail = await fetchPortalNewsDetail(slug, {
     latestLimit: 1,
@@ -32,27 +37,39 @@ export async function generateMetadata({
     relatedLimit: 1,
   });
   const article = detail.article;
+  const fallbackTitle =
+    locale === "en"
+      ? "Indonesia Market Analysis"
+      : "Analisis Market Indonesia";
+  const fallbackDescription =
+    locale === "en"
+      ? "Indonesia Market analysis detail page."
+      : "Halaman detail analisis Indonesia Market.";
 
-  if (!article) {
+  if (!article || !isIndonesiaMarketAnalysisArticle(article)) {
     return {
-      title: "News Article",
-      description: "Market news detail page",
+      title: fallbackTitle,
+      description: fallbackDescription,
     };
   }
 
-  const title = resolvePortalNewsTitle(article, locale, "News Article");
+  const title = resolvePortalNewsTitle(article, locale, fallbackTitle);
   const description =
     stripHtml(resolvePortalNewsContent(article, locale)).slice(0, 160) ||
-    "Market news detail page";
-  const articleCategorySlug = article.kategori?.slug ?? category;
+    fallbackDescription;
   const imageUrl = buildPortalNewsImageUrl(article.images?.[0]) ?? undefined;
   const canonicalUrl = SITE_URL
-    ? `${SITE_URL}/${locale}/news/${articleCategorySlug}/${slug}`
+    ? `${SITE_URL}/${locale}/${INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH}/${slug}`
     : undefined;
 
   return {
     title,
     description,
+    alternates: canonicalUrl
+      ? {
+          canonical: canonicalUrl,
+        }
+      : undefined,
     openGraph: {
       title,
       description,
@@ -69,16 +86,16 @@ export async function generateMetadata({
   };
 }
 
-export default async function NewsArticlePage({
+export default async function IndonesiaMarketAnalysisArticlePage({
   params,
 }: {
-  params: Promise<{ locale?: string; category: string; slug: string }>;
+  params: Promise<{ locale?: string; slug: string }>;
 }) {
-  const { locale: rawLocale, category, slug } = await params;
+  const { locale: rawLocale, slug } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const detail = await fetchPortalNewsDetail(slug);
 
-  if (!detail.article) {
+  if (!detail.article || !isIndonesiaMarketAnalysisArticle(detail.article)) {
     notFound();
   }
 
@@ -88,16 +105,26 @@ export default async function NewsArticlePage({
     ...messages,
     header: {
       ...messages.header,
-      activeNavKey: "equities",
+      activeNavKey: "home",
     },
   };
+
+  const listingLabel =
+    locale === "en"
+      ? "Analysis Market Indonesia"
+      : "Analisis Market Indonesia";
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
       <section className="min-h-[80vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
         <NewsArticleDetail
           slug={slug}
-          categorySlug={category}
+          categorySlug={INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG}
+          detailBasePath={INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH}
+          parentHref={`/${locale}`}
+          parentLabel={messages.hero.title}
+          listingHref={`/${locale}/${INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH}`}
+          listingLabel={listingLabel}
           initialData={{
             data: detail.article,
             imageBase: detail.imageBase,

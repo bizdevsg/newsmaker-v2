@@ -30,14 +30,15 @@ function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100",
       ].join(" ")}
     >
-      <div className="flex flex-col items-center">
+      <div className="flex w-full max-w-[min(52vw,180px)] flex-col items-center px-3 sm:max-w-[220px] md:max-w-[240px]">
         <Image
           src="/assets/NewsMaker-23-logo-white.png"
           alt="Logo Newsmaker23"
           width={240}
           height={66}
+          sizes="(max-width: 640px) 52vw, (max-width: 768px) 220px, 240px"
           priority
-          className="animate-pulse"
+          className="h-auto w-full animate-pulse"
         />
       </div>
     </div>
@@ -53,12 +54,13 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchKey = searchParams?.toString() ?? "";
-  const showTimerRef = useRef<number | null>(null);
 
   const start = useCallback((label?: string) => {
     const token = Symbol(label ?? "loading");
     tokens.current.add(token);
     setPendingCount((count) => count + 1);
+    setShowOverlay(true);
+    setFadeOut(false);
     const timer = window.setTimeout(() => {
       // Safety: auto-stop if a request hangs
       if (tokens.current.has(token)) {
@@ -113,18 +115,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (value.isLoading) {
-      if (showTimerRef.current) return;
-      showTimerRef.current = window.setTimeout(() => {
-        setShowOverlay(true);
-        setFadeOut(false);
-        showTimerRef.current = null;
-      }, 0);
       return;
-    }
-
-    if (showTimerRef.current) {
-      window.clearTimeout(showTimerRef.current);
-      showTimerRef.current = null;
     }
 
     if (showOverlay) {
@@ -141,23 +132,6 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       };
     }
   }, [value.isLoading, showOverlay]);
-
-  useEffect(() => {
-    if (!showOverlay) return;
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    const scrollBarGap =
-      window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.overflow = "hidden";
-    if (scrollBarGap > 0) {
-      document.body.style.paddingRight = `${scrollBarGap}px`;
-    }
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-    };
-  }, [showOverlay]);
 
   useEffect(() => {
     const tokenTimersRef = tokenTimers.current;

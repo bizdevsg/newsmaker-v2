@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { NewsCategoryList } from "@/components/organisms/NewsCategoryList";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
-  title: "Indonesia Market News",
+  title: "Global Economics News",
 };
 
 export default async function IndonesiaMarketNewsPage({
@@ -23,28 +24,23 @@ export default async function IndonesiaMarketNewsPage({
       activeNavKey: "home",
     },
   };
+  const globalEconomicsLabel = "Global Economics";
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
       <section className="min-h-[60vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
         <NewsCategoryList
-          categorySlug="indonesia-market"
+          categorySlug="global-economics"
           locale={locale}
           messages={customMessages}
-          labelOverride={messages.hero.title}
-          excludeCategoryValues={[
-            "market-analysis",
-            "analisis-market",
-            "analysis-market-indonesia",
-            "analysis",
-            "analisis",
-          ]}
+          labelOverride={globalEconomicsLabel}
+          detailBasePath={INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}
           parentHref={`/${locale}`}
           parentLabel={messages.hero.title}
           emptyLabel={
             locale === "en"
-              ? "No Indonesia Market news is available yet."
-              : "Belum ada berita Indonesia Market."
+              ? "No Global Economics news is available yet."
+              : "Belum ada berita Global Economics."
           }
         />
       </section>

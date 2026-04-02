@@ -8,6 +8,7 @@ import {
 } from "@/lib/portalnews-shared";
 import {
   buildPortalNewsImageUrl,
+  getPortalNewsCategoryKeys,
   getPortalNewsCategorySlug,
   fetchPortalNewsList,
   getPortalNewsMainCategorySlug,
@@ -18,7 +19,7 @@ type RecentAnalysisProps = {
   messages: Messages;
   locale: string;
   limit?: number;
-  stackOnDesktopWhenTwo?: boolean;
+  detailBasePath?: string;
   includeCategoryName?: string | null;
   includeMainCategorySlug?: string | null;
   excludeCategoryNames?: string[];
@@ -90,6 +91,7 @@ const expandCategoryAliases = (values: string[]) => {
 async function fetchRecentAnalysis(
   locale: string,
   limit: number,
+  detailBasePath: string | undefined,
   includeCategoryName: string | null,
   includeMainCategorySlug: string | null,
   excludeCategoryNames: string[],
@@ -107,6 +109,7 @@ async function fetchRecentAnalysis(
     const excludeSet = expandCategoryAliases(excludeCategoryNames);
 
     const analysis = items.filter((item) => {
+      const categoryKeys = getPortalNewsCategoryKeys(item);
       const mainCategorySlug = normalizePortalNewsCategory(
         getPortalNewsMainCategorySlug(item),
       );
@@ -116,22 +119,13 @@ async function fetchRecentAnalysis(
       }
 
       if (includeSet) {
-        const mainCategoryName = normalizePortalNewsCategory(
-          item.main_category?.name,
-        );
-        if (!mainCategoryName || !includeSet.has(mainCategoryName)) {
+        if (!categoryKeys.some((key) => includeSet.has(key))) {
           return false;
         }
       }
 
       if (excludeSet.size > 0) {
-        const mainCategoryName = normalizePortalNewsCategory(
-          item.main_category?.name,
-        );
-        return !(
-          (mainCategorySlug && excludeSet.has(mainCategorySlug)) ||
-          (mainCategoryName && excludeSet.has(mainCategoryName))
-        );
+        return !categoryKeys.some((key) => excludeSet.has(key));
       }
 
       return true;
@@ -150,13 +144,12 @@ async function fetchRecentAnalysis(
       const image =
         buildPortalNewsImageUrl(item.images?.[0]) ??
         "/assets/Screenshot-2024-10-29-at-11.27.48.png";
-      const categorySlug = getPortalNewsCategorySlug(
-        item,
-        "analysis-market-indonesia",
-      );
+      const categorySlug = getPortalNewsCategorySlug(item, "analisis-market");
       const articleSlug = item.slug?.trim() || "";
       const href = articleSlug
-        ? `/${locale}/news/${categorySlug}/${articleSlug}`
+        ? detailBasePath
+          ? `/${locale}/${detailBasePath.replace(/^\/+/, "").replace(/\/+$/, "")}/${articleSlug}`
+          : `/${locale}/news/${categorySlug}/${articleSlug}`
         : "#";
       const date = formatDate(item.updated_at || item.created_at, locale);
       return {
@@ -179,7 +172,7 @@ export async function RecentAnalysis({
   messages,
   locale,
   limit = 4,
-  stackOnDesktopWhenTwo = false,
+  detailBasePath,
   includeCategoryName = "Analisis Market",
   includeMainCategorySlug = null,
   excludeCategoryNames = [],
@@ -189,6 +182,7 @@ export async function RecentAnalysis({
   const items = await fetchRecentAnalysis(
     locale,
     limit,
+    detailBasePath,
     includeCategoryName,
     includeMainCategorySlug,
     excludeCategoryNames,

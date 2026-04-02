@@ -10,13 +10,14 @@ type FetchJsonResult = {
   payload: unknown;
 };
 
-const LEGACY_NEWS_LIST_URL =
+const PRIMARY_NEWS_LIST_URL =
+  process.env.PORTALNEWS_NEWS_LIST_URL ??
   process.env.PORTALNEWS_API_URL ??
   process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
   "";
 
-const derivedNewsmakerBaseUrl = LEGACY_NEWS_LIST_URL
-  ? LEGACY_NEWS_LIST_URL.replace(
+const derivedNewsmakerBaseUrl = PRIMARY_NEWS_LIST_URL
+  ? PRIMARY_NEWS_LIST_URL.replace(
       /\/api\/v1\/berita(?:\/.*)?$/i,
       "/api/v1/newsmaker",
     )
@@ -30,17 +31,21 @@ const NEWS_CATEGORIES_URL =
   process.env.PORTALNEWS_NEWS_CATEGORIES_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/kategori` : "");
 
-const NEWS_LIST_URL =
-  process.env.PORTALNEWS_NEWS_LIST_URL ??
+const FALLBACK_NEWS_LIST_URL =
+  process.env.PORTALNEWS_API_URL ??
+  process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita` : "");
 
-const NEWS_DETAIL_URL =
+const FALLBACK_NEWS_DETAIL_URL =
   process.env.PORTALNEWS_NEWS_DETAIL_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita` : "");
 
-const NEWS_SHOW_URL =
+const FALLBACK_NEWS_SHOW_URL =
   process.env.PORTALNEWS_NEWS_SHOW_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita/show` : "");
+
+const PRIMARY_NEWS_DETAIL_URL =
+  process.env.PORTALNEWS_NEWS_DETAIL_URL ?? PRIMARY_NEWS_LIST_URL;
 
 const NEWS_TOKEN =
   process.env.PORTALNEWS_TOKEN ??
@@ -117,8 +122,17 @@ const normalizeLocalizedPair = (idValue?: string, enValue?: string) => {
   };
 };
 
-const getRequestHeaders = () =>
-  NEWS_TOKEN ? { Authorization: `Bearer ${NEWS_TOKEN}` } : undefined;
+const getRequestHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (NEWS_TOKEN) {
+    headers.Authorization = `Bearer ${NEWS_TOKEN}`;
+  }
+
+  return headers;
+};
 
 const fetchJson = async (url: string): Promise<FetchJsonResult> => {
   if (!url) {
@@ -444,22 +458,29 @@ export async function fetchPortalNewsList(): Promise<{
   items: PortalNewsItem[];
   source: PortalNewsSource;
 }> {
-  const newsmakerResult = await fetchJson(NEWS_LIST_URL);
-  const normalizedNewsmakerItems = extractItemArray(newsmakerResult.payload);
+  const primaryResult = await fetchJson(PRIMARY_NEWS_LIST_URL);
+  const primaryItems = extractItemArray(primaryResult.payload);
 
-  if (newsmakerResult.ok) {
+  if (primaryResult.ok && primaryItems.length > 0) {
     return {
-      items: normalizedNewsmakerItems,
+      items: primaryItems,
+      source: "legacy",
+    };
+  }
+
+  const fallbackResult = await fetchJson(FALLBACK_NEWS_LIST_URL);
+  const fallbackItems = extractItemArray(fallbackResult.payload);
+
+  if (fallbackResult.ok && fallbackItems.length > 0) {
+    return {
+      items: fallbackItems,
       source: "newsmaker",
     };
   }
 
-  const legacyResult = await fetchJson(LEGACY_NEWS_LIST_URL);
-  const legacyItems = extractItemArray(legacyResult.payload);
-
   return {
-    items: legacyItems,
-    source: "legacy",
+    items: primaryItems.length > 0 ? primaryItems : fallbackItems,
+    source: primaryItems.length > 0 ? "legacy" : "newsmaker",
   };
 }
 
@@ -495,19 +516,35 @@ export async function fetchPortalNewsArticle(slug: string): Promise<{
   source: PortalNewsSource;
 }> {
   const normalizedSlug = slug.trim();
-  const detailUrls = [
-    NEWS_SHOW_URL ? `${NEWS_SHOW_URL}/${normalizedSlug}` : "",
-    NEWS_DETAIL_URL ? `${NEWS_DETAIL_URL}/${normalizedSlug}` : "",
-  ].filter(Boolean);
+  const detailRequests = [
+    {
+      url: PRIMARY_NEWS_DETAIL_URL
+        ? `${PRIMARY_NEWS_DETAIL_URL}/${normalizedSlug}`
+        : "",
+      source: "legacy" as const,
+    },
+    {
+      url: FALLBACK_NEWS_SHOW_URL
+        ? `${FALLBACK_NEWS_SHOW_URL}/${normalizedSlug}`
+        : "",
+      source: "newsmaker" as const,
+    },
+    {
+      url: FALLBACK_NEWS_DETAIL_URL
+        ? `${FALLBACK_NEWS_DETAIL_URL}/${normalizedSlug}`
+        : "",
+      source: "newsmaker" as const,
+    },
+  ].filter((request) => Boolean(request.url));
 
-  for (const url of detailUrls) {
-    const result = await fetchJson(url);
+  for (const request of detailRequests) {
+    const result = await fetchJson(request.url);
     const item = normalizePayloadItem(result.payload);
 
     if (result.ok && item) {
       return {
         item,
-        source: "newsmaker",
+        source: request.source,
       };
     }
   }

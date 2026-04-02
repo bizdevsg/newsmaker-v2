@@ -286,10 +286,12 @@
     ]
   },
   "focusReport": {
-    "kicker": "Laporan Fokus Indonesia",
-    "title": "Prospek Pasar Indonesia 2026",
-    "subtitle": "Ringkasan kuartalan institusi dengan wawasan kebijakan dan likuiditas.",
-    "ctaLabel": "Lihat Laporan",
+    "kicker": "Live Quotes",
+    "title": "Kuotasi Pasar Indonesia",
+    "subtitle": "Polling terbaru untuk indeks dan saham utama Indonesia.",
+    "ctaLabel": "Semua Live Quotes",
+    "pageTitle": "Semua Live Quotes",
+    "pageSubtitle": "Pantau indeks dan saham utama Indonesia dalam satu halaman.",
     "metrics": [
       {
         "key": "gold",

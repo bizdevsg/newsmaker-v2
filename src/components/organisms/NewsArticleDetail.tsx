@@ -29,6 +29,11 @@ type NewsArticleDetailProps = {
   initialData?: NewsArticlePayload;
   locale: string;
   isEconomic?: boolean;
+  detailBasePath?: string;
+  parentHref?: string;
+  parentLabel?: string;
+  listingHref?: string;
+  listingLabel?: string;
   messages?: Messages;
 };
 
@@ -66,6 +71,11 @@ export function NewsArticleDetail({
   initialData,
   locale,
   isEconomic = false,
+  detailBasePath,
+  parentHref,
+  parentLabel,
+  listingHref,
+  listingLabel,
   messages,
 }: NewsArticleDetailProps) {
   const { start, stop } = useLoading();
@@ -105,6 +115,9 @@ export function NewsArticleDetail({
   const [copiedLink, setCopiedLink] = useState(false);
   const [heroImageError, setHeroImageError] = useState(false);
   const [imageBase, setImageBase] = useState(initialData?.imageBase ?? "");
+  const normalizedDetailBasePath = detailBasePath
+    ?.replace(/^\/+/, "")
+    .replace(/\/+$/, "");
 
   useEffect(() => {
     if (initialData) {
@@ -177,6 +190,31 @@ export function NewsArticleDetail({
     });
   };
 
+  const defaultListingHref = `/${locale}/${isEconomic ? "economic-news" : "news"}`;
+  const resolvedListingHref =
+    listingHref ??
+    (normalizedDetailBasePath
+      ? `/${locale}/${normalizedDetailBasePath}`
+      : defaultListingHref);
+  const resolvedListingLabel =
+    listingLabel ??
+    (isEconomic ? nc.economicNewsTitle : nc.marketNewsTitle);
+
+  const buildArticleHref = (
+    articleSlug: string | undefined,
+    itemCategorySlug: string,
+  ) => {
+    const normalizedSlug = articleSlug?.trim();
+
+    if (normalizedDetailBasePath) {
+      return normalizedSlug
+        ? `/${locale}/${normalizedDetailBasePath}/${normalizedSlug}`
+        : resolvedListingHref;
+    }
+
+    return `/${locale}/${isEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${normalizedSlug ?? ""}`;
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-slate-400">
@@ -192,10 +230,10 @@ export function NewsArticleDetail({
         <i className="fa-solid fa-triangle-exclamation text-4xl text-slate-200 mb-4"></i>
         <p className="text-slate-500 font-semibold">{nc.articleNotFound}</p>
         <Link
-          href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug}`}
+          href={resolvedListingHref}
           className="mt-4 inline-block text-sm text-blue-600 hover:underline"
         >
-          {nc.backTo} {categorySlug}
+          {nc.backTo} {resolvedListingLabel}
         </Link>
       </div>
     );
@@ -224,7 +262,7 @@ export function NewsArticleDetail({
     return "";
   };
 
-  const articlePath = `/${locale}/${isEconomic ? "economic-news" : "news"}/${articleCategorySlug}/${article.slug ?? slug}`;
+  const articlePath = buildArticleHref(article.slug ?? slug, articleCategorySlug);
   const articleUrl = `${getSiteOrigin()}${articlePath}`;
   const encodedUrl = encodeURIComponent(articleUrl);
   const encodedTitle = encodeURIComponent(title);
@@ -235,19 +273,31 @@ export function NewsArticleDetail({
       <article>
         {/* Breadcrumb */}
         <nav className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mb-6 sm:text-xs">
+          {parentHref && parentLabel ? (
+            <>
+              <Link href={parentHref} className="hover:text-blue-600 transition">
+                {parentLabel}
+              </Link>
+              <span>/</span>
+            </>
+          ) : null}
           <Link
-            href={`/${locale}/equities`}
+            href={resolvedListingHref}
             className="hover:text-blue-600 transition capitalize"
           >
-            {isEconomic ? nc.economicNewsTitle : nc.marketNewsTitle}
+            {resolvedListingLabel}
           </Link>
-          <span>/</span>
-          <Link
-            href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${articleCategorySlug}`}
-            className="hover:text-blue-600 transition capitalize"
-          >
-            {articleCategorySlug.replace(/-/g, " ")}
-          </Link>
+          {!normalizedDetailBasePath ? (
+            <>
+              <span>/</span>
+              <Link
+                href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${articleCategorySlug}`}
+                className="hover:text-blue-600 transition capitalize"
+              >
+                {articleCategorySlug.replace(/-/g, " ")}
+              </Link>
+            </>
+          ) : null}
           <span>/</span>
           <span className="text-slate-600 truncate max-w-[12rem] sm:max-w-[18rem]">
             {title}
@@ -394,7 +444,7 @@ export function NewsArticleDetail({
                 return (
                   <Link
                     key={i}
-                    href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${relCategorySlug}/${rel.slug}`}
+                    href={buildArticleHref(rel.slug, relCategorySlug)}
                     className="flex flex-col gap-4 group hover:bg-slate-50 rounded-xl p-3 -mx-3 transition sm:flex-row sm:gap-5"
                   >
                     {/* Thumbnail */}
@@ -462,7 +512,7 @@ export function NewsArticleDetail({
               return (
                 <Link
                   key={i}
-                  href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug}`}
+                  href={buildArticleHref(item.slug, itemCategorySlug)}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
                   <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
@@ -520,7 +570,7 @@ export function NewsArticleDetail({
               return (
                 <Link
                   key={i}
-                  href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug}`}
+                  href={buildArticleHref(item.slug, itemCategorySlug)}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
                   <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">

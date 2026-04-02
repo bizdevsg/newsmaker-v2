@@ -5,12 +5,17 @@ import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { buildPortalNewsImageUrl } from "@/lib/portalnews";
 import { fetchPortalNewsDetail } from "@/lib/portalnews-detail";
 import {
+  INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH,
+  isIndonesiaMarketNewsArticle,
+} from "@/lib/indonesia-market-sections";
+import {
   resolvePortalNewsContent,
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
 import { getMessages, type Locale } from "@/locales";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+const SECTION_LABEL = "Global Economics";
 
 const stripHtml = (html: string) =>
   html
@@ -22,9 +27,9 @@ const stripHtml = (html: string) =>
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale?: string; category: string; slug: string }>;
+  params: Promise<{ locale?: string; slug: string }>;
 }): Promise<Metadata> {
-  const { locale: rawLocale, category, slug } = await params;
+  const { locale: rawLocale, slug } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const detail = await fetchPortalNewsDetail(slug, {
     latestLimit: 1,
@@ -33,26 +38,35 @@ export async function generateMetadata({
   });
   const article = detail.article;
 
-  if (!article) {
+  if (!article || !isIndonesiaMarketNewsArticle(article)) {
     return {
-      title: "Economic News Article",
-      description: "Economic news detail page",
+      title: SECTION_LABEL,
+      description:
+        locale === "en"
+          ? "Indonesia Market Global Economics article detail page."
+          : "Halaman detail artikel Global Economics Indonesia Market.",
     };
   }
 
-  const title = resolvePortalNewsTitle(article, locale, "Economic News Article");
+  const title = resolvePortalNewsTitle(article, locale, SECTION_LABEL);
   const description =
     stripHtml(resolvePortalNewsContent(article, locale)).slice(0, 160) ||
-    "Economic news detail page";
-  const articleCategorySlug = article.kategori?.slug ?? category;
+    (locale === "en"
+      ? "Indonesia Market Global Economics article detail page."
+      : "Halaman detail artikel Global Economics Indonesia Market.");
   const imageUrl = buildPortalNewsImageUrl(article.images?.[0]) ?? undefined;
   const canonicalUrl = SITE_URL
-    ? `${SITE_URL}/${locale}/economic-news/${articleCategorySlug}/${slug}`
+    ? `${SITE_URL}/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${slug}`
     : undefined;
 
   return {
     title,
     description,
+    alternates: canonicalUrl
+      ? {
+          canonical: canonicalUrl,
+        }
+      : undefined,
     openGraph: {
       title,
       description,
@@ -69,16 +83,16 @@ export async function generateMetadata({
   };
 }
 
-export default async function EconomicNewsArticlePage({
+export default async function IndonesiaMarketNewsArticlePage({
   params,
 }: {
-  params: Promise<{ locale?: string; category: string; slug: string }>;
+  params: Promise<{ locale?: string; slug: string }>;
 }) {
-  const { locale: rawLocale, category, slug } = await params;
+  const { locale: rawLocale, slug } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const detail = await fetchPortalNewsDetail(slug);
 
-  if (!detail.article) {
+  if (!detail.article || !isIndonesiaMarketNewsArticle(detail.article)) {
     notFound();
   }
 
@@ -88,7 +102,7 @@ export default async function EconomicNewsArticlePage({
     ...messages,
     header: {
       ...messages.header,
-      activeNavKey: "markets",
+      activeNavKey: "home",
     },
   };
 
@@ -97,7 +111,12 @@ export default async function EconomicNewsArticlePage({
       <section className="min-h-[80vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
         <NewsArticleDetail
           slug={slug}
-          categorySlug={category}
+          categorySlug="global-economics"
+          detailBasePath={INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}
+          parentHref={`/${locale}`}
+          parentLabel={messages.hero.title}
+          listingHref={`/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}`}
+          listingLabel={SECTION_LABEL}
           initialData={{
             data: detail.article,
             imageBase: detail.imageBase,
@@ -108,7 +127,6 @@ export default async function EconomicNewsArticlePage({
           }}
           locale={locale}
           messages={customMessages}
-          isEconomic
         />
       </section>
     </MarketPageTemplate>

@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { buildSearchPath } from "@/lib/portalnews-search";
 import { getMessages, type Locale } from "@/locales";
+import { lockScroll, unlockScroll } from "@/utils/scrollLock";
 
 const decodePathSegment = (value: string) => {
   try {
@@ -112,10 +113,11 @@ export function SiteHeader() {
 
   useEffect(() => {
     if (!isMobileOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    lockScroll("site-header-mobile-nav");
+
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockScroll("site-header-mobile-nav");
     };
   }, [isMobileOpen]);
 

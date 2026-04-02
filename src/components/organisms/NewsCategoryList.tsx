@@ -18,6 +18,7 @@ type NewsCategoryListProps = {
   locale: string;
   emptyLabel?: string;
   labelOverride?: string;
+  detailBasePath?: string;
   excludeCategoryValues?: string[];
   requiredMainCategorySlug?: string;
   messages?: Messages;
@@ -164,6 +165,7 @@ export function NewsCategoryList({
   locale,
   emptyLabel,
   labelOverride,
+  detailBasePath,
   excludeCategoryValues,
   requiredMainCategorySlug,
   messages,
@@ -239,6 +241,9 @@ export function NewsCategoryList({
   const normalizedRequiredMainCategorySlug = normalizePortalNewsCategory(
     requiredMainCategorySlug,
   );
+  const normalizedDetailBasePath = detailBasePath
+    ?.replace(/^\/+/, "")
+    .replace(/\/+$/, "");
 
   useEffect(() => {
     let isActive = true;
@@ -366,13 +371,29 @@ export function NewsCategoryList({
     return "";
   };
 
+  const buildDetailHref = (
+    slug: string | undefined,
+    itemCategorySlug: string,
+    isItemEconomic: boolean,
+  ) => {
+    const normalizedSlug = slug?.trim();
+
+    if (normalizedDetailBasePath) {
+      return normalizedSlug
+        ? `/${locale}/${normalizedDetailBasePath}/${normalizedSlug}`
+        : `/${locale}/${normalizedDetailBasePath}`;
+    }
+
+    return `/${locale}/${isItemEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${normalizedSlug ?? ""}`;
+  };
+
   const copyLink = (
-    slug: string,
+    slug: string | undefined,
     id: number | string,
     itemCategorySlug: string,
     isItemEconomic: boolean,
   ) => {
-    const path = `/${locale}/${isItemEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${slug}`;
+    const path = buildDetailHref(slug, itemCategorySlug, isItemEconomic);
     const url = `${getSiteOrigin()}${path}`;
     navigator.clipboard
       .writeText(url)
@@ -755,6 +776,11 @@ export function NewsCategoryList({
 
           const itemCategorySlug = item.kategori?.slug ?? categorySlug;
           const isItemEconomic = ECONOMIC_SLUGS.has(itemCategorySlug);
+          const detailHref = buildDetailHref(
+            item.slug,
+            itemCategorySlug,
+            isItemEconomic,
+          );
           return (
             <div
               key={item.id ?? idx}
@@ -800,14 +826,14 @@ export function NewsCategoryList({
                 <div className="mt-auto">
                   <p className="text-[10px] text-slate-400 mb-3">{date}</p>
                   <Link
-                    href={`/${locale}/${isItemEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug ?? ""}`}
+                    href={detailHref}
                     className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 transition"
                   >
                     {nc.readMore.toUpperCase()}
                   </Link>
                   {/* Social share row */}
                   {(() => {
-                    const articlePath = `/${locale}/${isItemEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${item.slug ?? ""}`;
+                    const articlePath = detailHref;
                     const articleUrl = `${getSiteOrigin()}${articlePath}`;
                     const encodedUrl = encodeURIComponent(articleUrl);
                     const encodedTitle = encodeURIComponent(title);

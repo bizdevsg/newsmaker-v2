@@ -5,8 +5,6 @@ import type { Locale, Messages } from "@/locales";
 import {
   buildPortalNewsImageUrl,
   fetchPortalNewsList,
-  getPortalNewsCategoryKeys,
-  normalizePortalNewsCategory,
   sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import type { PortalNewsItem } from "@/lib/portalnews";
@@ -14,6 +12,7 @@ import {
   resolvePortalNewsContent,
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
+import { isIndonesiaMarketNewsArticle } from "@/lib/indonesia-market-sections";
 
 type HeroSectionProps = {
   messages: Messages;
@@ -49,21 +48,11 @@ const formatDate = (value: string | undefined, locale: Locale) => {
   });
 };
 
-const isIndonesiaMarketItem = (messages: Messages, item: PortalNewsItem) => {
-  const keys = getPortalNewsCategoryKeys(item);
-  const accepted = new Set([
-    "indonesia market",
-    normalizePortalNewsCategory(messages.hero.title),
-  ]);
-
-  return keys.some((key) => accepted.has(key));
-};
-
 async function getHeroArticle(locale: Locale, messages: Messages) {
   try {
     const { items } = await fetchPortalNewsList();
     const article = sortPortalNewsItemsByDate(
-      items.filter((item) => isIndonesiaMarketItem(messages, item)),
+      items.filter((item: PortalNewsItem) => isIndonesiaMarketNewsArticle(item)),
     )[0];
 
     if (!article) return null;

@@ -10,6 +10,10 @@ import {
   resolvePortalNewsContent,
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
+import {
+  INDONESIA_MARKET_NEWS_CATEGORY_SLUG,
+  INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH,
+} from "@/lib/indonesia-market-sections";
 
 type MarketImpactProps = {
   messages: Messages;
@@ -35,7 +39,6 @@ type MarketImpactNewsItem = {
 
 const NEWS_IMAGE_BASE =
   process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE?.replace(/\/$/, "") ?? "";
-const INDONESIA_MARKET_CATEGORY = "indonesia-market";
 const DISPLAY_LIMIT = 2;
 const SKIP_LATEST_COUNT = 1;
 
@@ -69,9 +72,12 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
       const token = start("market-impact");
       try {
         const res = await fetch(
-          `/api/portalnews?category=${INDONESIA_MARKET_CATEGORY}&limit=${
+          `/api/portalnews?category=${INDONESIA_MARKET_NEWS_CATEGORY_SLUG}&limit=${
             DISPLAY_LIMIT + SKIP_LATEST_COUNT
           }`,
+          {
+            cache: "no-store",
+          },
         );
         const json = await res.json().catch(() => null);
         if (!res.ok) {
@@ -83,12 +89,12 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
         }
         if (json && json.data) {
           const nextItems = Array.isArray(json.data)
-            ? json.data.slice(SKIP_LATEST_COUNT, SKIP_LATEST_COUNT + DISPLAY_LIMIT)
+            ? json.data.slice(
+                SKIP_LATEST_COUNT,
+                SKIP_LATEST_COUNT + DISPLAY_LIMIT,
+              )
             : [];
-          const fallbackItems = Array.isArray(json.data)
-            ? json.data.slice(0, DISPLAY_LIMIT)
-            : [];
-          setNewsData(nextItems.length > 0 ? nextItems : fallbackItems);
+          setNewsData(nextItems);
           if (typeof json.imageBase === "string") {
             setImageBase(json.imageBase);
           }
@@ -113,7 +119,6 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   };
 
   const displayItems = newsData.map((item, index) => {
-    const categorySlug = item.kategori?.slug?.trim() || INDONESIA_MARKET_CATEGORY;
     const articleSlug = item.slug?.trim();
     const formattedDate = formatNewsDate(
       item.updated_at ?? item.created_at,
@@ -127,7 +132,9 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
       title,
       summary: summaryText ? `${summaryText.substring(0, 150)}...` : "-",
       date: formattedDate,
-      href: articleSlug ? `/${locale}/news/${categorySlug}/${articleSlug}` : undefined,
+      href: articleSlug
+        ? `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${articleSlug}`
+        : undefined,
       imageLabel: (() => {
         if (item.images && item.images.length > 0) {
           const firstImage = item.images[0];

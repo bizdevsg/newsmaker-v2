@@ -83,7 +83,7 @@ export async function BiRateTable({ messages }: BiRateTableProps) {
   const pressReleaseLabel = biRatePage?.pressReleaseLabel ?? "Press Release";
 
   return (
-    <section className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+    <section className="rounded-lg bg-white p-6 shadow-sm ring-1 mt-3 ring-slate-100">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           {biRatePage?.kicker && (

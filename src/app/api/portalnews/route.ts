@@ -9,7 +9,8 @@ import {
   type PortalNewsItem,
 } from "@/lib/portalnews";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const parsePositiveInt = (value: string | null) => {
   if (!value) return null;
@@ -47,15 +48,22 @@ export async function GET(request: Request) {
         relatedLimit,
       });
 
-      return NextResponse.json({
-        status: "success",
-        source: detail.source,
-        imageBase: detail.imageBase,
-        data: detail.article,
-        latest: detail.latest,
-        related: detail.related,
-        popular: detail.popular,
-      });
+      return NextResponse.json(
+        {
+          status: "success",
+          source: detail.source,
+          imageBase: detail.imageBase,
+          data: detail.article,
+          latest: detail.latest,
+          related: detail.related,
+          popular: detail.popular,
+        },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          },
+        },
+      );
     }
 
     const limit = parsePositiveInt(searchParams.get("limit"));
@@ -77,19 +85,31 @@ export async function GET(request: Request) {
       return matchesIncluded && !matchesExcluded;
     });
 
-    return NextResponse.json({
-      status: "success",
-      source,
-      imageBase: PORTALNEWS_IMAGE_BASE,
-      data: applyLimit(filteredItems, limit),
-    });
+    return NextResponse.json(
+      {
+        status: "success",
+        source,
+        imageBase: PORTALNEWS_IMAGE_BASE,
+        data: applyLimit(filteredItems, limit),
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      },
+    );
   } catch (error: unknown) {
     return NextResponse.json(
       {
         status: "error",
         message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      },
     );
   }
 }

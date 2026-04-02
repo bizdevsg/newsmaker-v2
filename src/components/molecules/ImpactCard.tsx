@@ -20,12 +20,12 @@ export function ImpactCard({
   return (
     <div className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white shadow-sm sm:flex-row">
       <div className="w-full overflow-hidden rounded-lg bg-slate-100 sm:w-1/2">
-        <div className="aspect-[4/3] sm:aspect-auto sm:h-full">
-        <img
-          src={imageLabel}
-          alt={title}
-          className="h-full w-full object-cover"
-        />
+        <div className="h-full max-h-50">
+          <img
+            src={imageLabel}
+            alt={title}
+            className="h-full w-full object-cover object-center"
+          />
         </div>
       </div>
 

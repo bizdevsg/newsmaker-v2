@@ -5,6 +5,7 @@ import { SnapshotCard } from "../molecules/SnapshotCard";
 import type { Locale, Messages } from "@/locales";
 import type { BiRateResponse } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { SectionHeader } from "../molecules/SectionHeader";
 
 type PolicySnapshotProps = {
   messages: Messages;
@@ -75,11 +76,7 @@ export async function PolicySnapshot({
   const items = buildItems(messages, biRateResponse);
   return (
     <Card as="section">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-6 py-4">
-        <h3 className="text-lg font-semibold text-slate-800">
-          {messages.policySnapshot.title}
-        </h3>
-      </div>
+      <SectionHeader title={messages.policySnapshot.title} />
       <div className="grid gap-4 px-6 pb-6 pt-5 md:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => {
           const internalHref = internalLinks[item.key];

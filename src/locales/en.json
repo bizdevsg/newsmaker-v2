@@ -286,10 +286,12 @@
     ]
   },
   "focusReport": {
-    "kicker": "Indonesia Focus Report",
-    "title": "Indonesia Market Outlook 2026",
-    "subtitle": "Quarterly institutional brief with policy and liquidity insights.",
-    "ctaLabel": "View Report",
+    "kicker": "Live Quotes",
+    "title": "Indonesia Market Quotes",
+    "subtitle": "Latest polling quotes for Indonesia's main indexes and stocks.",
+    "ctaLabel": "All Live Quotes",
+    "pageTitle": "All Live Quotes",
+    "pageSubtitle": "Track Indonesia's main indexes and leading stocks on one page.",
     "metrics": [
       {
         "key": "gold",

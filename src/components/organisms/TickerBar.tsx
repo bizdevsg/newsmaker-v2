@@ -2,23 +2,21 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLoading } from "../providers/LoadingProvider";
+import {
+  isIndonesiaMarketAnalysisArticle,
+  isIndonesiaMarketNewsArticle,
+} from "@/lib/indonesia-market-sections";
 import { resolvePortalNewsTitle } from "@/lib/portalnews-shared";
 
 type TickerBarProps = {
-  ticks?: string[];
   topNews?: string;
 };
 
-type LiveQuote = {
-  symbol: string;
-  price: number;
-  serverTime?: string;
-};
 type LiveTick = {
   key: string;
-  symbol: string;
+  symbol?: string;
   priceText: string;
   href?: string;
 };
@@ -37,110 +35,203 @@ type NewsItem = {
   };
 };
 
-const API_URL = `/api/live-quotes`;
-const NEWS_API_URL = `/api/portalnews?limit=8`;
-const REFRESH_INTERVAL_MS = 300_000;
+type MarketApiItem = {
+  symbol?: string;
+  shortName?: string;
+  price?: number;
+  change?: number;
+  change_percent?: number;
+};
+
+type MarketApiResponse = {
+  type?: string;
+  transport?: string;
+  interval_ms?: number;
+  at?: string;
+  data?: MarketApiItem[];
+};
+
+const MARKET_API_URL = "/api/market";
+const NEWS_API_URL = `/api/portalnews?limit=24`;
+const MARKET_REFRESH_INTERVAL_MS = 1000;
+const NEWS_REFRESH_INTERVAL_MS = 300_000;
+const MARKET_TICK_LIMIT = 10;
+const NEWS_TICK_LIMIT = 8;
+
+const MARKET_SYMBOL_LABELS = new Map<string, string>([
+  ["^JKSE", "IHSG"],
+  ["^JKLQ45", "LQ45"],
+]);
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(value);
 
-const parseFallbackTick = (tick: string, index: number): LiveTick => {
-  const match = tick.match(/([+-]?\d+(?:\.\d+)?)%/);
-  const percentText = match ? `${match[1]}%` : undefined;
-  const cleaned = percentText ? tick.replace(percentText, "").trim() : tick;
-  const [symbol, ...rest] = cleaned.split(" ");
-  return {
-    key: `fallback-${index}`,
-    symbol,
-    priceText: rest.join(" ").trim(),
-  };
+const resolveTickerSymbol = (symbol: string, shortName?: string) => {
+  const predefinedLabel = MARKET_SYMBOL_LABELS.get(symbol);
+  if (predefinedLabel) {
+    return predefinedLabel;
+  }
+
+  const formattedSymbol = symbol.replace(/^\^/, "").replace(/\.JK$/i, "");
+  if (formattedSymbol) {
+    return formattedSymbol;
+  }
+
+  if (typeof shortName === "string" && shortName.trim()) {
+    return shortName.trim();
+  }
+
+  return symbol;
 };
 
-export function TickerBar({
-  ticks = [],
-  topNews = "Trending",
-}: TickerBarProps) {
+const fetchJson = async <T,>(url: string): Promise<T | null> => {
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+};
+
+export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
   const { start, stop } = useLoading();
   const { locale } = useParams<{ locale?: string }>();
-  const [liveTicks, setLiveTicks] = useState<LiveTick[]>(() =>
-    ticks.map(parseFallbackTick),
-  );
+  const [liveTicks, setLiveTicks] = useState<LiveTick[]>([]);
   const [newsTicks, setNewsTicks] = useState<LiveTick[]>([]);
-  const initialLoad = useRef(true);
 
   useEffect(() => {
     let isActive = true;
+    let initialMarketSettled = false;
+    let initialNewsSettled = false;
+    let isFetchingMarket = false;
+    let loadingToken: symbol | null = start("ticker-bar");
 
-    const toTick = (item: LiveQuote): LiveTick => {
+    const finishInitialLoading = () => {
+      if (!loadingToken || !initialMarketSettled || !initialNewsSettled) {
+        return;
+      }
+
+      stop(loadingToken);
+      loadingToken = null;
+    };
+
+    const settleMarket = () => {
+      if (initialMarketSettled) {
+        return;
+      }
+
+      initialMarketSettled = true;
+      finishInitialLoading();
+    };
+
+    const settleNews = () => {
+      if (initialNewsSettled) {
+        return;
+      }
+
+      initialNewsSettled = true;
+      finishInitialLoading();
+    };
+
+    const toTick = (item: MarketApiItem): LiveTick | null => {
+      if (typeof item.symbol !== "string" || !item.symbol) {
+        return null;
+      }
+
+      if (typeof item.price !== "number" || !Number.isFinite(item.price)) {
+        return null;
+      }
+
       const priceText = formatNumber(item.price);
       return {
-        key: `${item.symbol}-${item.serverTime ?? "now"}`,
-        symbol: item.symbol,
+        key: `${item.symbol}-${item.price}-${item.change ?? 0}`,
+        symbol: resolveTickerSymbol(item.symbol, item.shortName),
         priceText,
       };
     };
 
     const toNewsTick = (item: NewsItem): LiveTick => ({
       key: `news-${item.id}`,
-      symbol: item.kategori?.name?.toUpperCase() || "NEWS",
       priceText: resolvePortalNewsTitle(item, locale, "Latest update"),
     });
 
-    const loadLive = async () => {
+    const isAllowedNewsItem = (item: NewsItem) =>
+      isIndonesiaMarketNewsArticle(item) ||
+      isIndonesiaMarketAnalysisArticle(item);
+
+    const loadMarket = async () => {
+      if (isFetchingMarket) {
+        return;
+      }
+
+      isFetchingMarket = true;
+
       try {
-        const response = await fetch(API_URL);
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (!isActive || payload?.status !== "success") return;
-        const nextTicks = Array.isArray(payload.data)
-          ? payload.data.map(toTick)
+        const payload = await fetchJson<MarketApiResponse>(MARKET_API_URL);
+        if (!isActive) return;
+
+        const nextTicks = Array.isArray(payload?.data)
+          ? payload.data
+              .map(toTick)
+              .filter((item): item is LiveTick => item !== null)
+              .slice(0, MARKET_TICK_LIMIT)
           : [];
+
         if (nextTicks.length) {
           setLiveTicks(nextTicks);
         }
-      } catch {
-        // keep fallback ticks
+      } finally {
+        isFetchingMarket = false;
+        settleMarket();
       }
     };
 
     const loadNews = async () => {
       try {
-        const response = await fetch(NEWS_API_URL);
+        const response = await fetch(NEWS_API_URL, {
+          cache: "no-store",
+        });
         if (!response.ok) return;
         const payload = await response.json();
         if (!isActive || payload?.status !== "success") return;
         const items = Array.isArray(payload.data) ? payload.data : [];
-        const nextNews = items.slice(0, 8).map(toNewsTick);
+        const nextNews = items
+          .filter(isAllowedNewsItem)
+          .slice(0, NEWS_TICK_LIMIT)
+          .map(toNewsTick);
         if (nextNews.length) {
           setNewsTicks(nextNews);
         }
       } catch {
         // keep previous news ticks
-      }
-    };
-
-    const loadAll = async () => {
-      const token = initialLoad.current ? start("ticker-bar") : null;
-      try {
-        await Promise.all([loadLive(), loadNews()]);
       } finally {
-        if (token) stop(token);
-        initialLoad.current = false;
+        settleNews();
       }
     };
 
-    const initialTimer = window.setTimeout(loadAll, 200);
-    const interval = window.setInterval(() => {
+    void loadMarket();
+    void loadNews();
+    const marketInterval = window.setInterval(() => {
       if (document.visibilityState === "visible") {
-        loadLive();
-        loadNews();
+        void loadMarket();
       }
-    }, REFRESH_INTERVAL_MS);
+    }, MARKET_REFRESH_INTERVAL_MS);
+    const newsInterval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void loadNews();
+      }
+    }, NEWS_REFRESH_INTERVAL_MS);
 
     return () => {
       isActive = false;
-      window.clearTimeout(initialTimer);
-      window.clearInterval(interval);
+      window.clearInterval(marketInterval);
+      window.clearInterval(newsInterval);
+      if (loadingToken) {
+        stop(loadingToken);
+      }
     };
   }, [locale, start, stop]);
 
@@ -171,11 +262,13 @@ export function TickerBar({
     const symbolClass = isPrimary ? "text-white" : "text-white/85";
     const wrapperClass =
       "inline-flex items-center gap-2 transition-colors hover:text-white";
-    const content = (
+    const content = item.symbol ? (
       <>
         <span className={symbolClass}>{item.symbol}</span>
         <span className="text-white/80">{item.priceText}</span>
       </>
+    ) : (
+      <span className="text-white/85">{item.priceText}</span>
     );
 
     if (item.href) {
@@ -216,11 +309,11 @@ export function TickerBar({
   };
 
   return (
-    <div className="flex justify-center bg-[#1061B3]">
-      <div className="ticker-wrapper py-1 flex w-full max-w-7xl items-center gap-4 overflow-hidden text-[11px] font-medium text-white shadow-lg sm:text-xs">
+    <div className="flex justify-center overflow-x-clip bg-[#1061B3]">
+      <div className="ticker-wrapper flex w-full min-w-0 max-w-7xl items-center gap-4 overflow-hidden py-2 text-[11px] font-medium text-white shadow-lg sm:text-xs">
         {/* Top News / Label */}
-        <div className="bg-linear-to-r from-[#1061B3] z-10">
-          <div className="flex shrink-0 items-center ml-2 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 to-white/0 p-0.5 pr-16">
+        <div className=" absolute bg-linear-to-r from-[#1061B3] my-2 z-10">
+          <div className="flex shrink-0 items-center ml-2 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 p-0.5 pr-16">
             <p className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
               <i className="fa-solid fa-bolt text-[10px]" aria-hidden="true" />
             </p>
@@ -232,7 +325,7 @@ export function TickerBar({
         </div>
 
         {/* Running Text / Ticker */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <div className="ticker-track">
             <div className="ticker-row">
               {tickStream.map((entry, index) => {
