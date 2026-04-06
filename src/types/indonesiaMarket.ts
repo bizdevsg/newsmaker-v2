@@ -24,6 +24,65 @@ export type BiRateResponse = {
   fetched_at?: string;
 };
 
+export type OjkRegulationRow = {
+  url?: string;
+  jenis?: string;
+  judul?: string;
+  nomor?: string;
+  tahun?: number | string;
+  sektor?: string;
+  deskripsi?: string;
+  sub_sektor?: string;
+  raw_caption?: string | null;
+  tahun_berlaku?: string;
+};
+
+export type OjkRegulationResponse = {
+  source?: string;
+  fetched_at?: string;
+  cache?: string;
+  page?: number;
+  pages_fetched?: number;
+  count?: number;
+  data?: OjkRegulationRow[];
+};
+
+export type BappebtiDocumentLink = {
+  url?: string;
+  judul?: string;
+};
+
+export type BappebtiRegulationItem = {
+  judul?: string;
+  links?: BappebtiDocumentLink[] | null;
+  tanggal?: string | null;
+  tentang?: string | null;
+  tupoksi?: string | null;
+  detail_url?: string;
+  tanggal_iso?: string | null;
+};
+
+export type BappebtiRegulationCategory = {
+  key?: string;
+  data?: BappebtiRegulationItem[];
+  mode?: string;
+  count?: number;
+  label?: string;
+  source?: string;
+  pages_fetched?: number;
+  tls_insecure_fallback_used?: boolean;
+};
+
+export type BappebtiRegulationResponse = {
+  source?: string[];
+  fetched_at?: string;
+  cache?: string;
+  max_pages_per_category?: number;
+  categories_count?: number;
+  count?: number;
+  data?: BappebtiRegulationCategory[];
+};
+
 export type MarketIndex = {
   last?: number;
   change?: number;

@@ -12,7 +12,7 @@ export function RegulatoryWatch({ messages }: RegulatoryWatchProps) {
   return (
     <Card as="section">
       <SectionHeader title={messages.regulatoryWatch.title} />
-      <div className="px-6 py-5">
+      <div className="px-6 py-2">
         {messages.regulatoryWatch.items.map((item) => (
           <ListItem
             key={item.key}

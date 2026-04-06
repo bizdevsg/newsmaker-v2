@@ -21,13 +21,15 @@ export function ScrollUpButton() {
       type="button"
       onClick={handleClick}
       aria-label="Scroll to top"
-      className={`fixed bottom-4 md:bottom-24 right-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white shadow-lg transition sm:bottom-8 sm:right-6 ${
+      className={`fixed bottom-4 md:bottom-4 right-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white shadow-lg transition sm:bottom-8 sm:right-6 ${
         isVisible
           ? "opacity-100 translate-y-0"
           : "pointer-events-none opacity-0 translate-y-2"
       } hover:bg-blue-700`}
     >
-      <span className="text-lg leading-none">↑</span>
+      <span className="text-lg leading-none">
+        <i className="fa-solid fa-angles-up"></i>
+      </span>
     </button>
   );
 }

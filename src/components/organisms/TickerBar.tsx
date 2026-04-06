@@ -352,7 +352,7 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
       <div className="ticker-wrapper flex w-full min-w-0 max-w-7xl items-center gap-4 overflow-hidden py-2 text-[11px] font-medium text-white shadow-lg sm:text-xs">
         {/* Top News / Label */}
         <div className=" absolute bg-linear-to-r from-[#1061B3] my-2 z-10">
-          <div className="flex shrink-0 items-center ml-2 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 p-0.5 pr-16">
+          <div className="flex shrink-0 items-center ml-4 sm:ml-0 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 p-0.5 pr-16">
             <p className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
               <i className="fa-solid fa-bolt text-[10px]" aria-hidden="true" />
             </p>

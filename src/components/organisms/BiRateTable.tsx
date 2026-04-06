@@ -1,16 +1,20 @@
+import Link from "next/link";
 import React from "react";
-import type { Messages } from "@/locales";
+import type { Locale, Messages } from "@/locales";
 import type { BiRateResponse, BiRateRow } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 type BiRateTableProps = {
   messages: Messages;
+  locale: Locale;
+  page: number;
 };
 
 const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
 const API_BASE = process.env.ENDPO_NM23_BASE ?? "";
 
 const API_ENDPOINT = `${API_BASE}/api/newsmaker-v2/bi-rate`;
+const PAGE_SIZE = 20;
 
 const fetchJson = async <T,>(url: string): Promise<T | null> => {
   try {
@@ -67,9 +71,13 @@ const formatFullDate = (isoDate?: string) => {
   return `${day}, ${date} - ${time}`;
 };
 
-export async function BiRateTable({ messages }: BiRateTableProps) {
+export async function BiRateTable({ messages, locale, page }: BiRateTableProps) {
   const biRateResponse = await fetchJson<BiRateResponse>(API_ENDPOINT);
   const rows = biRateResponse?.data ?? [];
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedRows = rows.slice(startIndex, startIndex + PAGE_SIZE);
   const { biRatePage } = messages.policy;
   const updatedLabel = biRatePage?.updatedLabel ?? "Updated";
   const emptyLabel = biRatePage?.empty ?? "BI-Rate data unavailable.";
@@ -81,6 +89,52 @@ export async function BiRateTable({ messages }: BiRateTableProps) {
   ];
   const sourceLabel = biRatePage?.sourceLabel ?? "Source";
   const pressReleaseLabel = biRatePage?.pressReleaseLabel ?? "Press Release";
+  const previousLabel = locale === "en" ? "Previous" : "Sebelumnya";
+  const nextLabel = locale === "en" ? "Next" : "Berikutnya";
+  const pageStatusLabel =
+    locale === "en"
+      ? `Page ${currentPage} of ${totalPages}`
+      : `Halaman ${currentPage} dari ${totalPages}`;
+
+  const buildPageHref = (targetPage: number) => {
+    const params = new URLSearchParams();
+    if (targetPage > 1) {
+      params.set("page", String(targetPage));
+    }
+    const query = params.toString();
+    return query ? `/${locale}/bi-rate?${query}` : `/${locale}/bi-rate`;
+  };
+
+  const paginationItems: Array<number | "left-ellipsis" | "right-ellipsis"> =
+    [];
+  if (totalPages > 1) {
+    const windowSize = 5;
+    const halfWindow = Math.floor(windowSize / 2);
+    let startPage = Math.max(1, currentPage - halfWindow);
+    const endPage = Math.min(totalPages, startPage + windowSize - 1);
+
+    if (endPage - startPage < windowSize - 1) {
+      startPage = Math.max(1, endPage - windowSize + 1);
+    }
+
+    if (startPage > 1) {
+      paginationItems.push(1);
+      if (startPage > 2) {
+        paginationItems.push("left-ellipsis");
+      }
+    }
+
+    for (let targetPage = startPage; targetPage <= endPage; targetPage += 1) {
+      paginationItems.push(targetPage);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        paginationItems.push("right-ellipsis");
+      }
+      paginationItems.push(totalPages);
+    }
+  }
 
   return (
     <section className="rounded-lg bg-white p-6 shadow-sm ring-1 mt-3 ring-slate-100">
@@ -110,16 +164,16 @@ export async function BiRateTable({ messages }: BiRateTableProps) {
       ) : (
         <div className="mt-6">
           <div className="space-y-3">
-            {rows.map((row, index) => {
+            {paginatedRows.map((row, index) => {
               return (
                 <div
-                  key={`${row.raw_date ?? row.date ?? "bi-rate"}-${index}`}
+                  key={`${row.raw_date ?? row.date ?? "bi-rate"}-${startIndex + index}`}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:shadow-md hover:ring-1 hover:ring-slate-200"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-semibold text-slate-400">
-                        {String(index + 1).padStart(2, "0")}
+                        {String(startIndex + index + 1).padStart(2, "0")}
                       </span>
                       <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[10px] uppercase tracking-widest text-slate-400">
                         {columns[0]}
@@ -152,6 +206,72 @@ export async function BiRateTable({ messages }: BiRateTableProps) {
               );
             })}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+              <p className="text-xs text-slate-500">{pageStatusLabel}</p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Link
+                  href={buildPageHref(Math.max(1, currentPage - 1))}
+                  aria-disabled={currentPage === 1}
+                  className={`inline-flex items-center rounded-md border px-3 py-2 text-xs font-semibold transition ${
+                    currentPage === 1
+                      ? "pointer-events-none border-slate-200 text-slate-300"
+                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {previousLabel}
+                </Link>
+
+                {paginationItems.map((item) => {
+                  if (item === "left-ellipsis" || item === "right-ellipsis") {
+                    return (
+                      <span
+                        key={item}
+                        className="px-2 text-xs font-semibold text-slate-400"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  if (item === currentPage) {
+                    return (
+                      <span
+                        key={item}
+                        aria-current="page"
+                        className="inline-flex h-8 min-w-8 items-center justify-center rounded-md bg-blue-700 px-2 text-xs font-semibold text-white"
+                      >
+                        {item}
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item}
+                      href={buildPageHref(item)}
+                      className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-slate-200 px-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      {item}
+                    </Link>
+                  );
+                })}
+
+                <Link
+                  href={buildPageHref(Math.min(totalPages, currentPage + 1))}
+                  aria-disabled={currentPage === totalPages}
+                  className={`inline-flex items-center rounded-md border px-3 py-2 text-xs font-semibold transition ${
+                    currentPage === totalPages
+                      ? "pointer-events-none border-slate-200 text-slate-300"
+                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {nextLabel}
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
