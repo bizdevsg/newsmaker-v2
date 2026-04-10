@@ -14,11 +14,16 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: {
     default: "Newsmaker 23",
-    template: "%s - Newsmaker 23",
+    template: "News Maker 23 - %s",
   },
   description: "Institutional market dashboard mockup",
   icons: {
-    icon: "/assets/favicon.png",
+    icon: [
+      { url: "/assets/favicon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: ["/assets/favicon.png"],
+    apple: [{ url: "/assets/favicon.png", type: "image/png" }],
   },
 };
 

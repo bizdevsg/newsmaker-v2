@@ -10,6 +10,7 @@ import {
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
 import { normalizePortalNewsCategory } from "@/lib/portalnews";
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 
 import type { Messages } from "@/locales";
 
@@ -34,6 +35,8 @@ type NewsListItem = {
   };
   slug?: string;
   content?: string;
+  category?: string;
+  category_label?: string;
   category_id?: number;
   created_at?: string;
   updated_at?: string;
@@ -94,6 +97,7 @@ const SLUG_TO_IDS: Record<string, number[]> = {
   "fiscal-moneter": [], // fallback: match by kategori slug containing 'fiscal' or 'moneter'
   "global-economics": [],
   "fiscal-monetary": [],
+  "pasar-indonesia": [], // Special: uses dedicated API endpoint
 };
 
 // Keywords used to fuzzy-match articles when no direct ID mapping exists
@@ -102,6 +106,36 @@ const SLUG_KEYWORDS: Record<string, string[]> = {
   economy: ["global", "economy", "global-economics", "ekonomi"],
   "fiscal-moneter": ["fiscal", "moneter", "monetary", "fiskal"],
   "fiscal-monetary": ["fiscal", "moneter", "monetary"],
+  "pasar-indonesia": ["pasar", "indonesia", "market", "saham", "ihsg"],
+  "pasar-saham": [
+    "pasar saham",
+    "saham",
+    "ihsg",
+    "idx",
+    "equity",
+    "equities",
+    "stock",
+    "indonesia market",
+    "berita nasional",
+    "nasional",
+    "indeks",
+    "index",
+    "indices",
+  ],
+  komoditas: [
+    "komoditas",
+    "commodity",
+    "commodities",
+    "gold",
+    "emas",
+    "silver",
+    "oil",
+    "crude",
+    "coal",
+    "cpo",
+    "nickel",
+    "nikel",
+  ],
 };
 
 // Friendly display name per slug
@@ -126,6 +160,9 @@ const SLUG_TO_LABEL: Record<string, string> = {
   "global-economics": "Global & Economy",
   "fiscal-monetary": "Fiscal & Monetary",
   "analisis-market": "Analisis Market",
+  "pasar-indonesia": "Pasar Indonesia",
+  "pasar-saham": "Pasar Saham",
+  komoditas: "Komoditas",
 };
 
 // Economic news slugs - these link back to /economic-news
@@ -145,11 +182,17 @@ const stripHtml = (html: string) => {
 };
 
 const getCategoryKeys = (item: NewsListItem) =>
-  [item.kategori, item.sub_category, item.main_category]
-    .flatMap((category) => [
-      normalizePortalNewsCategory(category?.slug),
-      normalizePortalNewsCategory(category?.name),
-    ])
+  [
+    item.category,
+    item.category_label,
+    item.kategori?.slug,
+    item.kategori?.name,
+    item.sub_category?.slug,
+    item.sub_category?.name,
+    item.main_category?.slug,
+    item.main_category?.name,
+  ]
+    .map((value) => normalizePortalNewsCategory(value))
     .filter(Boolean);
 
 const getCategoryIds = (item: NewsListItem) =>
@@ -159,6 +202,9 @@ const getCategoryIds = (item: NewsListItem) =>
     item.sub_category?.id,
     item.main_category?.id,
   ].filter((value): value is number => typeof value === "number");
+
+const formatBadgeLabel = (value: string) =>
+  value.trim().replace(/[-_]+/g, " ").replace(/\s+/g, " ").toUpperCase();
 
 export function NewsCategoryList({
   categorySlug,
@@ -222,7 +268,10 @@ export function NewsCategoryList({
       : isAll
         ? nc.allArticles
         : nc.marketNewsTitle);
-  const targetIds = useMemo(() => SLUG_TO_IDS[categorySlug] ?? [], [categorySlug]);
+  const targetIds = useMemo(
+    () => SLUG_TO_IDS[categorySlug] ?? [],
+    [categorySlug],
+  );
   const keywords = useMemo(
     () => SLUG_KEYWORDS[categorySlug] ?? [],
     [categorySlug],
@@ -251,6 +300,62 @@ export function NewsCategoryList({
     const fetchArticles = async () => {
       const token = start("news-category-list");
       try {
+        const shouldUsePasarIndonesiaFeed = [
+          "pasar-indonesia",
+          "pasar-saham",
+          "komoditas",
+        ].includes(categorySlug);
+
+        // Special handling for analysis-market category (dedicated API endpoint)
+        if (categorySlug === "analisis-market") {
+          const articlesRes = await fetch(
+            "/api/portalnews/pasar-indonesia/analisis",
+            {
+              cache: "no-store",
+            },
+          );
+
+          const json = (await articlesRes
+            .json()
+            .catch(() => null)) as NewsListPayload | null;
+
+          if (isActive && json?.data) {
+            setArticles(json.data);
+            setImageBase(
+              typeof json.imageBase === "string" ? json.imageBase : "",
+            );
+          }
+          return;
+        }
+
+        if (shouldUsePasarIndonesiaFeed) {
+          const articlesRes = await fetch("/api/portalnews/pasar-indonesia", {
+            cache: "no-store",
+          });
+
+          const json = (await articlesRes
+            .json()
+            .catch(() => null)) as NewsListPayload | null;
+
+          if (isActive && json?.data) {
+            if (categorySlug === "pasar-indonesia") {
+              setArticles(json.data);
+            } else {
+              const filtered = json.data.filter((item) => {
+                const keys = getCategoryKeys(item);
+                return keywords.length
+                  ? keywords.some((kw) => keys.some((key) => key.includes(kw)))
+                  : keys.includes(categorySlug);
+              });
+              setArticles(filtered);
+            }
+            setImageBase(
+              typeof json.imageBase === "string" ? json.imageBase : "",
+            );
+          }
+          return;
+        }
+
         const [articlesRes, categoriesRes] = await Promise.all([
           fetch("/api/portalnews", {
             cache: "no-store",
@@ -260,12 +365,12 @@ export function NewsCategoryList({
           }),
         ]);
 
-        const json = (await articlesRes.json().catch(() => null)) as
-          | NewsListPayload
-          | null;
-        const categoriesJson = (await categoriesRes.json().catch(() => null)) as
-          | NewsCategoriesPayload
-          | null;
+        const json = (await articlesRes
+          .json()
+          .catch(() => null)) as NewsListPayload | null;
+        const categoriesJson = (await categoriesRes
+          .json()
+          .catch(() => null)) as NewsCategoriesPayload | null;
 
         if (json?.data) {
           const categories = Array.isArray(categoriesJson?.data)
@@ -275,9 +380,7 @@ export function NewsCategoryList({
             (item) => item.slug === categorySlug,
           )?.id;
           const effectiveTargetIds =
-            typeof dynamicTargetId === "number"
-              ? [dynamicTargetId]
-              : targetIds;
+            typeof dynamicTargetId === "number" ? [dynamicTargetId] : targetIds;
 
           let filtered: NewsListItem[] = [];
           if (isAll) {
@@ -296,14 +399,14 @@ export function NewsCategoryList({
             // Fuzzy keyword match against category slug/name
             filtered = json.data.filter((item) => {
               const keys = getCategoryKeys(item);
-              return keywords.some(
-                (kw) => keys.some((key) => key.includes(kw)),
+              return keywords.some((kw) =>
+                keys.some((key) => key.includes(kw)),
               );
             });
           } else {
             // Fallback: match by exact slug
-            filtered = json.data.filter(
-              (item) => getCategoryKeys(item).includes(categorySlug),
+            filtered = json.data.filter((item) =>
+              getCategoryKeys(item).includes(categorySlug),
             );
           }
 
@@ -335,7 +438,9 @@ export function NewsCategoryList({
           });
           if (!isActive) return;
           setArticles(filtered);
-          setImageBase(typeof json.imageBase === "string" ? json.imageBase : "");
+          setImageBase(
+            typeof json.imageBase === "string" ? json.imageBase : "",
+          );
         }
       } catch (err) {
         console.error("Failed to fetch articles", err);
@@ -434,10 +539,11 @@ export function NewsCategoryList({
 
   const resolveImage = (path?: string) => {
     if (!path) return null;
-    if (path.startsWith("http")) return path;
+    if (path.startsWith("http")) return resolvePortalNewsImageSrc(path);
 
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    return imageBase ? `${imageBase}${normalizedPath}` : normalizedPath;
+    const full = imageBase ? `${imageBase}${normalizedPath}` : normalizedPath;
+    return resolvePortalNewsImageSrc(full);
   };
 
   if (loading) {
@@ -465,7 +571,9 @@ export function NewsCategoryList({
               <span>/</span>
               <span className="text-slate-700 font-semibold">{label}</span>
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">{label}</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900">
+              {label}
+            </h1>
             <p className="text-slate-500 mt-2 text-sm">
               {filteredBySearch.length} {nc.articles}
             </p>
@@ -618,21 +726,28 @@ export function NewsCategoryList({
     <div>
       {/* Category Header */}
       <div className="flex items-center justify-between">
-        <div className="mb-8">
+        <div>
           <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
             <Link
               href={resolvedParentHref}
-              className="hover:text-blue-600 transition"
+              className="hover:text-blue-600 transition text-nowrap"
             >
               {resolvedParentLabel}
             </Link>
             <span>/</span>
-            <span className="text-slate-700 font-semibold">{label}</span>
+            <span className="text-slate-700 font-semibold text-nowrap">
+              {label}
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">{label}</h1>
-          <p className="text-slate-500 mt-2 text-sm">
-            {filteredBySearch.length} {nc.articles}
-          </p>
+
+          <div className="mb-8">
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900">
+              {label}
+            </h1>
+            <p className="text-slate-500 mt-2 text-sm">
+              {filteredBySearch.length} {nc.articles}
+            </p>
+          </div>
         </div>
 
         {/* Search bar */}
@@ -646,8 +761,10 @@ export function NewsCategoryList({
                 className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-800 transition"
                 aria-label="Open search"
               >
-                <i className="fa-solid fa-magnifying-glass text-xs"></i>
-                {nc.searchBtn}
+                <span className="text-xs flex items-center gap-2">
+                  <i className="fa-solid fa-magnifying-glass"></i>
+                  {nc.searchBtn}
+                </span>
               </button>
             )}
             {isSearchOpen && (
@@ -749,7 +866,8 @@ export function NewsCategoryList({
         <div className="text-center py-16">
           <i className="fa-solid fa-magnifying-glass text-3xl text-slate-200 mb-3"></i>
           <p className="text-slate-500 font-semibold">
-            {nc.noResults} <span className="font-semibold">{searchTerm.trim()}</span>
+            {nc.noResults}{" "}
+            <span className="font-semibold">{searchTerm.trim()}</span>
           </p>
         </div>
       )}
@@ -771,8 +889,17 @@ export function NewsCategoryList({
             hour: "2-digit",
             minute: "2-digit",
           });
-          const catName =
-            item.kategori?.name?.toUpperCase() ?? label.toUpperCase();
+
+          const badgeLabel = formatBadgeLabel(
+            String(
+              item.category_label ??
+                item.kategori?.name ??
+                item.main_category?.name ??
+                item.sub_category?.name ??
+                item.category ??
+                label,
+            ),
+          );
 
           const itemCategorySlug = item.kategori?.slug ?? categorySlug;
           const isItemEconomic = ECONOMIC_SLUGS.has(itemCategorySlug);
@@ -803,11 +930,11 @@ export function NewsCategoryList({
                     <i className="fa-solid fa-newspaper text-slate-300 text-3xl"></i>
                   </div>
                 )}
-                {/* Category badge */}
-                <div className="absolute top-2 left-3">
-                  <div className=" bg-blue-700/50 group-hover:bg-blue-700 rounded-full px-2 py-0.5 transition duration-300">
-                    <p className=" text-[10px] font-bold uppercase tracking-wider text-white">
-                      {catName}
+                {/* Category badges */}
+                <div className="absolute top-2 left-3 flex flex-wrap gap-1">
+                  <div className="bg-blue-700/50 group-hover:bg-blue-700 rounded-full px-2 py-0.5 transition duration-300">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white">
+                      {badgeLabel}
                     </p>
                   </div>
                 </div>

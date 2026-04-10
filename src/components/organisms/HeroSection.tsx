@@ -1,18 +1,16 @@
 import React from "react";
 import { Button } from "../atoms/Button";
 import { Tag } from "../atoms/Tag";
+import Link from "next/link";
 import type { Locale, Messages } from "@/locales";
 import {
   buildPortalNewsImageUrl,
-  fetchPortalNewsList,
+  fetchPasarIndonesiaNews,
   sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import type { PortalNewsItem } from "@/lib/portalnews";
-import {
-  resolvePortalNewsContent,
-  resolvePortalNewsTitle,
-} from "@/lib/portalnews-shared";
-import { isIndonesiaMarketNewsArticle } from "@/lib/indonesia-market-sections";
+import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
+import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
 
 type HeroSectionProps = {
   messages: Messages;
@@ -33,7 +31,7 @@ const stripHtml = (value: string) =>
 const toSummary = (value?: string | null, fallback?: string) => {
   const text = stripHtml(value ?? "");
   if (!text) return fallback ?? "";
-  return text.length > 200 ? `${text.slice(0, 200).trim()}...` : text;
+  return text;
 };
 
 const formatDate = (value: string | undefined, locale: Locale) => {
@@ -48,23 +46,67 @@ const formatDate = (value: string | undefined, locale: Locale) => {
   });
 };
 
+const resolvePortalNewsTitle = (
+  article: PortalNewsItem | null | undefined,
+  locale: Locale,
+  fallback: string,
+) => {
+  if (!article) return fallback;
+
+  if (locale === "en") {
+    return (
+      article.title_en?.trim() ||
+      article.title?.trim() ||
+      article.title_id?.trim() ||
+      fallback
+    );
+  }
+
+  return (
+    article.title_id?.trim() ||
+    article.title?.trim() ||
+    article.title_en?.trim() ||
+    fallback
+  );
+};
+
+const resolvePortalNewsContent = (
+  article: PortalNewsItem | null | undefined,
+  locale: Locale,
+) => {
+  if (!article) return "";
+
+  if (locale === "en") {
+    return (
+      article.content_en?.trim() ||
+      article.content?.trim() ||
+      article.content_id?.trim() ||
+      ""
+    );
+  }
+
+  return (
+    article.content_id?.trim() ||
+    article.content?.trim() ||
+    article.content_en?.trim() ||
+    ""
+  );
+};
+
 async function getHeroArticle(locale: Locale, messages: Messages) {
   try {
-    const { items } = await fetchPortalNewsList();
-    const article = sortPortalNewsItemsByDate(
-      items.filter((item: PortalNewsItem) => isIndonesiaMarketNewsArticle(item)),
-    )[0];
+    const { items } = await fetchPasarIndonesiaNews();
+
+    const article = sortPortalNewsItemsByDate(items as PortalNewsItem[])[0];
 
     if (!article) return null;
 
-    const categorySlug = itemOrFallback(
-      article.kategori?.slug,
-      "indonesia-market",
-    );
     const articleSlug = article.slug?.trim();
+    const categorySlug =
+      resolveIndonesiaMarketNewsCategorySlugFromItem(article);
     const href = articleSlug
-      ? `/${locale}/news/${categorySlug}/${articleSlug}`
-      : `/${locale}/news/${categorySlug}`;
+      ? `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${categorySlug}/${articleSlug}`
+      : `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/all`;
 
     return {
       title: resolvePortalNewsTitle(article, locale, messages.hero.bannerTitle),
@@ -73,12 +115,16 @@ async function getHeroArticle(locale: Locale, messages: Messages) {
         messages.hero.bannerSubtitle,
       ),
       image:
-        buildPortalNewsImageUrl(article.images?.[0]) ?? FALLBACK_HERO_IMAGE,
+        buildPortalNewsImageUrl(
+          article.image_url || article.image || article.images?.[0],
+        ) ?? FALLBACK_HERO_IMAGE,
       href,
-      tag:
-        article.main_category?.name ??
-        article.kategori?.name ??
-        messages.hero.bannerTag,
+      tag: (
+        article.category_label?.trim() ||
+        article.category?.trim() ||
+        article.kategori?.name?.trim() ||
+        "MARKET"
+      ).toUpperCase(),
       date: formatDate(article.updated_at ?? article.created_at, locale),
     };
   } catch {
@@ -86,50 +132,51 @@ async function getHeroArticle(locale: Locale, messages: Messages) {
   }
 }
 
-const itemOrFallback = (value: string | undefined, fallback: string) => {
-  const normalized = value?.trim();
-  return normalized || fallback;
-};
-
 export async function HeroSection({ messages, locale }: HeroSectionProps) {
   const heroArticle = await getHeroArticle(locale, messages);
 
   return (
     <section className="space-y-6">
       <div className="mt-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-800 md:text-4xl uppercase">
+        {/* <h1 className="text-3xl font-semibold tracking-tight text-slate-800 md:text-4xl uppercase">
           {messages.hero.title}
-        </h1>
-        <p className="text-base text-slate-500">{messages.hero.subtitle}</p>
+        </h1> */}
+        <p className="text-base md:text-lg text-center text-blue-900 font-bold font-serif">
+          Market & Economic Intelligence Platform Insight on Macro, Commodities,
+          Equities & Policy
+        </p>
       </div>
 
-      {/* Banner */}
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg">
+      <Link
+        href={
+          heroArticle?.href ??
+          `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/all`
+        }
+        className="block relative group overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
+      >
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
           style={{
             backgroundImage: `url('${heroArticle?.image ?? FALLBACK_HERO_IMAGE}')`,
           }}
         />
-        <div className="absolute inset-0 bg-linear-to-r from-[#1061B3]  to-[#1061B3]/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1061B3] to-[#1061B3]/60" />
         <div className="relative flex min-h-55 flex-col gap-7 p-7 md:flex-row md:items-center">
           <div className="flex-1 space-y-5 max-w-xl">
             <Tag tone="slate" className="bg-white/15 text-white">
               {heroArticle?.tag ?? messages.hero.bannerTag}
             </Tag>
-            {/* {heroArticle?.date ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
-                {heroArticle.date}
-              </p>
-            ) : null} */}
+
             <h2 className="text-3xl font-semibold">
               {heroArticle?.title ?? messages.hero.bannerTitle}
             </h2>
-            <p className="text-base text-white/80">
+
+            <p className="text-base text-white/80 line-clamp-4">
               {heroArticle?.summary ?? messages.hero.bannerSubtitle}
             </p>
+
             <Button
-              href={heroArticle?.href}
+              as="span"
               variant="outline"
               size="sm"
               className="border-white/60 text-white"
@@ -138,7 +185,7 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
             </Button>
           </div>
         </div>
-      </div>
+      </Link>
     </section>
   );
 }

@@ -33,7 +33,10 @@ export function MarketPageTemplate({
         </StickyNav>
         <div className="">
           <div className="mx-auto w-full">
-            <TickerBar topNews={messages.widgets?.tickerBar?.topNews} />
+            <TickerBar
+              locale={locale}
+              topNews={messages.widgets?.tickerBar?.topNews}
+            />
           </div>
         </div>
         <main className="px-4 py-4">

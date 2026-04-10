@@ -4,6 +4,8 @@ import {
   getPortalNewsCategorySlug,
   getPortalNewsItemTimestamp,
   fetchPortalNewsList,
+  fetchPasarIndonesiaNews,
+  fetchPasarIndonesiaAnalysis,
   normalizePortalNewsCategory,
   PORTALNEWS_IMAGE_BASE,
   sortPortalNewsItemsByDate,
@@ -133,7 +135,10 @@ const scoreRelatedCandidate = (
   candidate: PortalNewsItem,
   context: SimilarityContext,
 ) => {
-  const candidateTitleTokens = toTokenSet(resolvePortalNewsTitle(candidate), 24);
+  const candidateTitleTokens = toTokenSet(
+    resolvePortalNewsTitle(candidate),
+    24,
+  );
   const candidateContentTokens = toTokenSet(
     resolvePortalNewsContent(candidate),
     240,
@@ -186,9 +191,7 @@ const resolveSource = (
   primary: PortalNewsSource,
   secondary: PortalNewsSource,
 ): PortalNewsSource =>
-  primary === "newsmaker" || secondary === "newsmaker"
-    ? "newsmaker"
-    : "legacy";
+  primary === "newsmaker" || secondary === "newsmaker" ? "newsmaker" : "legacy";
 
 export async function fetchPortalNewsDetail(
   slug: string,
@@ -198,9 +201,26 @@ export async function fetchPortalNewsDetail(
   const relatedLimit = options.relatedLimit ?? 3;
   const popularLimit = options.popularLimit ?? 5;
 
-  const [{ item, source: articleSource }, { items, source: listSource }] =
-    await Promise.all([fetchPortalNewsArticle(slug), fetchPortalNewsList()]);
+  const { item, source: articleSource } = await fetchPortalNewsArticle(slug);
 
+  // Determine if this is a pasar-indonesia article
+  const isPasarIndonesia = item
+    ? getPortalNewsCategoryKeys(item).some(
+        (key) => key === normalizePortalNewsCategory("pasar-indonesia"),
+      )
+    : false;
+  const isAnalysis = item
+    ? item.type === "analisis" ||
+      matchesCategory(item, INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG)
+    : false;
+
+  const listResult = isPasarIndonesia
+    ? await fetchPasarIndonesiaNews()
+    : isAnalysis
+      ? await fetchPasarIndonesiaAnalysis()
+    : await fetchPortalNewsList();
+
+  const { items, source: listSource } = listResult;
   const sortedItems = sortPortalNewsItemsByDate(items);
   const article =
     item ?? sortedItems.find((candidate) => candidate.slug === slug) ?? null;
@@ -210,28 +230,37 @@ export async function fetchPortalNewsDetail(
   );
   const categoryId = article?.category_id;
 
-  const sameCategoryItems = article
-    ? sortedItems.filter((candidate) => {
-        if (candidate.slug === article.slug) return false;
+  const sameCategoryItems = isPasarIndonesia
+    ? sortedItems.filter((candidate) => candidate.slug !== article?.slug)
+    : article
+      ? sortedItems.filter((candidate) => {
+          if (candidate.slug === article.slug) return false;
 
-        if (typeof categoryId === "number" && candidate.category_id === categoryId) {
+          if (
+            typeof categoryId === "number" &&
+            candidate.category_id === categoryId
+          ) {
+            return true;
+          }
+
+          return (
+            normalizedCategory && matchesCategory(candidate, normalizedCategory)
+          );
+        })
+      : [];
+
+  const latestAllowedCategoryItems = isPasarIndonesia
+    ? sortedItems.filter((candidate) => candidate.slug !== article?.slug)
+    : sortedItems.filter((candidate) => {
+        if (matchesCategory(candidate, INDONESIA_MARKET_NEWS_CATEGORY_SLUG)) {
           return true;
         }
 
-        return (
-          normalizedCategory &&
-          matchesCategory(candidate, normalizedCategory)
+        return matchesCategory(
+          candidate,
+          INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG,
         );
-      })
-    : [];
-
-  const latestAllowedCategoryItems = sortedItems.filter((candidate) => {
-    if (matchesCategory(candidate, INDONESIA_MARKET_NEWS_CATEGORY_SLUG)) {
-      return true;
-    }
-
-    return matchesCategory(candidate, INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG);
-  });
+      });
 
   const fallbackPopular = article
     ? sortedItems.filter((candidate) => candidate.slug !== article.slug)

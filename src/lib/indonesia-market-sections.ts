@@ -21,4 +21,5 @@ export const isIndonesiaMarketNewsArticle = (item: PortalNewsItem) =>
   hasCategoryKey(item, INDONESIA_MARKET_NEWS_CATEGORY_SLUG);
 
 export const isIndonesiaMarketAnalysisArticle = (item: PortalNewsItem) =>
+  item.type === "analisis" ||
   hasCategoryKey(item, INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG);

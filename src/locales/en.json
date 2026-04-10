@@ -1,12 +1,14 @@
 {
   "common": {
     "readFullInsight": "Read Full Insight",
+    "readFull": "Read More...",
     "readMore": "Read More",
-    "viewReport": "View Report"
+    "viewReport": "View Report",
+    "news": "News"
   },
   "widgets": {
     "tickerBar": {
-      "topNews": "Top News"
+      "topNews": "Trending"
     },
     "calendarEkonomi": {
       "title": "Economic Calendar",
@@ -134,6 +136,10 @@
       {
         "key": "reports",
         "label": "Reports"
+      },
+      {
+        "key": "news",
+        "label": "News"
       }
     ],
     "activeNavKey": "home",
@@ -188,7 +194,7 @@
     ]
   },
   "regulatoryWatch": {
-    "title": "Regulatory & Institutional Watch",
+    "title": "Regulatory & Institutional",
     "ctaLabel": "Read More",
     "actionLabel": "Read More",
     "items": [
@@ -648,14 +654,14 @@
       "results": "results",
       "backToCategories": "Back to Categories",
       "latestNews": "Latest News",
-      "popularNews": "Popular News",
-      "relatedNews": "Related News",
+      "popularNews": "Related News",
       "loadingArticle": "Loading Article...",
       "loadingArticles": "Loading Articles...",
       "articleNotFound": "Article not found.",
       "backTo": "← Back to",
       "source": "Source",
       "copied": "Copied!",
+      "by": "by",
       "searchBtn": "Search",
       "closeSearch": "Close",
       "searchNews": "Search News"

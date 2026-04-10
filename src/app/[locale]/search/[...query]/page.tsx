@@ -3,8 +3,8 @@ import { SearchResultsSection } from "@/components/organisms/SearchResultsSectio
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import {
   getSearchQueryFromSegments,
-  searchPortalNews,
 } from "@/lib/portalnews-search";
+import { searchPortalNews } from "@/lib/portalnews-search.server";
 import { getMessages, type Locale } from "@/locales";
 
 export async function generateMetadata({

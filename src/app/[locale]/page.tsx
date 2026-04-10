@@ -6,6 +6,7 @@ import { RegulatoryWatch } from "@/components/organisms/RegulatoryWatch";
 import { MarketImpact } from "@/components/organisms/MarketImpact";
 import { FocusReport } from "@/components/organisms/FocusReport";
 import { RecentAnalysis } from "@/components/organisms/RecentAnalysis";
+import { InsightHub } from "@/components/organisms/InsightHub";
 import { INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import { getMessages, type Locale } from "@/locales";
 
@@ -29,7 +30,7 @@ export default async function Home({
       <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <div className="contents lg:flex lg:flex-col lg:gap-4">
           <div className="order-4">
-            <RegulatoryWatch messages={messages} />
+            <RegulatoryWatch messages={messages} locale={locale} />
           </div>
           <div className="order-2">
             <RecentAnalysis
@@ -52,6 +53,7 @@ export default async function Home({
           </div>
         </div>
       </div>
+      <InsightHub locale={locale} />
     </MarketPageTemplate>
   );
 }

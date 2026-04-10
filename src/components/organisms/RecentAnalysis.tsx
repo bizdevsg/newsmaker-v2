@@ -10,10 +10,11 @@ import {
   buildPortalNewsImageUrl,
   getPortalNewsCategoryKeys,
   getPortalNewsCategorySlug,
-  fetchPortalNewsList,
+  fetchPasarIndonesiaAnalysis,
   getPortalNewsMainCategorySlug,
   normalizePortalNewsCategory,
 } from "@/lib/portalnews";
+import { Card } from "../atoms/Card";
 
 type RecentAnalysisProps = {
   messages: Messages;
@@ -98,7 +99,7 @@ async function fetchRecentAnalysis(
   messages?: Messages,
 ): Promise<RecentAnalysisItem[]> {
   try {
-    const { items } = await fetchPortalNewsList();
+    const { items } = await fetchPasarIndonesiaAnalysis();
     const includeSet =
       includeCategoryName === null
         ? null
@@ -190,7 +191,7 @@ export async function RecentAnalysis({
   );
 
   return (
-    <section className="bg-white rounded-lg shadow">
+    <Card>
       <SectionHeader
         title={messages?.widgets?.recentAnalysis?.title || "Recent Analysis"}
         link={link}
@@ -246,6 +247,6 @@ export async function RecentAnalysis({
           </div>
         </div>
       )}
-    </section>
+    </Card>
   );
 }

@@ -1,5 +1,5 @@
-@import "../../node_modules/tailwindcss/index.css";
-@import "../../node_modules/flag-icons/css/flag-icons.min.css";
+@import "tailwindcss";
+@import "flag-icons/css/flag-icons.min.css";
 @plugin "@tailwindcss/typography";
 
 :root {
@@ -85,6 +85,11 @@ h4 {
   background-image: url("/assets/bg-cover.png");
 }
 
+@layer components {
+  .nm-card {
+    @apply rounded-xl bg-white shadow-sm;
+  }
+}
 
 @keyframes ticker {
   0% {

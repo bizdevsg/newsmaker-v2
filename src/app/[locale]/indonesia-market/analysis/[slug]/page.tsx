@@ -38,9 +38,7 @@ export async function generateMetadata({
   });
   const article = detail.article;
   const fallbackTitle =
-    locale === "en"
-      ? "Indonesia Market Analysis"
-      : "Analisis Market Indonesia";
+    locale === "en" ? "Indonesia Market Analysis" : "Analisis Market Indonesia";
   const fallbackDescription =
     locale === "en"
       ? "Indonesia Market analysis detail page."
@@ -110,9 +108,7 @@ export default async function IndonesiaMarketAnalysisArticlePage({
   };
 
   const listingLabel =
-    locale === "en"
-      ? "Analysis Market Indonesia"
-      : "Analisis Market Indonesia";
+    locale === "en" ? "Analysis Market Indonesia" : "Analisis Market Indonesia";
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
@@ -129,7 +125,7 @@ export default async function IndonesiaMarketAnalysisArticlePage({
             data: detail.article,
             imageBase: detail.imageBase,
             latest: detail.latest,
-            popular: detail.popular,
+            // popular: detail.popular,
             related: detail.related,
             status: "success",
           }}

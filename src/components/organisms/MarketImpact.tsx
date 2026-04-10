@@ -6,63 +6,66 @@ import { ImpactCard } from "../molecules/ImpactCard";
 import type { Messages } from "@/locales";
 import { useLoading } from "../providers/LoadingProvider";
 import { SectionHeader } from "../molecules/SectionHeader";
-import {
-  resolvePortalNewsContent,
-  resolvePortalNewsTitle,
-} from "@/lib/portalnews-shared";
-import {
-  INDONESIA_MARKET_NEWS_CATEGORY_SLUG,
-  INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH,
-} from "@/lib/indonesia-market-sections";
+import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
+import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
 
 type MarketImpactProps = {
   messages: Messages;
   locale?: string;
 };
 
-type MarketImpactNewsItem = {
+type ApiAuthor = {
   id?: number;
-  title?: string;
-  titles?: {
-    default?: string;
-  };
-  content?: string;
-  slug?: string;
-  created_at?: string;
-  updated_at?: string;
-  images?: string[];
-  kategori?: {
-    name?: string;
-    slug?: string;
-  };
+  name?: string;
 };
 
-const NEWS_IMAGE_BASE =
-  process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE?.replace(/\/$/, "") ?? "";
+type MarketImpactNewsItem = {
+  id?: number;
+  slug?: string;
+
+  title_id?: string;
+  title_en?: string;
+
+  content_id?: string;
+  content_en?: string;
+
+  category?: string;
+  category_label?: string;
+
+  image_url?: string;
+
+  author?: ApiAuthor;
+
+  created_at?: string;
+  updated_at?: string;
+};
+
 const DISPLAY_LIMIT = 2;
 const SKIP_LATEST_COUNT = 1;
 
 const formatNewsDate = (value: string | undefined, locale: string) => {
-  if (!value) {
-    return "-";
-  }
+  if (!value) return "-";
 
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "-"
-    : date.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
+
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   const { start, stop } = useLoading();
+
   const [newsData, setNewsData] = useState<MarketImpactNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [imageBase, setImageBase] = useState("");
-  const fullListHref = `/${locale}/indonesia-market/news`;
+
+  const fullListHref = `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/all`;
+
   const viewAllLabel =
     messages?.equities?.newsCategories?.viewAll ||
     (locale === "en" ? "View All" : "Lihat Semua");
@@ -70,85 +73,96 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   useEffect(() => {
     const fetchNews = async () => {
       const token = start("market-impact");
+
       try {
         const res = await fetch(
-          `/api/portalnews?category=${INDONESIA_MARKET_NEWS_CATEGORY_SLUG}&limit=${
+          `/api/portalnews/pasar-indonesia?limit=${
             DISPLAY_LIMIT + SKIP_LATEST_COUNT
           }`,
           {
             cache: "no-store",
           },
         );
-        const json = await res.json().catch(() => null);
-        if (!res.ok) {
-          const message = json?.message
-            ? `${json.message}`
-            : `API error: ${res.status}`;
-          const cause = json?.cause ? ` (${json.cause})` : "";
-          throw new Error(`${message}${cause}`);
+
+        const json = (await res.json().catch(() => null)) as {
+          status?: string;
+          data?: unknown;
+          message?: string;
+        } | null;
+
+        if (!res.ok || !json || json.status !== "success") {
+          setNewsData([]);
+          return;
         }
-        if (json && json.data) {
-          const nextItems = Array.isArray(json.data)
-            ? json.data.slice(
-                SKIP_LATEST_COUNT,
-                SKIP_LATEST_COUNT + DISPLAY_LIMIT,
-              )
-            : [];
-          setNewsData(nextItems);
-          if (typeof json.imageBase === "string") {
-            setImageBase(json.imageBase);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch news", err);
+
+        const items = Array.isArray(json.data)
+          ? (json.data as MarketImpactNewsItem[])
+          : [];
+
+        const sliced = items.slice(
+          SKIP_LATEST_COUNT,
+          SKIP_LATEST_COUNT + DISPLAY_LIMIT,
+        );
+
+        setNewsData(sliced);
+      } catch {
+        setNewsData([]);
       } finally {
         setIsLoading(false);
         stop(token);
       }
     };
-    const initialTimer = window.setTimeout(fetchNews, 300);
-    return () => window.clearTimeout(initialTimer);
+
+    fetchNews();
   }, [start, stop]);
 
-  // Helper to strip html tags for summary safely on client side
   const stripHtml = (html: string) => {
-    if (typeof document === "undefined") return "";
-    const tmp = document.createElement("DIV");
+    if (typeof window === "undefined") return "";
+
+    const tmp = document.createElement("div");
     tmp.innerHTML = html;
+
     return tmp.textContent || tmp.innerText || "";
   };
 
   const displayItems = newsData.map((item, index) => {
-    const articleSlug = item.slug?.trim();
+    const slug = item.slug?.trim();
+    const title =
+      (locale === "en"
+        ? item.title_en || item.title_id
+        : item.title_id || item.title_en) || "Untitled news";
+
+    const content =
+      locale === "en"
+        ? item.content_en || item.content_id
+        : item.content_id || item.content_en;
+
+    const summaryText = stripHtml(content || "");
+
     const formattedDate = formatNewsDate(
       item.updated_at ?? item.created_at,
       locale,
     );
-    const title = resolvePortalNewsTitle(item, locale, "Judul berita");
-    const summaryText = stripHtml(resolvePortalNewsContent(item, locale));
+
+    const imageUrl =
+      resolvePortalNewsImageSrc(item.image_url) ||
+      "/images/news-placeholder.png";
+
+    const author = item.author;
 
     return {
-      key: `news-${item.id || index}`,
+      key: `impact-${item.id || index}`,
       title,
-      summary: summaryText ? `${summaryText.substring(0, 150)}...` : "-",
+      summary:
+        summaryText.length > 150
+          ? summaryText.slice(0, 150) + "..."
+          : summaryText,
       date: formattedDate,
-      href: articleSlug
-        ? `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${articleSlug}`
-        : undefined,
-      imageLabel: (() => {
-        if (item.images && item.images.length > 0) {
-          const firstImage = item.images[0];
-          if (firstImage.startsWith("http")) {
-            return firstImage;
-          }
-          const base = imageBase || NEWS_IMAGE_BASE;
-          const imagePath = firstImage.startsWith("/")
-            ? firstImage
-            : `/${firstImage}`;
-          return `${base}${imagePath}`;
-        }
-        return "./assets/Screenshot-2024-10-29-at-11.27.48.png";
-      })(),
+      href: slug
+        ? `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${resolveIndonesiaMarketNewsCategorySlugFromItem(item)}/${slug}`
+        : fullListHref,
+      imageLabel: imageUrl,
+      author,
     };
   });
 
@@ -159,10 +173,11 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
         link={fullListHref}
         linkLabel={viewAllLabel}
       />
-      <div className="px-4 py-5 space-y-4">
+
+      <div className="px-4 py-4 space-y-4">
         {isLoading ? (
           <div className="text-center text-sm font-semibold text-slate-500 py-4">
-            Memuat berita...
+            {locale === "en" ? "Loading news..." : "Memuat berita..."}
           </div>
         ) : displayItems.length > 0 ? (
           displayItems.map((impact) => (
@@ -173,12 +188,12 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
               date={impact.date}
               href={impact.href}
               imageLabel={impact.imageLabel}
-              ctaLabel={messages.common.readFullInsight}
+              ctaLabel={messages.common.readFull}
             />
           ))
         ) : (
           <div className="text-center text-sm font-semibold text-slate-500 py-4">
-            Berita tidak tersedia
+            {locale === "en" ? "News not available" : "Berita tidak tersedia"}
           </div>
         )}
       </div>

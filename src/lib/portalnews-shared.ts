@@ -15,18 +15,40 @@ export type PortalNewsCategory = {
 
 export type PortalNewsItem = {
   id?: number;
-  title?: string;
-  titles?: PortalNewsLocalizedText;
+  type?: string;
   slug?: string;
+
+  title?: string;
+  title_id?: string;
+  title_en?: string;
+  titles?: PortalNewsLocalizedText;
+
   content?: string;
+  content_id?: string;
+  content_en?: string;
   contents?: PortalNewsLocalizedText;
+
+  category?: string;
+  category_label?: string;
   category_id?: number;
+
   kategori?: PortalNewsCategory;
   main_category?: PortalNewsCategory;
   sub_category?: PortalNewsCategory;
+
+  image?: string;
+  image_url?: string;
   images?: string[];
+
   source?: string;
-  author?: string;
+  author?:
+    | string
+    | {
+        id?: number;
+        name?: string;
+        email?: string;
+      };
+
   created_at?: string;
   updated_at?: string;
 };
@@ -49,8 +71,8 @@ const resolveLocalizedText = (
 
   const preferred =
     normalizedLocale === "en"
-      ? value?.en ?? value?.default ?? value?.id
-      : value?.id ?? value?.default ?? value?.en;
+      ? (value?.en ?? value?.default ?? value?.id)
+      : (value?.id ?? value?.default ?? value?.en);
 
   return preferred ?? fallback ?? "";
 };
@@ -60,15 +82,13 @@ export const resolvePortalNewsTitle = (
   locale?: string | null,
   fallback = "",
 ) =>
-  resolveLocalizedText(item?.titles, locale, item?.title ?? fallback) || fallback;
+  resolveLocalizedText(item?.titles, locale, item?.title ?? fallback) ||
+  fallback;
 
 export const resolvePortalNewsContent = (
   item: PortalNewsLocalizedEntry | null | undefined,
   locale?: string | null,
   fallback = "",
 ) =>
-  resolveLocalizedText(
-    item?.contents,
-    locale,
-    item?.content ?? fallback,
-  ) || fallback;
+  resolveLocalizedText(item?.contents, locale, item?.content ?? fallback) ||
+  fallback;

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 type ImpactCardProps = {
   title: string;
@@ -15,11 +16,13 @@ export function ImpactCard({
   date,
   imageLabel,
   ctaLabel,
-  href = "#",
+  href,
 }: ImpactCardProps) {
+  const resolvedHref = href?.trim();
+
   return (
-    <div className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white shadow-sm sm:flex-row">
-      <div className="w-full overflow-hidden rounded-lg bg-slate-100 sm:w-1/2">
+    <div className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white shadow-sm sm:flex-row overflow-hidden">
+      <div className="w-full overflow-hidden bg-slate-100 sm:w-1/2">
         <div className="h-full max-h-50">
           <img
             src={imageLabel}
@@ -36,13 +39,22 @@ export function ImpactCard({
         </div>
         <div className="mt-2 flex items-center justify-between">
           <p className="text-[11px] text-slate-500">{date}</p>
-          {href ? (
-            <a
-              href={href}
-              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
-            >
-              {ctaLabel}
-            </a>
+          {resolvedHref ? (
+            resolvedHref.startsWith("/") ? (
+              <Link
+                href={resolvedHref}
+                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+              >
+                {ctaLabel}
+              </Link>
+            ) : (
+              <a
+                href={resolvedHref}
+                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+              >
+                {ctaLabel}
+              </a>
+            )
           ) : null}
         </div>
       </div>

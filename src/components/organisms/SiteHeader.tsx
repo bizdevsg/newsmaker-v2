@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { buildSearchPath } from "@/lib/portalnews-search";
 import { getMessages, type Locale } from "@/locales";
 import { lockScroll, unlockScroll } from "@/utils/scrollLock";
@@ -19,6 +20,8 @@ export function SiteHeader() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLangOpenDesktop, setIsLangOpenDesktop] = useState(false);
   const [isLangOpenMobile, setIsLangOpenMobile] = useState(false);
+  const [isIndonesiaMarketOpenMobile, setIsIndonesiaMarketOpenMobile] =
+    useState(false);
   const langDesktopRef = useRef<HTMLDivElement | null>(null);
   const langMobileRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -50,7 +53,6 @@ export function SiteHeader() {
   const [desktopSearchValue, setDesktopSearchValue] = useState("");
   const [mobileSearchValue, setMobileSearchValue] = useState("");
   const homeHref = `/${currentLocale}`;
-  const navItems = messages.header.navItems.filter((item) => item.key === "home");
   const changeLanguageLabel = messages.header.changeLanguageAria.replace(
     "{locale}",
     nextLocaleLabel,
@@ -66,7 +68,43 @@ export function SiteHeader() {
   }, [currentLocale]);
 
   const normalizedPath = pathname.replace(/\/$/, "") || `/${currentLocale}`;
-  const isNavActive = normalizedPath === homeHref;
+
+  const isActivePath = (href: string, options?: { exact?: boolean }) => {
+    if (options?.exact) return normalizedPath === href;
+    return normalizedPath === href || normalizedPath.startsWith(`${href}/`);
+  };
+
+  const navLabels = useMemo(() => {
+    if (currentLocale === "en") {
+      return {
+        home: "Home",
+        indonesiaMarket: "Indonesia Market",
+        stockMarket: "Stock Market",
+        commodities: "Commodities",
+        analysis: "Analysis",
+        regulation: "Regulation & Institutions",
+      };
+    }
+
+    return {
+      home: "Home",
+      indonesiaMarket: "Indonesia Market",
+      stockMarket: "Pasar Saham",
+      commodities: "Komoditas",
+      analysis: "Analisis",
+      regulation: "Regulasi & Institusi",
+    };
+  }, [currentLocale]);
+
+  const navLinks = useMemo(() => {
+    return {
+      home: homeHref,
+      analysis: `/${currentLocale}/indonesia-market/analysis`,
+      regulation: `/${currentLocale}/regulasi-institusi`,
+      stockMarket: `/${currentLocale}/indonesia-market/news/pasar-saham`,
+      commodities: `/${currentLocale}/indonesia-market/news/komoditas`,
+    };
+  }, [currentLocale, homeHref]);
 
   const setLanguage = (value: string) => {
     const next = value === "en" ? "en" : "id";
@@ -124,6 +162,7 @@ export function SiteHeader() {
   useEffect(() => {
     setIsMobileOpen(false);
     setIsLangOpenMobile(false);
+    setIsIndonesiaMarketOpenMobile(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -191,9 +230,16 @@ export function SiteHeader() {
               <span className="text-white/40">|</span>
               <Link
                 href={`https://ebook.newsmaker.id/`}
+                target="_blank"
                 className="hidden sm:inline hover:text-white transition capitalize"
               >
-                E-Book
+                <Image
+                  src="/assets/LOGO NM23 EBOOK-white 2.png"
+                  alt="E-Book"
+                  width={70}
+                  height={16}
+                  className="inline mr-1"
+                />
               </Link>
             </div>
             <div className="flex items-center gap-3">
@@ -206,7 +252,9 @@ export function SiteHeader() {
               >
                 <input
                   name="q"
-                  onChange={(event) => setDesktopSearchValue(event.target.value)}
+                  onChange={(event) =>
+                    setDesktopSearchValue(event.target.value)
+                  }
                   type="search"
                   placeholder={searchPlaceholder}
                   value={desktopSearchValue}
@@ -245,31 +293,83 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* <hr className="border border-white/20" /> */}
-
-      {/* <div className="px-4">
+      <div className="border-t border-white/15 bg-[#1061B3] px-4">
         <div className="mx-auto max-w-7xl">
-          <nav className="hidden items-center gap-6 py-0 sm:px-6 md:px-8 text-sm text-white/80 md:flex md:flex-wrap sm:justify-between">
-            {navItems.map((item) =>
-              (() => {
-                return (
-                  <Link
-                    key={item.key}
-                    href={homeHref}
-                    className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/80 after:transition-transform after:duration-200 ${
-                      isNavActive
-                        ? "text-white after:scale-x-100"
-                        : "text-white/70 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })(),
-            )}
+          <nav className="hidden items-center justify-center gap-8 text-sm font-semibold text-white/90 md:flex">
+            <Link
+              href={navLinks.home}
+              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
+                isActivePath(navLinks.home, { exact: true })
+                  ? "text-white after:scale-x-100"
+                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+              }`}
+            >
+              {navLabels.home}
+            </Link>
+
+            <div className="group relative">
+              <button
+                type="button"
+                className={`relative flex items-center gap-2 py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
+                  isActivePath(navLinks.stockMarket) ||
+                  isActivePath(navLinks.commodities)
+                    ? "text-white after:scale-x-100"
+                    : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+                }`}
+                aria-haspopup="menu"
+              >
+                <span>{navLabels.indonesiaMarket}</span>
+                <i className="fa-solid fa-chevron-down text-[10px] opacity-90" />
+              </button>
+
+              <div className="invisible absolute left-0 top-full z-50 mt-2 w-56 translate-y-1 rounded-lg border border-slate-200 bg-white py-1 text-sm font-semibold text-slate-700 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                <Link
+                  href={navLinks.stockMarket}
+                  className={`block px-4 py-2 transition-colors hover:bg-slate-50 ${
+                    isActivePath(navLinks.stockMarket)
+                      ? "text-blue-700"
+                      : "text-slate-700"
+                  }`}
+                >
+                  {navLabels.stockMarket}
+                </Link>
+                <Link
+                  href={navLinks.commodities}
+                  className={`block px-4 py-2 transition-colors hover:bg-slate-50 ${
+                    isActivePath(navLinks.commodities)
+                      ? "text-blue-700"
+                      : "text-slate-700"
+                  }`}
+                >
+                  {navLabels.commodities}
+                </Link>
+              </div>
+            </div>
+
+            <Link
+              href={navLinks.analysis}
+              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
+                isActivePath(navLinks.analysis)
+                  ? "text-white after:scale-x-100"
+                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+              }`}
+            >
+              {navLabels.analysis}
+            </Link>
+
+            <Link
+              href={navLinks.regulation}
+              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
+                isActivePath(navLinks.regulation)
+                  ? "text-white after:scale-x-100"
+                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+              }`}
+            >
+              {navLabels.regulation}
+            </Link>
           </nav>
         </div>
-      </div> */}
+      </div>
 
       <div
         id="mobile-nav"
@@ -350,9 +450,15 @@ export function SiteHeader() {
             <div className="mt-4 grid gap-2">
               <Link
                 href={`https://ebook.newsmaker.id/`}
-                className="flex w-full items-center justify-center rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 transition hover:border-blue-200 hover:text-blue-700"
+                className="flex w-full items-center justify-center rounded-md border border-slate-200 px-3 py-5 hover:bg-blue-50 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 transition hover:border-blue-200 hover:text-blue-700"
               >
-                E-Book
+                <Image
+                  src="/assets/LOGO NM23 EBOOK 3.png"
+                  alt="E-Book"
+                  width={100}
+                  height={16}
+                  className="inline mr-1"
+                />
               </Link>
             </div>
             <form
@@ -386,24 +492,88 @@ export function SiteHeader() {
           <hr className="border-blue-500/20" />
 
           <nav className="flex flex-col gap-2 px-4 pb-4 mt-4">
-            {navItems.map((item) =>
-              (() => {
-                return (
-                  <Link
-                    key={item.key}
-                    href={homeHref}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                      isNavActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-slate-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })(),
+            <Link
+              href={navLinks.home}
+              onClick={() => setIsMobileOpen(false)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                isActivePath(navLinks.home, { exact: true })
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
+              }`}
+            >
+              {navLabels.home}
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setIsIndonesiaMarketOpenMobile((prev) => !prev)}
+              className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                isActivePath(navLinks.stockMarket) ||
+                isActivePath(navLinks.commodities)
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
+              }`}
+              aria-expanded={isIndonesiaMarketOpenMobile}
+            >
+              <span>{navLabels.indonesiaMarket}</span>
+              <i
+                className={`fa-solid fa-chevron-down text-[10px] transition-transform ${
+                  isIndonesiaMarketOpenMobile ? "rotate-180" : ""
+                }`}
+                aria-hidden="true"
+              />
+            </button>
+
+            {isIndonesiaMarketOpenMobile && (
+              <div className="grid gap-2 rounded-lg bg-slate-50 p-2">
+                <Link
+                  href={navLinks.stockMarket}
+                  onClick={() => setIsMobileOpen(false)}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                    isActivePath(navLinks.stockMarket)
+                      ? "bg-white text-blue-700"
+                      : "text-slate-700 hover:bg-white hover:text-blue-700"
+                  }`}
+                >
+                  {navLabels.stockMarket}
+                </Link>
+                <Link
+                  href={navLinks.commodities}
+                  onClick={() => setIsMobileOpen(false)}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                    isActivePath(navLinks.commodities)
+                      ? "bg-white text-blue-700"
+                      : "text-slate-700 hover:bg-white hover:text-blue-700"
+                  }`}
+                >
+                  {navLabels.commodities}
+                </Link>
+              </div>
             )}
+
+            <Link
+              href={navLinks.analysis}
+              onClick={() => setIsMobileOpen(false)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                isActivePath(navLinks.analysis)
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
+              }`}
+            >
+              {navLabels.analysis}
+            </Link>
+
+            <Link
+              href={navLinks.regulation}
+              onClick={() => setIsMobileOpen(false)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                isActivePath(navLinks.regulation)
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
+              }`}
+            >
+              {navLabels.regulation}
+            </Link>
           </nav>
         </aside>
       </div>

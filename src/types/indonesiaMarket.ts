@@ -119,3 +119,20 @@ export type LiveQuoteResponse = {
   total?: number;
   data?: LiveQuoteItem[];
 };
+
+export type JfxVolumeRow = {
+  label?: string;
+  raw_y?: string;
+  volume?: number;
+};
+
+export type JfxVolumeResponse = {
+  data?: JfxVolumeRow[];
+  year?: number;
+  month?: number;
+  count?: number;
+  token?: string;
+  source?: string;
+  fetched_at?: string;
+  cache?: string;
+};

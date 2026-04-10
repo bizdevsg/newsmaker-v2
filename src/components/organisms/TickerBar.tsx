@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLoading } from "../providers/LoadingProvider";
-import {
-  isIndonesiaMarketAnalysisArticle,
-  isIndonesiaMarketNewsArticle,
-} from "@/lib/indonesia-market-sections";
 import { resolvePortalNewsTitle } from "@/lib/portalnews-shared";
+import {
+  INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH,
+  INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH,
+} from "@/lib/indonesia-market-sections";
+import type { Locale } from "@/locales";
 
 type TickerBarProps = {
+  locale?: Locale;
   topNews?: string;
 };
 
@@ -24,7 +26,8 @@ type LiveTick = {
 };
 
 type NewsItem = {
-  id: number;
+  id?: number | string;
+  type?: string;
   title?: string;
   titles?: {
     default?: string;
@@ -54,11 +57,11 @@ type MarketApiResponse = {
 };
 
 const MARKET_API_URL = "/api/market";
-const NEWS_API_URL = `/api/portalnews?limit=24`;
+const NEWS_API_URL = `/api/ticker-news`;
 const MARKET_REFRESH_INTERVAL_MS = 1000;
 const NEWS_REFRESH_INTERVAL_MS = 300_000;
 const MARKET_TICK_LIMIT = 10;
-const NEWS_TICK_LIMIT = 8;
+const NEWS_TICK_LIMIT = 5;
 
 const MARKET_SYMBOL_LABELS = new Map<string, string>([
   ["^JKSE", "IHSG"],
@@ -106,9 +109,16 @@ const fetchJson = async <T,>(url: string): Promise<T | null> => {
   }
 };
 
-export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
+export function TickerBar({
+  locale: localeProp,
+  topNews = "Trending",
+}: TickerBarProps) {
   const { start, stop } = useLoading();
-  const { locale } = useParams<{ locale?: string }>();
+  const params = useParams();
+  const rawLocale = params?.locale;
+  const localeParam = Array.isArray(rawLocale) ? rawLocale[0] : rawLocale;
+  const resolvedLocale =
+    localeProp === "en" ? "en" : localeParam === "en" ? "en" : "id";
   const [liveTicks, setLiveTicks] = useState<LiveTick[]>([]);
   const [newsTicks, setNewsTicks] = useState<LiveTick[]>([]);
 
@@ -178,14 +188,29 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
       };
     };
 
-    const toNewsTick = (item: NewsItem): LiveTick => ({
-      key: `news-${item.id}`,
-      priceText: resolvePortalNewsTitle(item, locale, "Latest update"),
-    });
+    const toNewsTick = (item: NewsItem, index: number): LiveTick => {
+      const slug = item.slug?.trim();
+      const basePath =
+        item.type === "analisis"
+          ? INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH
+          : item.type === "regulasi-institusi"
+            ? "regulasi-institusi"
+            : INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH;
 
-    const isAllowedNewsItem = (item: NewsItem) =>
-      isIndonesiaMarketNewsArticle(item) ||
-      isIndonesiaMarketAnalysisArticle(item);
+      const href = slug
+        ? `/${resolvedLocale}/${basePath}/${encodeURIComponent(slug)}`
+        : `/${resolvedLocale}/${basePath}`;
+
+      return {
+        key: `news-${item.id ?? slug ?? index}`,
+        priceText: resolvePortalNewsTitle(
+          item,
+          resolvedLocale,
+          "Latest update",
+        ),
+        href,
+      };
+    };
 
     const loadMarket = async () => {
       if (isFetchingMarket) {
@@ -224,9 +249,8 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
         if (!isActive || payload?.status !== "success") return;
         const items = Array.isArray(payload.data) ? payload.data : [];
         const nextNews = items
-          .filter(isAllowedNewsItem)
           .slice(0, NEWS_TICK_LIMIT)
-          .map(toNewsTick);
+          .map((item: NewsItem, index: number) => toNewsTick(item, index));
         if (nextNews.length) {
           setNewsTicks(nextNews);
         }
@@ -258,7 +282,7 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
         stop(loadingToken);
       }
     };
-  }, [locale, start, stop]);
+  }, [resolvedLocale, start, stop]);
 
   const tickStream = useMemo(() => {
     const group: Array<
@@ -298,6 +322,10 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
       : "text-white/85";
     const wrapperClass =
       "inline-flex items-center gap-2 transition-colors hover:text-white";
+    const newsLinkLabel = resolvedLocale === "en" ? "Open news" : "Buka berita";
+    const linkClass = item.symbol
+      ? `${wrapperClass} cursor-pointer hover:underline`
+      : `${wrapperClass} cursor-pointer hover:underline focus-visible:underline underline-offset-4 decoration-current`;
     const content = item.symbol ? (
       <>
         <span className={symbolClass}>{item.symbol}</span>
@@ -318,8 +346,8 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
         >
           <Link
             href={item.href}
-            className={`${wrapperClass} hover:underline`}
-            aria-label={`Buka berita: ${item.priceText}`}
+            className={linkClass}
+            aria-label={`${newsLinkLabel}: ${item.priceText}`}
           >
             {content}
           </Link>
@@ -348,18 +376,52 @@ export function TickerBar({ topNews = "Trending" }: TickerBarProps) {
   };
 
   return (
-    <div className="flex justify-center overflow-x-clip bg-[#1061B3]">
+    <div className="flex justify-center overflow-x-clip pl-4 bg-[#1061B3]">
       <div className="ticker-wrapper flex w-full min-w-0 max-w-7xl items-center gap-4 overflow-hidden py-2 text-[11px] font-medium text-white shadow-lg sm:text-xs">
         {/* Top News / Label */}
-        <div className=" absolute bg-linear-to-r from-[#1061B3] my-2 z-10">
-          <div className="flex shrink-0 items-center ml-4 sm:ml-0 gap-2 rounded-l-full bg-linear-to-r from-white via-white/80 p-0.5 pr-16">
-            <p className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
-              <i className="fa-solid fa-bolt text-[10px]" aria-hidden="true" />
-            </p>
-
-            <p className="text-[10px] text-nowrap font-bold uppercase tracking-[0.2em] text-red-800 sm:text-[11px]">
+        <div className="absolute bg-linear-to-r from-[#1061B3] via-[#1061B3] my-2 z-10">
+          <div className="flex items-center">
+            <p className="text-[10px] text-nowrap font-bold uppercase tracking-[0.2em] text-whhite sm:text-[11px]">
               {topNews}
             </p>
+
+            <div className="flex shrink-0 items-center ml-1 sm:ml-1 gap-2 rounded-l-full bg-linear-to-r from-white via-white/50 p-0.5 pr-10">
+              <p className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
+                {/* <i className="fa-solid fa-bolt-lightning text-[10px]"></i> */}
+                <svg
+                  width="140px"
+                  height="140px"
+                  viewBox="-2.4 -2.4 28.80 28.80"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  stroke="#ffffff"
+                >
+                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                  <g
+                    id="SVGRepo_tracerCarrier"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    stroke="#CCCCCC"
+                    strokeWidth="0.288"
+                  ></g>
+                  <g id="SVGRepo_iconCarrier">
+                    {" "}
+                    <path
+                      opacity="0.15"
+                      d="M16 4H9L6 13H10L8 21L19 10H13.6L16 4Z"
+                      fill="#ffffff"
+                    ></path>{" "}
+                    <path
+                      d="M16 4H9L6 13H10L8 21L19 10H13.6L16 4Z"
+                      stroke="#ffffff"
+                      strokeWidth="0.9120000000000001"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>{" "}
+                  </g>
+                </svg>
+              </p>
+            </div>
           </div>
         </div>
 

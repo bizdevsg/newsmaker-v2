@@ -27,7 +27,7 @@ const resolveSnapshotHref = (
     case "bappebti-circular":
       return { href: `/${locale}/regulasi-bappebti`, external: false };
     case "bbj-activity":
-      return { href: "https://www.bbj-jfx.com/", external: true };
+      return { href: `/${locale}/bbj-volume`, external: false };
     default:
       return { href: undefined, external: false };
   }

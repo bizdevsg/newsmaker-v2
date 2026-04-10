@@ -7,6 +7,7 @@ type ButtonVariant =
   | "primaryAlt"
   | "secondaryAlt";
 type ButtonSize = "sm" | "md";
+type ButtonAs = "button" | "a" | "span";
 
 type ButtonProps = {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ type ButtonProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
   className?: string;
+  as?: ButtonAs;
 };
 
 const base =
@@ -28,10 +30,12 @@ const sizes: Record<ButtonSize, string> = {
 const variants: Record<ButtonVariant, string> = {
   primary: "rounded-md bg-blue-600 text-white hover:bg-blue-700",
   outline:
-    "rounded-md border border-slate-200 text-blue-700 hover:bg-slate-100 hover:text-slate-800",
-  ghost: "rounded-md text-blue-700 hover:bg-slate-100",
-  primaryAlt: "rounded bg-blue-800 text-blue-700 hover:bg-blue-700",
-  secondaryAlt: "rounded bg-blue-200 text-gray-800 hover:bg-blue-300",
+    "rounded-md border border-slate-200 text-blue-700  group-hover:bg-slate-100  hover:bg-slate-100 group-hover:text-slate-800 hover:text-slate-800",
+  ghost: "rounded-md text-blue-700 group-hover:bg-slate-100 hover:bg-slate-100",
+  primaryAlt:
+    "rounded bg-blue-800 text-blue-700 group-hover:bg-blue-700 hover:bg-blue-700",
+  secondaryAlt:
+    "rounded bg-blue-200 text-gray-800 group-hover:bg-blue-300 hover:bg-blue-300",
 };
 
 export function Button({
@@ -41,10 +45,15 @@ export function Button({
   variant = "primary",
   size = "md",
   className = "",
+  as,
 }: ButtonProps) {
   const classes = `${base} ${sizes[size]} ${variants[variant]} ${className}`;
 
-  if (href) {
+  if (as === "span") {
+    return <span className={classes}>{children}</span>;
+  }
+
+  if (href && as !== "button") {
     return (
       <a href={href} className={classes}>
         {children}

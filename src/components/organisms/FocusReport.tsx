@@ -19,7 +19,7 @@ export function FocusReport({ locale, messages }: FocusReportProps) {
         link={`/${locale}/live-quotes`}
         linkLabel={messages.focusReport.ctaLabel}
       />
-      <div className="px-4 pb-5 pt-4">
+      <div className="px-4 py-5">
         <LiveQuotesBoard
           messages={messages}
           title={messages.focusReport.title}

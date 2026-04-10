@@ -1,6 +1,12 @@
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
-import type { PortalNewsCategory, PortalNewsItem } from "@/lib/portalnews-shared";
-export type { PortalNewsCategory, PortalNewsItem } from "@/lib/portalnews-shared";
+import type {
+  PortalNewsCategory,
+  PortalNewsItem,
+} from "@/lib/portalnews-shared";
+export type {
+  PortalNewsCategory,
+  PortalNewsItem,
+} from "@/lib/portalnews-shared";
 
 export type PortalNewsSource = "newsmaker" | "legacy";
 
@@ -24,8 +30,7 @@ const derivedNewsmakerBaseUrl = PRIMARY_NEWS_LIST_URL
   : "";
 
 const NEWSMAKER_BASE_URL =
-  process.env.PORTALNEWS_NEWSMAKER_BASE_URL ??
-  derivedNewsmakerBaseUrl;
+  process.env.PORTALNEWS_NEWSMAKER_BASE_URL ?? derivedNewsmakerBaseUrl;
 
 const NEWS_CATEGORIES_URL =
   process.env.PORTALNEWS_NEWS_CATEGORIES_URL ??
@@ -51,6 +56,17 @@ const NEWS_TOKEN =
   process.env.PORTALNEWS_TOKEN ??
   process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ??
   "";
+
+const PASAR_INDONESIA_NEWS_URL =
+  process.env.PORTALNEWS_PASAR_INDONESIA_URL ??
+  (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/pasar-indonesia/berita` : "");
+
+const PASAR_INDONESIA_ANALYSIS_URL =
+  process.env.PORTALNEWS_PASAR_INDONESIA_ANALYSIS_URL ??
+  (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/pasar-indonesia/analisis` : "");
+
+const PASAR_INDONESIA_TOKEN =
+  process.env.PORTALNEWS_PASAR_INDONESIA_TOKEN ?? "";
 
 export const PORTALNEWS_IMAGE_BASE = (
   process.env.PORTALNEWS_IMAGE_BASE ??
@@ -122,26 +138,31 @@ const normalizeLocalizedPair = (idValue?: string, enValue?: string) => {
   };
 };
 
-const getRequestHeaders = (): Record<string, string> => {
+const getRequestHeaders = (token?: string): Record<string, string> => {
   const headers: Record<string, string> = {
     Accept: "application/json",
   };
 
-  if (NEWS_TOKEN) {
-    headers.Authorization = `Bearer ${NEWS_TOKEN}`;
+  const authToken = token ?? NEWS_TOKEN;
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+    headers["X-API-TOKEN"] = authToken;
   }
 
   return headers;
 };
 
-const fetchJson = async (url: string): Promise<FetchJsonResult> => {
+const fetchJson = async (
+  url: string,
+  token?: string,
+): Promise<FetchJsonResult> => {
   if (!url) {
     return { ok: false, status: 0, payload: null };
   }
 
   try {
     const response = await fetchWithTimeout(url, {
-      headers: getRequestHeaders(),
+      headers: getRequestHeaders(token),
       cache: "no-store",
     });
     const payload = await response.json().catch(() => null);
@@ -156,9 +177,7 @@ const fetchJson = async (url: string): Promise<FetchJsonResult> => {
   }
 };
 
-const normalizeCategoryRecord = (
-  value: unknown,
-): PortalNewsCategory | null => {
+const normalizeCategoryRecord = (value: unknown): PortalNewsCategory | null => {
   if (!isRecord(value)) {
     return null;
   }
@@ -168,7 +187,9 @@ const normalizeCategoryRecord = (
     name: typeof value.name === "string" ? value.name : undefined,
     slug: typeof value.slug === "string" ? value.slug : undefined,
     articles_count:
-      typeof value.articles_count === "number" ? value.articles_count : undefined,
+      typeof value.articles_count === "number"
+        ? value.articles_count
+        : undefined,
   };
 };
 
@@ -181,6 +202,14 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
   const subCategory = normalizeCategoryRecord(value.sub_category);
   const mainCategory = normalizeCategoryRecord(value.main_category);
   const primaryCategory = category ?? subCategory ?? mainCategory;
+  const inferredCategory: PortalNewsCategory | null =
+    !primaryCategory && value.type === "analisis"
+      ? {
+          name: "Analisis Market",
+          slug: "analisis-market",
+        }
+      : null;
+  const resolvedPrimaryCategory = primaryCategory ?? inferredCategory;
 
   const titlesRecord = isRecord(value.titles) ? value.titles : null;
   const contentsRecord = isRecord(value.contents) ? value.contents : null;
@@ -243,7 +272,8 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
 
   const rawImages = Array.isArray(value.images)
     ? value.images.filter(
-        (image): image is string => typeof image === "string" && image.length > 0,
+        (image): image is string =>
+          typeof image === "string" && image.length > 0,
       )
     : [];
 
@@ -256,7 +286,10 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
 
   return {
     id: typeof value.id === "number" ? value.id : undefined,
+    type: typeof value.type === "string" ? value.type : undefined,
     title,
+    title_id: titleId ?? undefined,
+    title_en: titleEn ?? undefined,
     titles: title
       ? {
           default: title,
@@ -266,6 +299,8 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
       : undefined,
     slug: typeof value.slug === "string" ? value.slug : undefined,
     content,
+    content_id: contentId ?? undefined,
+    content_en: contentEn ?? undefined,
     contents: content
       ? {
           default: content,
@@ -273,6 +308,13 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
           en: contentEn ?? content ?? contentId,
         }
       : undefined,
+
+    category: typeof value.category === "string" ? value.category : undefined,
+    category_label:
+      typeof value.category_label === "string"
+        ? value.category_label
+        : undefined,
+
     category_id:
       typeof value.category_id === "number"
         ? value.category_id
@@ -280,15 +322,38 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
           ? value.sub_category_id
           : typeof value.main_category_id === "number"
             ? value.main_category_id
-            : primaryCategory?.id,
-    kategori: primaryCategory ?? undefined,
+            : resolvedPrimaryCategory?.id,
+
+    kategori: resolvedPrimaryCategory ?? undefined,
     main_category: mainCategory ?? undefined,
     sub_category: subCategory ?? undefined,
+
+    image: typeof value.image === "string" ? value.image : undefined,
+    image_url: typeof value.image_url === "string" ? value.image_url : imageUrl,
     images: rawImages.length > 0 ? rawImages : imageUrl ? [imageUrl] : [],
+
     source: typeof value.source === "string" ? value.source : undefined,
-    author: typeof value.author === "string" ? value.author : undefined,
-    created_at: typeof value.created_at === "string" ? value.created_at : undefined,
-    updated_at: typeof value.updated_at === "string" ? value.updated_at : undefined,
+
+    author: isRecord(value.author)
+      ? {
+          id: typeof value.author.id === "number" ? value.author.id : undefined,
+          name:
+            typeof value.author.name === "string"
+              ? value.author.name
+              : undefined,
+          email:
+            typeof value.author.email === "string"
+              ? value.author.email
+              : undefined,
+        }
+      : typeof value.author === "string"
+        ? value.author
+        : undefined,
+
+    created_at:
+      typeof value.created_at === "string" ? value.created_at : undefined,
+    updated_at:
+      typeof value.updated_at === "string" ? value.updated_at : undefined,
   };
 };
 
@@ -359,9 +424,7 @@ const normalizePayloadItem = (payload: unknown): PortalNewsItem | null => {
       return normalizedCandidate;
     }
     if (Array.isArray(candidate)) {
-      const [first] = candidate
-        .map(normalizeItemRecord)
-        .filter(isNonNullable);
+      const [first] = candidate.map(normalizeItemRecord).filter(isNonNullable);
       if (first) {
         return first;
       }
@@ -448,7 +511,9 @@ export const buildPortalNewsImageUrl = (imagePath?: string | null) => {
   if (!imagePath) return null;
   if (imagePath.startsWith("http")) return imagePath;
 
-  const normalizedPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
+  const normalizedPath = imagePath.startsWith("/")
+    ? imagePath
+    : `/${imagePath}`;
   return PORTALNEWS_IMAGE_BASE
     ? `${PORTALNEWS_IMAGE_BASE}${normalizedPath}`
     : normalizedPath;
@@ -518,6 +583,22 @@ export async function fetchPortalNewsArticle(slug: string): Promise<{
   const normalizedSlug = slug.trim();
   const detailRequests = [
     {
+      url: `${
+        PASAR_INDONESIA_NEWS_URL ||
+        "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita"
+      }/${normalizedSlug}`,
+      source: "newsmaker" as const,
+      token: PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ",
+    },
+    {
+      url: `${
+        PASAR_INDONESIA_ANALYSIS_URL ||
+        "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis"
+      }/${normalizedSlug}`,
+      source: "newsmaker" as const,
+      token: PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ",
+    },
+    {
       url: PRIMARY_NEWS_DETAIL_URL
         ? `${PRIMARY_NEWS_DETAIL_URL}/${normalizedSlug}`
         : "",
@@ -538,7 +619,7 @@ export async function fetchPortalNewsArticle(slug: string): Promise<{
   ].filter((request) => Boolean(request.url));
 
   for (const request of detailRequests) {
-    const result = await fetchJson(request.url);
+    const result = await fetchJson(request.url, request.token);
     const item = normalizePayloadItem(result.payload);
 
     if (result.ok && item) {
@@ -554,5 +635,44 @@ export async function fetchPortalNewsArticle(slug: string): Promise<{
   return {
     item: items.find((item) => item.slug === normalizedSlug) ?? null,
     source,
+  };
+}
+
+export async function fetchPasarIndonesiaNews(): Promise<{
+  items: PortalNewsItem[];
+  source: PortalNewsSource;
+}> {
+  const url =
+    PASAR_INDONESIA_NEWS_URL ||
+    "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita";
+  const token = PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
+
+  const result = await fetchJson(url, token);
+  const items = extractItemArray(result.payload);
+
+  // Always return items from pasar-indonesia endpoint, even if empty
+  // Don't fallback to generic news list for related/popular/latest sections
+  return {
+    items,
+    source: "newsmaker",
+  };
+}
+
+export async function fetchPasarIndonesiaAnalysis(): Promise<{
+  items: PortalNewsItem[];
+  source: PortalNewsSource;
+}> {
+  const url =
+    PASAR_INDONESIA_ANALYSIS_URL ||
+    "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis";
+  const token = PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
+
+  const result = await fetchJson(url, token);
+  const items = extractItemArray(result.payload);
+
+  // Always return items from pasar-indonesia endpoint, even if empty
+  return {
+    items,
+    source: "newsmaker",
   };
 }

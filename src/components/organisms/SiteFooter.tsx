@@ -20,9 +20,80 @@ const isExternalHref = (href: string) => /^(https?:|mailto:|tel:)/i.test(href);
 export function SiteFooter({ locale, messages }: SiteFooterProps) {
   const currentYear = new Date().getFullYear();
   const homeHref = `/${locale}`;
-  const footerColumns = messages.footer.columns.filter(
+  const navLabels =
+    locale === "en"
+      ? {
+          home: "Home",
+          indonesiaMarket: "Indonesia Market",
+          stockMarket: "Stock Market",
+          commodities: "Commodities",
+          analysis: "Analysis",
+          regulation: "Regulation & Institutions",
+        }
+      : {
+          home: "Home",
+          indonesiaMarket: "Indonesia Market",
+          stockMarket: "Pasar Saham",
+          commodities: "Komoditas",
+          analysis: "Analisis",
+          regulation: "Regulasi & Institusi",
+        };
+
+  type FooterNavLink = {
+    key: string;
+    label: string;
+    href: string;
+    className?: string;
+  };
+
+  const navigationLinks: FooterNavLink[] = [
+    { key: "home", label: navLabels.home, href: homeHref },
+    {
+      key: "indonesia-market",
+      label: navLabels.indonesiaMarket,
+      href: `/${locale}/indonesia-market/news/all`,
+    },
+    {
+      key: "indonesia-market:stock-market",
+      label: navLabels.stockMarket,
+      href: `/${locale}/indonesia-market/news/pasar-saham`,
+      className: "pl-3 text-white/75",
+    },
+    {
+      key: "indonesia-market:commodities",
+      label: navLabels.commodities,
+      href: `/${locale}/indonesia-market/news/komoditas`,
+      className: "pl-3 text-white/75",
+    },
+    {
+      key: "analysis",
+      label: navLabels.analysis,
+      href: `/${locale}/indonesia-market/analysis`,
+    },
+    {
+      key: "regulation",
+      label: navLabels.regulation,
+      href: `/${locale}/regulasi-institusi`,
+    },
+  ];
+
+  const baseColumns = messages.footer.columns.filter(
     (column) => column.key === "navigation" || column.key === "contact",
   );
+
+  const footerColumns = baseColumns.map((column) => {
+    if (column.key !== "navigation") return column;
+
+    return {
+      ...column,
+      links: navigationLinks.map((link) => ({
+        key: link.key,
+        label: link.label,
+        href: link.href,
+        className: link.className,
+      })),
+    };
+  });
   const resolveFooterHref = (
     columnKey: string,
     linkKey: string,
@@ -77,6 +148,11 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
                           link.key,
                           link.href,
                         );
+                        const extraClass =
+                          typeof (link as unknown as { className?: string })
+                            .className === "string"
+                            ? (link as unknown as { className: string }).className
+                            : "";
 
                         if (isExternalHref(resolvedHref)) {
                           return (
@@ -84,7 +160,7 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
                               href={resolvedHref}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="transition hover:text-white"
+                              className={`transition hover:text-white ${extraClass}`.trim()}
                             >
                               {link.label}
                             </a>
@@ -94,7 +170,7 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
                         return (
                           <Link
                             href={resolvedHref}
-                            className="transition hover:text-white"
+                            className={`transition hover:text-white ${extraClass}`.trim()}
                           >
                             {link.label}
                           </Link>

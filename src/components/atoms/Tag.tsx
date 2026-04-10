@@ -9,7 +9,7 @@ type TagProps = {
 };
 
 const tones: Record<TagTone, string> = {
-  blue: "bg-slate-100 text-blue-700",
+  blue: "bg-blue-100 text-blue-700",
   slate: "bg-slate-100 text-slate-800",
   emerald: "bg-slate-200 text-blue-600",
 };
@@ -25,5 +25,3 @@ export function Tag({ children, tone = "slate", className = "" }: TagProps) {
     </span>
   );
 }
-
-

@@ -1,12 +1,14 @@
 {
   "common": {
     "readFullInsight": "Baca Analisis Lengkap",
+    "readFull": "Baca Selengkapnya...",
     "readMore": "Baca Lainnya",
-    "viewReport": "Lihat Laporan"
+    "viewReport": "Lihat Laporan",
+    "news": "Berita"
   },
   "widgets": {
     "tickerBar": {
-      "topNews": "Berita Terkini"
+      "topNews": "Trending"
     },
     "calendarEkonomi": {
       "title": "Kalender Ekonomi",
@@ -188,7 +190,7 @@
     ]
   },
   "regulatoryWatch": {
-    "title": "Pantauan Regulasi & Institusi",
+    "title": "Regulasi & Institusi",
     "ctaLabel": "Baca Lainnya",
     "actionLabel": "Baca Lainnya",
     "items": [
@@ -648,14 +650,14 @@
       "results": "hasil",
       "backToCategories": "Kembali ke Kategori",
       "latestNews": "Berita Terkini",
-      "popularNews": "Berita Populer",
-      "relatedNews": "Berita Terkait",
+      "popularNews": "Berita Terkait",
       "loadingArticle": "Memuat Artikel...",
       "loadingArticles": "Memuat berita...",
       "articleNotFound": "Artikel tidak ditemukan.",
       "backTo": "← Kembali ke",
       "source": "Sumber",
       "copied": "Tersalin!",
+      "by": "oleh",
       "searchBtn": "Cari",
       "closeSearch": "Tutup",
       "searchNews": "Cari Berita"

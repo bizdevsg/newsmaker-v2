@@ -13,7 +13,7 @@ export function Card({
 }: CardProps) {
   return (
     <Component
-      className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`.trim()}
+      className={`rounded-xl border border-blue-200 bg-white shadow-sm shadow-blue-300/50 ${className}`.trim()}
     >
       {children}
     </Component>

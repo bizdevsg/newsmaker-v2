@@ -1,20 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLoading } from "../providers/LoadingProvider";
 import type { Messages } from "@/locales";
-import {
-  resolvePortalNewsContent,
-  resolvePortalNewsTitle,
-} from "@/lib/portalnews-shared";
-
-const stripHtml = (html: string) =>
-  html
-    .replace(/<[^>]*>/g, "")
-    .replace(/&[a-z]+;/gi, " ")
-    .trim();
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
+import { RotatingAdSlot } from "@/components/molecules/RotatingAdSlot";
+import { SectionHeader } from "../molecules/SectionHeader";
 
 const formatArticleHtml = (value: string) =>
   value
@@ -23,9 +16,49 @@ const formatArticleHtml = (value: string) =>
     .replace(/\s(?:class|style|lang|align)=([^\s>]+)/gi, "")
     .replace(/<p>\s*(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/gi, "");
 
+type NewsArticleAuthor =
+  | string
+  | {
+      id?: number;
+      name?: string;
+      email?: string;
+    };
+
+type NewsArticleItem = {
+  id?: number;
+  type?: string;
+  slug?: string;
+  image?: string;
+  image_url?: string;
+  title_id?: string;
+  title_en?: string;
+  content_id?: string;
+  content_en?: string;
+  category?: string;
+  category_label?: string;
+  source?: string;
+  author?: NewsArticleAuthor;
+  created_at?: string;
+  updated_at?: string;
+};
+
+const resolveAuthorName = (author?: NewsArticleAuthor) => {
+  if (!author) return "";
+  if (typeof author === "string") return author.trim();
+  return author.name?.trim() || "";
+};
+
+type NewsArticlePayload = {
+  status?: string;
+  imageBase?: string;
+  data?: NewsArticleItem | null;
+  latest?: NewsArticleItem[];
+  related?: NewsArticleItem[];
+};
+
 type NewsArticleDetailProps = {
   slug: string;
-  categorySlug: string;
+  categorySlug?: string;
   initialData?: NewsArticlePayload;
   locale: string;
   isEconomic?: boolean;
@@ -37,33 +70,114 @@ type NewsArticleDetailProps = {
   messages?: Messages;
 };
 
-type NewsArticleItem = {
-  id?: number;
-  title?: string;
-  titles?: {
-    default?: string;
-  };
-  content?: string;
-  slug?: string;
-  source?: string;
-  category_id?: number;
-  created_at?: string;
-  updated_at?: string;
-  images?: string[];
-  kategori?: {
-    name?: string;
-    slug?: string;
-  };
+const resolveTitle = (
+  article: NewsArticleItem | null | undefined,
+  locale: string,
+  fallback = "Judul berita",
+) => {
+  if (!article) return fallback;
+
+  if (locale === "en") {
+    return article.title_en?.trim() || article.title_id?.trim() || fallback;
+  }
+
+  return article.title_id?.trim() || article.title_en?.trim() || fallback;
 };
 
-type NewsArticlePayload = {
-  status?: string;
-  imageBase?: string;
-  data?: NewsArticleItem | null;
-  latest?: NewsArticleItem[];
-  related?: NewsArticleItem[];
-  popular?: NewsArticleItem[];
+const resolveContent = (
+  article: NewsArticleItem | null | undefined,
+  locale: string,
+  fallback = "",
+) => {
+  if (!article) return fallback;
+
+  if (locale === "en") {
+    return article.content_en?.trim() || article.content_id?.trim() || fallback;
+  }
+
+  return article.content_id?.trim() || article.content_en?.trim() || fallback;
 };
+
+const formatArticleDateTime = (value: string | undefined, locale: string) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const dateLocale = locale === "id" ? "id-ID" : "en-US";
+
+  const dateParts = new Intl.DateTimeFormat(dateLocale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).formatToParts(parsed);
+
+  const timeParts = new Intl.DateTimeFormat(dateLocale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(parsed);
+
+  const getPart = (
+    parts: Intl.DateTimeFormatPart[],
+    type: Intl.DateTimeFormatPartTypes,
+  ) => parts.find((part) => part.type === type)?.value;
+
+  const weekday = getPart(dateParts, "weekday");
+  const day = getPart(dateParts, "day");
+  const month = getPart(dateParts, "month");
+  const year = getPart(dateParts, "year");
+
+  const hour = getPart(timeParts, "hour");
+  const minute = getPart(timeParts, "minute");
+
+  if (!weekday || !day || !month || !year || !hour || !minute) return "";
+
+  return `${weekday}, ${day} ${month} ${year} ${hour}.${minute}`;
+};
+
+const htmlToPlainText = (html: string) => {
+  const normalized = String(html ?? "")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|section|article|header|footer|h[1-6])>/gi, "\n\n")
+    .replace(/<li\b[^>]*>/gi, "\n- ")
+    .replace(/<\/li>/gi, "")
+    .replace(/<[^>]+>/g, " ");
+
+  const decoded =
+    typeof DOMParser === "undefined"
+      ? normalized
+      : (new DOMParser().parseFromString(
+          `<div>${normalized}</div>`,
+          "text/html",
+        ).body.textContent ?? normalized);
+
+  const lines = decoded
+    .replace(/\u00A0/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .reduce<string[]>((acc, line) => {
+      if (!line) {
+        if (acc[acc.length - 1] === "") return acc;
+        acc.push("");
+        return acc;
+      }
+      acc.push(line);
+      return acc;
+    }, []);
+
+  return lines.join("\n").trim();
+};
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 export function NewsArticleDetail({
   slug,
@@ -80,13 +194,12 @@ export function NewsArticleDetail({
 }: NewsArticleDetailProps) {
   const { start, stop } = useLoading();
 
-  // Bilingual labels
   const nc = messages?.equities?.newsCategories ?? {
     marketNewsTitle: "Market News",
     economicNewsTitle: "Economic News",
     latestNews: "Latest News",
-    popularNews: "Popular News",
-    relatedNews: "Related News",
+    popularNews: "Berita Terkait",
+    relatedNews: "Berita Terkait",
     loadingArticle: "Loading Article...",
     articleNotFound: "Article not found.",
     backTo: "← Back to",
@@ -95,9 +208,8 @@ export function NewsArticleDetail({
     searchBtn: "Search",
     closeSearch: "Close",
     searchNews: "Search News",
+    by: locale === "en" ? "by" : "oleh",
   };
-
-  const dateLocale = locale === "id" ? "id-ID" : "en-US";
 
   const [article, setArticle] = useState<NewsArticleItem | null>(
     initialData?.data ?? null,
@@ -108,13 +220,12 @@ export function NewsArticleDetail({
   const [latest, setLatest] = useState<NewsArticleItem[]>(
     Array.isArray(initialData?.latest) ? initialData.latest : [],
   );
-  const [popular, setPopular] = useState<NewsArticleItem[]>(
-    Array.isArray(initialData?.popular) ? initialData.popular : [],
-  );
   const [loading, setLoading] = useState(!initialData);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [heroImageError, setHeroImageError] = useState(false);
   const [imageBase, setImageBase] = useState(initialData?.imageBase ?? "");
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copyScopeRef = useRef<HTMLDivElement | null>(null);
+
   const normalizedDetailBasePath = detailBasePath
     ?.replace(/^\/+/, "")
     .replace(/\/+$/, "");
@@ -124,7 +235,6 @@ export function NewsArticleDetail({
       setArticle(initialData.data ?? null);
       setLatest(Array.isArray(initialData.latest) ? initialData.latest : []);
       setRelated(Array.isArray(initialData.related) ? initialData.related : []);
-      setPopular(Array.isArray(initialData.popular) ? initialData.popular : []);
       setImageBase(
         typeof initialData.imageBase === "string" ? initialData.imageBase : "",
       );
@@ -136,23 +246,27 @@ export function NewsArticleDetail({
 
     const fetchData = async () => {
       const token = start("news-article-detail");
+
       try {
         const res = await fetch(
-          `/api/portalnews?slug=${encodeURIComponent(slug)}&latestLimit=5&relatedLimit=3&popularLimit=5`,
+          `/api/portalnews/pasar-indonesia?slug=${encodeURIComponent(
+            slug,
+          )}&latestLimit=5&relatedLimit=5`,
           {
             cache: "no-store",
           },
         );
+
         const json = (await res
           .json()
           .catch(() => null)) as NewsArticlePayload | null;
+
         if (!res.ok || !json) return;
         if (!isActive) return;
 
         setArticle(json.data ?? null);
         setLatest(Array.isArray(json.latest) ? json.latest : []);
         setRelated(Array.isArray(json.related) ? json.related : []);
-        setPopular(Array.isArray(json.popular) ? json.popular : []);
         setImageBase(typeof json.imageBase === "string" ? json.imageBase : "");
       } catch (err) {
         console.error("Failed to fetch article", err);
@@ -163,6 +277,7 @@ export function NewsArticleDetail({
         stop(token);
       }
     };
+
     fetchData();
 
     return () => {
@@ -170,40 +285,37 @@ export function NewsArticleDetail({
     };
   }, [initialData, slug, start, stop]);
 
-  const resolveImage = (path?: string) => {
-    if (!path) return null;
-    if (path.startsWith("http")) return path;
+  const resolveImage = (item?: NewsArticleItem | null) => {
+    const imageUrl = item?.image_url?.trim();
+    if (imageUrl) return resolvePortalNewsImageSrc(imageUrl);
 
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    const fallbackBase =
-      process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE?.replace(/\/$/, "") ?? "";
-    const base = imageBase || fallbackBase;
+    const imagePath = item?.image?.trim();
+    if (!imagePath) return null;
 
-    return base ? `${base}${normalizedPath}` : normalizedPath;
-  };
+    if (imagePath.startsWith("http"))
+      return resolvePortalNewsImageSrc(imagePath);
 
-  const copyLink = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    });
+    const normalizedPath = imagePath.startsWith("/")
+      ? imagePath
+      : `/${imagePath}`;
+    const base = imageBase?.replace(/\/$/, "") ?? "";
+
+    const full = base ? `${base}${normalizedPath}` : normalizedPath;
+    return resolvePortalNewsImageSrc(full);
   };
 
   const defaultListingHref = `/${locale}/${isEconomic ? "economic-news" : "news"}`;
+
   const resolvedListingHref =
     listingHref ??
     (normalizedDetailBasePath
       ? `/${locale}/${normalizedDetailBasePath}`
       : defaultListingHref);
-  const resolvedListingLabel =
-    listingLabel ??
-    (isEconomic ? nc.economicNewsTitle : nc.marketNewsTitle);
 
-  const buildArticleHref = (
-    articleSlug: string | undefined,
-    itemCategorySlug: string,
-  ) => {
+  const resolvedListingLabel =
+    listingLabel ?? (isEconomic ? nc.economicNewsTitle : nc.marketNewsTitle);
+
+  const buildArticleHref = (articleSlug?: string) => {
     const normalizedSlug = articleSlug?.trim();
 
     if (normalizedDetailBasePath) {
@@ -212,7 +324,9 @@ export function NewsArticleDetail({
         : resolvedListingHref;
     }
 
-    return `/${locale}/${isEconomic ? "economic-news" : "news"}/${itemCategorySlug}/${normalizedSlug ?? ""}`;
+    return normalizedSlug
+      ? `/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug ?? "pasar-indonesia"}/${normalizedSlug}`
+      : resolvedListingHref;
   };
 
   if (loading) {
@@ -239,22 +353,16 @@ export function NewsArticleDetail({
     );
   }
 
-  const title = resolvePortalNewsTitle(article, locale, "Judul berita");
-  const articleContent = resolvePortalNewsContent(article, locale, "");
+  const title = resolveTitle(article, locale, "Judul berita");
+  const articleContent = resolveContent(article, locale, "");
   const articleHtml = formatArticleHtml(articleContent);
-  const thumb = resolveImage(article.images?.[0]);
-  const articleCategorySlug = article.kategori?.slug ?? categorySlug;
-  const catName =
-    article.kategori?.name?.toUpperCase() ?? articleCategorySlug.toUpperCase();
-  const dateStr = new Date(
-    article.updated_at ?? article.created_at ?? "",
-  ).toLocaleDateString(dateLocale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const thumb = resolveImage(article);
+
+  const dateStr = formatArticleDateTime(
+    article.updated_at ?? article.created_at,
+    locale,
+  );
+
   const getSiteOrigin = () => {
     if (process.env.NEXT_PUBLIC_SITE_URL)
       return process.env.NEXT_PUBLIC_SITE_URL;
@@ -262,56 +370,151 @@ export function NewsArticleDetail({
     return "";
   };
 
-  const articlePath = buildArticleHref(article.slug ?? slug, articleCategorySlug);
+  const articlePath = buildArticleHref(article.slug ?? slug);
   const articleUrl = `${getSiteOrigin()}${articlePath}`;
   const encodedUrl = encodeURIComponent(articleUrl);
   const encodedTitle = encodeURIComponent(title);
+  const authorName = resolveAuthorName(article.author);
+  const sourceName = article.source?.trim() || "";
+  const attributionPlain =
+    locale === "en"
+      ? `Read the full article on ${sourceName || "Newsmaker"}, "${title}" here: ${articleUrl}`
+      : `Baca artikel ${sourceName || "Newsmaker"}, "${title}" selengkapnya ${articleUrl}`;
+
+  const buildCopyPayload = () => {
+    const selection = window.getSelection();
+    let selectedPlain = (selection?.toString() ?? "").trim();
+
+    try {
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const fragment = range.cloneContents();
+        const div = document.createElement("div");
+        div.appendChild(fragment);
+        selectedPlain = htmlToPlainText(div.innerHTML);
+      }
+    } catch {
+      selectedPlain = (selection?.toString() ?? "").trim();
+    }
+
+    const plain = selectedPlain
+      ? `${selectedPlain}\n\n${attributionPlain}`
+      : attributionPlain;
+
+    const html = `<div style="white-space:pre-wrap;font-family:inherit">${escapeHtml(
+      plain,
+    )}</div>`;
+
+    return { plain, html };
+  };
+
+  const handleCopy = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+    if (selection.rangeCount === 0) return;
+
+    const scope = copyScopeRef.current;
+    if (!scope) return;
+
+    const range = selection.getRangeAt(0);
+    const commonNode = range.commonAncestorContainer;
+    const commonElement =
+      commonNode.nodeType === Node.ELEMENT_NODE
+        ? (commonNode as Element)
+        : commonNode.parentElement;
+
+    if (!commonElement || !scope.contains(commonElement)) return;
+
+    event.preventDefault();
+
+    const payload = buildCopyPayload();
+    event.clipboardData.setData("text/plain", payload.plain);
+    event.clipboardData.setData("text/html", payload.html);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(articleUrl);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = articleUrl;
+        textarea.setAttribute("readonly", "true");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 1200);
+    } catch (err) {
+      console.error("Failed to copy link", err);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
-      {/* ── Main Article ── */}
       <article>
-        {/* Breadcrumb */}
         <nav className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mb-6 sm:text-xs">
           {parentHref && parentLabel ? (
             <>
-              <Link href={parentHref} className="hover:text-blue-600 transition">
+              <Link
+                href={parentHref}
+                className="hover:text-blue-600 transition"
+              >
                 {parentLabel}
               </Link>
               <span>/</span>
             </>
           ) : null}
+
           <Link
             href={resolvedListingHref}
             className="hover:text-blue-600 transition capitalize"
           >
             {resolvedListingLabel}
           </Link>
-          {!normalizedDetailBasePath ? (
-            <>
-              <span>/</span>
-              <Link
-                href={`/${locale}/${isEconomic ? "economic-news" : "news"}/${articleCategorySlug}`}
-                className="hover:text-blue-600 transition capitalize"
-              >
-                {articleCategorySlug.replace(/-/g, " ")}
-              </Link>
-            </>
-          ) : null}
+
           <span>/</span>
-          <span className="text-slate-600 truncate max-w-[12rem] sm:max-w-[18rem]">
-            {title}
-          </span>
+          <span className="text-slate-600 truncate">{title}</span>
         </nav>
 
-        {/* Hero image */}
+        <h1 className="text-center text-xl w-full max-w-none font-bold leading-tight text-blue-800 md:text-4xl">
+          {title}
+        </h1>
+
+        <div className="mt-3 flex flex-col items-center gap-1 text-center">
+          {authorName || sourceName ? (
+            <p className="text-sm text-slate-500">
+              {authorName ? (
+                <span className="font-medium text-slate-700">{authorName}</span>
+              ) : null}
+              {authorName && sourceName ? (
+                <span className="px-2 text-slate-300">-</span>
+              ) : null}
+              {sourceName ? (
+                <span className="font-semibold text-rose-600">
+                  {sourceName}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+
+          {dateStr ? <p className="text-xs text-slate-400">{dateStr}</p> : null}
+
+          <span className="mt-4 h-px w-24 bg-slate-200" />
+        </div>
+
         {thumb && !heroImageError && (
-          <div className="relative rounded-xl overflow-hidden mb-5 shadow-sm h-56 sm:h-72 lg:h-105">
+          <div className="relative mx-auto mt-6 w-full aspect-video overflow-hidden rounded-xl shadow-lg">
             <Image
               src={thumb}
               alt={title}
               fill
-              sizes="(max-width: 1024px) 100vw, 700px"
+              sizes="(max-width: 1080px) 100vw, 900px"
               className="object-cover"
               quality={100}
               priority
@@ -321,73 +524,16 @@ export function NewsArticleDetail({
           </div>
         )}
 
-        {/* Date + share row */}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400 mb-4">
-          <span>
-            <i className="fa-regular fa-calendar mr-1.5"></i>
-            {dateStr}
-          </span>
-          <span className="text-slate-200">|</span>
-          {/* WhatsApp */}
-          <a
-            href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Share to WhatsApp"
-            className="hover:text-green-500 transition"
-          >
-            <i className="fa-brands fa-whatsapp text-lg"></i>
-          </a>
-          {/* Facebook */}
-          <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Share to Facebook"
-            className="hover:text-blue-600 transition"
-          >
-            <i className="fa-brands fa-facebook text-lg"></i>
-          </a>
-          {/* X / Twitter */}
-          <a
-            href={`https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Share to X"
-            className="hover:text-slate-800 transition"
-          >
-            <i className="fa-brands fa-x-twitter text-lg"></i>
-          </a>
-          {/* Copy link */}
-          <button
-            onClick={copyLink}
-            title="Copy link"
-            className={`transition text-lg cursor-pointer ${copiedLink ? "text-blue-600" : "hover:text-blue-500"}`}
-          >
-            <i
-              className={`fa-solid ${copiedLink ? "fa-check" : "fa-link"}`}
-            ></i>
-          </button>
-          {copiedLink && (
-            <span className="text-[11px] text-blue-600 font-semibold animate-in fade-in">
-              {nc.copied}
-            </span>
-          )}
-        </div>
+        {sourceName ? (
+          <p className="mx-auto mt-2 w-full text-xs text-slate-400">
+            {nc.source}: <span className="text-slate-500">{sourceName}</span>
+          </p>
+        ) : null}
 
-        {/* Article Title */}
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight mb-2">
-          {title}
-        </h1>
-
-        {/* Category badge */}
-        <span className="inline-block rounded-sm bg-blue-100 text-blue-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
-          ~ {catName} ~
-        </span>
-
-        {/* Article body */}
         <div
-          className="news-article-prose prose prose-slate max-w-none text-[15px] leading-8 sm:text-base
+          ref={copyScopeRef}
+          onCopy={handleCopy}
+          className="news-article-prose prose prose-slate mt-8 w-full max-w-none text-[15px] leading-8 sm:text-base
                         prose-headings:font-display prose-headings:font-semibold prose-headings:text-slate-900
                         prose-h2:mt-10 prose-h2:mb-4 prose-h2:border-t prose-h2:border-slate-200 prose-h2:pt-8 prose-h2:text-2xl
                         prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl
@@ -403,116 +549,77 @@ export function NewsArticleDetail({
           dangerouslySetInnerHTML={{ __html: articleHtml }}
         />
 
-        {/* Source */}
-        {article.source && (
-          <p className="mt-8 text-sm text-slate-500 border-t border-slate-100 pt-6">
-            {nc.source}:{" "}
-            <span className="font-medium text-slate-700">{article.source}</span>
-          </p>
-        )}
+        <div className="mt-10 w-full border-t-2 border-slate-200 pt-6">
+          <div className="flex flex-col items-center max-w-3xl gap-3">
+            <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+              {locale === "en" ? "Share:" : "Bagikan:"}
+            </p>
+            <div className="flex flex-wrap items-center justify-start gap-4 text-slate-400">
+              <a
+                href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share to WhatsApp"
+                className="hover:text-green-500 transition"
+              >
+                <i className="fa-brands fa-whatsapp text-xl"></i>
+              </a>
 
-        {/* Related News */}
-        {related.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-slate-800 mb-1 pb-3 border-b-2 border-blue-700 inline-block">
-              {nc.relatedNews}
-            </h2>
-            <div className="mt-5 space-y-5">
-              {related.map((rel, i) => {
-                const relThumb = resolveImage(rel.images?.[0]);
-                const relTitle = resolvePortalNewsTitle(
-                  rel,
-                  locale,
-                  "Judul berita",
-                );
-                const relCat = rel.kategori?.name?.toUpperCase() ?? "";
-                const relCategorySlug =
-                  rel.kategori?.slug ?? articleCategorySlug;
-                const relDate = new Date(
-                  rel.updated_at ?? rel.created_at ?? "",
-                ).toLocaleDateString(dateLocale, {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
-                const relSummary = stripHtml(
-                  resolvePortalNewsContent(rel, locale),
-                ).substring(0, 160);
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share to Facebook"
+                className="hover:text-blue-600 transition"
+              >
+                <i className="fa-brands fa-facebook text-xl"></i>
+              </a>
 
-                return (
-                  <Link
-                    key={i}
-                    href={buildArticleHref(rel.slug, relCategorySlug)}
-                    className="flex flex-col gap-4 group hover:bg-slate-50 rounded-xl p-3 -mx-3 transition sm:flex-row sm:gap-5"
-                  >
-                    {/* Thumbnail */}
-                    <div className="w-full h-40 shrink-0 rounded-lg overflow-hidden bg-slate-100 sm:w-40 sm:h-28">
-                      {relThumb ? (
-                        <img
-                          src={relThumb}
-                          alt={relTitle}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              "https://archive.org/download/placeholder-image/placeholder-image.jpg";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-linear-to-br from-blue-100 to-slate-200 flex items-center justify-center">
-                          <i className="fa-solid fa-newspaper text-slate-300 text-2xl"></i>
-                        </div>
-                      )}
-                    </div>
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
-                        {relCat}
-                      </span>
-                      <h3 className="text-sm font-bold text-slate-800 leading-snug mt-1 mb-1.5 line-clamp-2 group-hover:text-blue-700 transition">
-                        {relTitle}
-                      </h3>
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2">
-                        {relSummary}…
-                      </p>
-                      <p className="text-[11px] text-slate-400">{relDate}</p>
-                    </div>
-                  </Link>
-                );
-              })}
+              <a
+                href={`https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share to X"
+                className="hover:text-slate-800 transition"
+              >
+                <i className="fa-brands fa-x-twitter text-xl"></i>
+              </a>
+
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="hover:text-slate-800 transition"
+                title={locale === "en" ? "Copy link" : "Salin tautan"}
+              >
+                <i className="fa-solid fa-link text-xl" />
+              </button>
             </div>
-          </section>
-        )}
+          </div>
+        </div>
       </article>
 
-      {/* ── Sidebar ── */}
       <aside className="space-y-8">
-        {/* Latest News */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5">
+        <div className="bg-white rounded-lg border border-blue-300 shadow-sm shadow-blue-300/50 p-5">
           <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
             {nc.latestNews}
           </h2>
           <div className="space-y-4">
             {latest.map((item, i) => {
-              const t = resolvePortalNewsTitle(item, locale, "Judul berita");
-              const th = resolveImage(item.images?.[0]);
-              const cat = item.kategori?.name?.toUpperCase() ?? "";
-              const itemCategorySlug =
-                item.kategori?.slug ?? articleCategorySlug;
-              const d = new Date(
-                item.updated_at ?? item.created_at ?? "",
-              ).toLocaleDateString(dateLocale, {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
+              const t = resolveTitle(item, locale, "Judul berita");
+              const th = resolveImage(item);
+              const cat =
+                item.category_label?.toUpperCase() ??
+                item.category?.replace(/-/g, " ").toUpperCase() ??
+                "";
+              const formattedDate = formatArticleDateTime(
+                item.updated_at ?? item.created_at,
+                locale,
+              );
+
               return (
                 <Link
-                  key={i}
-                  href={buildArticleHref(item.slug, itemCategorySlug)}
+                  key={item.id ?? item.slug ?? i}
+                  href={buildArticleHref(item.slug)}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
                   <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
@@ -538,7 +645,9 @@ export function NewsArticleDetail({
                     <p className="text-xs font-semibold text-slate-700 leading-snug line-clamp-2 group-hover:text-blue-700 transition">
                       {t}
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-1">{d}</p>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      {formattedDate}
+                    </p>
                   </div>
                 </Link>
               );
@@ -546,62 +655,73 @@ export function NewsArticleDetail({
           </div>
         </div>
 
-        {/* Popular News */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5">
-          <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-            {nc.popularNews}
-          </h2>
-          <div className="space-y-4">
-            {popular.map((item, i) => {
-              const t = resolvePortalNewsTitle(item, locale, "Judul berita");
-              const th = resolveImage(item.images?.[0]);
-              const cat = item.kategori?.name?.toUpperCase() ?? "";
-              const itemCategorySlug =
-                item.kategori?.slug ?? articleCategorySlug;
-              const d = new Date(
-                item.updated_at ?? item.created_at ?? "",
-              ).toLocaleDateString(dateLocale, {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-              return (
-                <Link
-                  key={i}
-                  href={buildArticleHref(item.slug, itemCategorySlug)}
-                  className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
-                >
-                  <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
-                    {th ? (
-                      <img
-                        src={th}
-                        alt={t}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-slate-200 flex items-center justify-center">
-                        <i className="fa-solid fa-newspaper text-slate-400 text-xs"></i>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-bold text-blue-700 uppercase tracking-wider mb-0.5">
-                      {cat}
-                    </p>
-                    <p className="text-xs font-semibold text-slate-700 leading-snug line-clamp-2 group-hover:text-blue-700 transition">
-                      {t}
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-1">{d}</p>
-                  </div>
-                </Link>
-              );
-            })}
+        {related.length > 0 && (
+          <div className="bg-white rounded-lg border border-blue-300 shadow-sm shadow-blue-300/50 p-5">
+            {/* <SectionHeader title={nc.popularNews} /> */}
+            <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
+              {nc.popularNews}
+            </h2>
+            <div className="space-y-4">
+              {related.map((item, i) => {
+                const t = resolveTitle(item, locale, "Judul berita");
+                const th = resolveImage(item);
+                const cat =
+                  item.category_label?.toUpperCase() ??
+                  item.category?.replace(/-/g, " ").toUpperCase() ??
+                  "";
+                const formattedDate = formatArticleDateTime(
+                  item.updated_at ?? item.created_at,
+                  locale,
+                );
+
+                return (
+                  <Link
+                    key={item.id ?? item.slug ?? i}
+                    href={buildArticleHref(item.slug)}
+                    className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
+                  >
+                    <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
+                      {th ? (
+                        <img
+                          src={th}
+                          alt={t}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                          <i className="fa-solid fa-newspaper text-slate-400 text-xs"></i>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] font-bold text-blue-700 uppercase tracking-wider mb-0.5">
+                        {cat}
+                      </p>
+                      <p className="text-xs font-semibold text-slate-700 leading-snug line-clamp-2 group-hover:text-blue-700 transition">
+                        {t}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        {formattedDate}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
+        )}
+
+        {/* <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5"> */}
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+          <RotatingAdSlot
+            slot="news-article-sidebar"
+            rotationKey={`${locale}:${slug}`}
+            locale={locale}
+          />
         </div>
       </aside>
     </div>
