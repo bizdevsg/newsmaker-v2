@@ -76,6 +76,8 @@ export async function fetchHistoricalData(params?: {
   limit?: number;
   category?: string;
   tanggal?: string;
+  start?: string;
+  end?: string;
 }) {
   const url = new URL(
     process.env.PORTALNEWS_HISTORICAL_DATA_URL ?? DEFAULT_HISTORICAL_DATA_URL,
@@ -87,6 +89,8 @@ export async function fetchHistoricalData(params?: {
       : undefined;
   const category = params?.category?.trim();
   const tanggal = params?.tanggal?.trim();
+  const start = params?.start?.trim();
+  const end = params?.end?.trim();
 
   if (limit) url.searchParams.set("limit", String(limit));
   if (category) url.searchParams.set("category", category);
@@ -121,5 +125,35 @@ export async function fetchHistoricalData(params?: {
     .map(toItem)
     .filter((item): item is HistoricalDataItem => item !== null);
 
-  return limit ? mapped.slice(0, limit) : mapped;
+  const normalizedCategory = category ? category.toLowerCase() : "";
+  const filteredByCategory = normalizedCategory
+    ? mapped.filter(
+        (item) => (item.category ?? "").trim().toLowerCase() === normalizedCategory,
+      )
+    : mapped;
+
+  const parseDate = (value?: string) => {
+    const normalized = typeof value === "string" ? value.trim() : "";
+    if (!normalized) return null;
+    const ts = Date.parse(normalized);
+    return Number.isFinite(ts) ? ts : null;
+  };
+
+  const startTs = parseDate(start);
+  const endTs = parseDate(end);
+  const rangeStart = startTs !== null && endTs !== null ? Math.min(startTs, endTs) : startTs;
+  const rangeEnd = startTs !== null && endTs !== null ? Math.max(startTs, endTs) : endTs;
+
+  const filteredByDate =
+    rangeStart === null && rangeEnd === null
+      ? filteredByCategory
+      : filteredByCategory.filter((item) => {
+          const itemTs = parseDate(item.tanggal);
+          if (itemTs === null) return false;
+          if (rangeStart !== null && itemTs < rangeStart) return false;
+          if (rangeEnd !== null && itemTs > rangeEnd) return false;
+          return true;
+        });
+
+  return limit ? filteredByDate.slice(0, limit) : filteredByDate;
 }

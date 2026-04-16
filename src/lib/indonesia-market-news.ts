@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import type { Locale } from "@/locales";
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -149,10 +150,16 @@ const getTimestamp = (item: IndonesiaMarketNewsItem) =>
   new Date(item.updated_at ?? item.created_at ?? 0).getTime();
 
 const buildImageUrl = (article: IndonesiaMarketNewsItem) => {
-  if (article.image_url?.trim()) return article.image_url.trim();
+  if (article.image_url?.trim()) {
+    return resolvePortalNewsImageSrc(article.image_url.trim()) ?? undefined;
+  }
 
   if (article.image?.trim()) {
-    return `${PORTAL_BASE_URL}/${article.image.replace(/^\/+/, "")}`;
+    return (
+      resolvePortalNewsImageSrc(
+        `${PORTAL_BASE_URL}/${article.image.replace(/^\/+/, "")}`,
+      ) ?? undefined
+    );
   }
 
   return undefined;

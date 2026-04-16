@@ -20,7 +20,7 @@ export default async function HistoricalDataPage({
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const messages = getMessages(locale);
 
-  const items = await fetchHistoricalData({ limit: 200 });
+  const items = await fetchHistoricalData({ limit: 20, category: "LGD Daily" });
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>

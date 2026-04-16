@@ -147,7 +147,9 @@ async function getGoldCornerBrief(
 
   const article = matched[0];
   const slug = article.slug?.trim() || "";
-  const href = slug ? buildGoldCornerDetailHref(locale, slug) : buildGoldCornerListHref(locale);
+  const href = slug
+    ? buildGoldCornerDetailHref(locale, slug)
+    : buildGoldCornerListHref(locale);
 
   return {
     key: String(article.id ?? slug ?? "gold-corner"),
@@ -167,6 +169,7 @@ export async function WeeklyMarketBriefCard({
   const apiItem = await getGoldCornerBrief(locale);
   const item = apiItem ?? DEFAULT_ITEM(locale);
   const listHref = buildGoldCornerListHref(locale);
+  const image = "/assets/PILIHAN3.jpeg";
 
   return (
     <Card>
@@ -191,7 +194,7 @@ export async function WeeklyMarketBriefCard({
           eyebrow={item.eyebrow}
           title={item.title}
           date={item.date}
-          image={item.image}
+          image={image}
           ctaLabel={readMoreLabel}
           href={item.href}
         />

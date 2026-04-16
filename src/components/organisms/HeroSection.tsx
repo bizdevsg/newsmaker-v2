@@ -19,6 +19,7 @@ import {
   buildNewsSubHref,
   inferEconomicNewsCategoryFromItem,
   inferMarketNewsCategoryFromItem,
+  normalizeEconomicNewsRouteSub,
   resolveEconomicNewsLabel,
 } from "@/lib/news-routing";
 
@@ -171,8 +172,15 @@ const toHeroArticle = (
         ? buildNewsSubHref(locale, marketKategori, sub)
         : buildNewsCategoryHref(locale, marketKategori)))
     : slug
-      ? buildEconomicNewsDetailHref(locale, economicSub!, slug)
-      : buildEconomicNewsListHref(locale, economicSub!);
+      ? buildEconomicNewsDetailHref(
+          locale,
+          normalizeEconomicNewsRouteSub(economicSub!),
+          slug,
+        )
+      : buildEconomicNewsListHref(
+          locale,
+          normalizeEconomicNewsRouteSub(economicSub!),
+        );
 
   return {
     key: String(article.id ?? slug ?? `hero-${index}`),
@@ -194,7 +202,12 @@ const toHeroArticle = (
           messages.hero.bannerTag ||
           "MARKET"
         ).toUpperCase()
-      : resolveEconomicNewsLabel(messages, economicSub!).toUpperCase(),
+      : (
+          article.sub_category?.name?.trim() ||
+          article.main_category?.name?.trim() ||
+          resolveEconomicNewsLabel(messages, economicSub!) ||
+          "ECONOMIC"
+        ).toUpperCase(),
     date: formatDate(article.updated_at ?? article.created_at, locale),
     href,
   };
@@ -253,7 +266,7 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
           <div className="relative flex min-h-[310px] h-full flex-col justify-between gap-4 p-7 sm:min-h-[340px]">
             <div className="space-y-3">
               <Tag tone="slate" className="bg-white/15 text-white uppercase">
-                {featured.tag}
+                MARKET DEVELOPMENT
               </Tag>
               <h2 className="max-w-2xl text-2xl font-semibold leading-snug sm:text-3xl">
                 {featured.title}

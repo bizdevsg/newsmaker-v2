@@ -6,7 +6,16 @@ import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 import {
   type PortalNewsItem,
 } from "@/lib/portalnews-shared";
-import { buildPortalNewsImageUrl } from "@/lib/portalnews";
+import { buildPortalNewsImageUrl, fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  buildAnalysisDetailHref,
+  buildEconomicNewsDetailHref,
+  buildGoldCornerDetailHref,
+  buildMarketNewsDetailHrefForItem,
+  inferAnalysisCategoryFromItem,
+  inferEconomicNewsCategoryFromItem,
+  normalizeEconomicNewsRouteSub,
+} from "@/lib/news-routing";
 import {
   resolveRegulatoryWatchContent,
   resolveRegulatoryWatchImage,
@@ -63,8 +72,16 @@ const cleanText = (value?: string | null) =>
     .trim()
     .toLowerCase();
 
+const stripText = (value?: string | null) =>
+  String(value ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&[a-z0-9#]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const summarize = (value?: string | null) => {
-  const text = cleanText(value);
+  const text = stripText(value);
   if (!text) return "";
   return text.length > 180 ? `${text.slice(0, 180).trim()}...` : text;
 };
@@ -238,6 +255,9 @@ const scoreText = (
 
 const resolvePortalCategory = (item: PortalNewsItem, locale: Locale) => {
   const label =
+    item.sub_category?.name?.trim() ||
+    item.main_category?.name?.trim() ||
+    item.kategori?.name?.trim() ||
     item.category_label?.trim() ||
     item.category?.trim() ||
     (item.type === "analisis"
@@ -265,6 +285,34 @@ const portalHref = (item: PortalNewsItem, locale: Locale) => {
   return `/${locale}/${base}/${encodeURIComponent(slug)}`;
 };
 
+const newsmakerHref = (item: PortalNewsItem, locale: Locale) => {
+  const slug = item.slug?.trim();
+  if (!slug) return `/${locale}`;
+
+  const analysis = inferAnalysisCategoryFromItem(item);
+  if (analysis === "gold-corner") {
+    return buildGoldCornerDetailHref(locale, slug);
+  }
+
+  if (analysis) {
+    return buildAnalysisDetailHref(locale, analysis, slug);
+  }
+
+  const market = buildMarketNewsDetailHrefForItem(locale, item);
+  if (market) return market;
+
+  const economic = inferEconomicNewsCategoryFromItem(item);
+  if (economic) {
+    return buildEconomicNewsDetailHref(
+      locale,
+      normalizeEconomicNewsRouteSub(economic),
+      slug,
+    );
+  }
+
+  return `/${locale}`;
+};
+
 const regulatoryHref = (item: RegulatoryWatchItem, locale: Locale) => {
   const slug = item.slug?.trim();
   if (!slug) return `/${locale}/regulasi-institusi`;
@@ -279,28 +327,35 @@ export const searchPortalNews = async (
   if (!normalizedQuery) return [];
   const queryTerms = normalizedQuery.split(" ").filter(Boolean);
 
-  const [newsItems, analysisItems, regulatoryItems] = await Promise.all([
+  const [newsItems, analysisItems, regulatoryItems, newsmakerList] =
+    await Promise.all([
     fetchPortalAll(NEWS_URL),
     fetchPortalAll(ANALYSIS_URL),
     fetchRegulatoryWatchList(),
+    fetchPortalNewsList().catch(() => ({ items: [], source: "newsmaker" as const })),
   ]);
 
   const portalItems: PortalNewsItem[] = [...newsItems, ...analysisItems];
+  const newsmakerItems: PortalNewsItem[] = Array.isArray(newsmakerList.items)
+    ? newsmakerList.items
+    : [];
 
   const portalResults: PortalNewsSearchResult[] = portalItems
     .map((item) => {
       const title = resolvePortalTitle(item, locale);
       const content = resolvePortalContent(item, locale);
       const category = resolvePortalCategory(item, locale);
+      const slug = item.slug?.trim() || "";
+      const authorLabel =
+        typeof item.author === "string" ? item.author : item.author?.name || "";
       const score = scoreText(normalizedQuery, queryTerms, {
         title,
         category,
-        content,
+        content: `${content} ${slug} ${item.source ?? ""} ${authorLabel}`,
       });
 
       if (score <= 0) return null;
 
-      const slug = item.slug?.trim() || "";
       return {
         type: item.type === "analisis" ? "analisis" : "berita",
         id: item.id ?? slug ?? `${category}-${title}`,
@@ -315,19 +370,49 @@ export const searchPortalNews = async (
     })
     .filter((item): item is PortalNewsSearchResult => item !== null);
 
+  const newsmakerResults: PortalNewsSearchResult[] = newsmakerItems
+    .map((item, index) => {
+      const title = resolvePortalTitle(item, locale);
+      const content = resolvePortalContent(item, locale);
+      const category = resolvePortalCategory(item, locale);
+      const slug = item.slug?.trim() || "";
+      const authorLabel =
+        typeof item.author === "string" ? item.author : item.author?.name || "";
+
+      const score = scoreText(normalizedQuery, queryTerms, {
+        title,
+        category,
+        content: `${content} ${slug} ${item.source ?? ""} ${authorLabel}`,
+      });
+      if (score <= 0) return null;
+
+      return {
+        type: inferAnalysisCategoryFromItem(item) ? "analisis" : "berita",
+        id: item.id ?? slug ?? `newsmaker-${index}`,
+        title,
+        summary: summarize(content),
+        category,
+        date: item.updated_at ?? item.created_at ?? "",
+        image: portalImage(item),
+        href: newsmakerHref(item, locale),
+        score,
+      };
+    })
+    .filter((item): item is PortalNewsSearchResult => item !== null);
+
   const regulatoryResults: PortalNewsSearchResult[] = regulatoryItems
     .map((item, index) => {
       const title = resolveRegulatoryWatchTitle(item, locale);
       const content = resolveRegulatoryWatchContent(item, locale);
       const category = resolveRegulatoryWatchTag(item, locale);
+      const slug = item.slug?.trim() || "";
       const score = scoreText(normalizedQuery, queryTerms, {
         title,
         category,
-        content,
+        content: `${content} ${slug}`,
       });
       if (score <= 0) return null;
 
-      const slug = item.slug?.trim() || "";
       return {
         type: "regulasi-institusi",
         id: item.id ?? slug ?? `regulasi-${index}`,
@@ -342,7 +427,18 @@ export const searchPortalNews = async (
     })
     .filter((item): item is PortalNewsSearchResult => item !== null);
 
-  return [...portalResults, ...regulatoryResults].sort((left, right) => {
+  const merged = [...portalResults, ...newsmakerResults, ...regulatoryResults];
+  const unique: PortalNewsSearchResult[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of merged) {
+    const key = entry.href || String(entry.id);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(entry);
+  }
+
+  return unique.sort((left, right) => {
     if (right.score !== left.score) return right.score - left.score;
     return getDateValue(right.date) - getDateValue(left.date);
   });

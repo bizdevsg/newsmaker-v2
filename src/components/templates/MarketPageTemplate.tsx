@@ -43,7 +43,7 @@ export function MarketPageTemplate({
             />
           </div>
         </div>
-        <div className=" px-4">{children}</div>
+        {children}
         {/* <FloatingPartnerButtons /> */}
         <ScrollUpButton />
         {showPopupBanner ? <PopupBannerModal /> : null}

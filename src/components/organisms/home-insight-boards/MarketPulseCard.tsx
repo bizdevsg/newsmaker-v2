@@ -18,7 +18,7 @@ export function MarketPulseCard({
   const hasBackup = Boolean(backupUrl);
 
   return (
-    <Card className={`flex h-fit flex-col ${className}`.trim()}>
+    <Card className={`flex h-full flex-col ${className}`.trim()}>
       <SectionHeader
         title="Market Pulse"
         actions={
@@ -37,7 +37,7 @@ export function MarketPulseCard({
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="overflow-hidden rounded-xl bg-white">
-          <div className="h-[60vh] max-h-[520px] w-full sm:h-[535px] sm:max-h-none lg:h-[595px]">
+          <div className="h-[60vh] w-full sm:h-[540px] sm:max-h-none lg:h-[600px]">
             {hasBackup ? (
               <TikTokEmbed
                 html=""

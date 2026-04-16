@@ -10,6 +10,7 @@ import {
   buildGoldCornerDetailHref,
   inferAnalysisCategoryFromItem,
   inferEconomicNewsCategoryFromItem,
+  normalizeEconomicNewsRouteSub,
 } from "@/lib/news-routing";
 import { itemMatchesTerms } from "@/lib/news-filter";
 
@@ -92,6 +93,14 @@ const formatDateShort = (value: string | undefined, locale: Locale) => {
 };
 
 const normalizeAssetUrl = (value: string) => value.replace(/ /g, "%20");
+
+const resolveEconomicTag = (item: PortalNewsItem, locale: Locale) =>
+  item.sub_category?.name?.trim() ||
+  item.main_category?.name?.trim() ||
+  item.category_label?.trim() ||
+  item.category?.trim() ||
+  item.kategori?.name?.trim() ||
+  (locale === "en" ? "Economic News" : "Berita Ekonomi");
 
 export function toNewsCardItems(
   items: PortalNewsItem[],
@@ -267,11 +276,36 @@ export function toEconomicNewsCardItems(
     limit?: number;
   },
 ): NewsCardItem[] {
-  return toSimpleCardItems(items, {
-    locale,
-    limit,
-    hrefForSlug: (slug) => buildEconomicNewsDetailHref(locale, sub, slug),
-  });
+  const resolved = items
+    .map((item, index) => {
+      const slug = item.slug?.trim() || "";
+      if (!slug) return null;
+
+      const href = buildEconomicNewsDetailHref(locale, sub, slug);
+      const tag = resolveEconomicTag(item, locale);
+
+      const image =
+        buildPortalNewsImageUrl(
+          item.image_url || item.image || item.images?.[0],
+        ) ?? null;
+
+      const timestamp = getPortalNewsItemTimestamp(item);
+
+      return {
+        key: String(item.id ?? slug ?? `economic-${index}`),
+        title: resolveTitle(item, locale),
+        summary: resolveSummary(item, locale),
+        tag,
+        date: formatDateShort(item.updated_at ?? item.created_at, locale),
+        image: image ? normalizeAssetUrl(image) : null,
+        href,
+        timestamp,
+      } satisfies NewsCardItem;
+    })
+    .filter((value): value is NewsCardItem => value !== null)
+    .sort((a, b) => b.timestamp - a.timestamp);
+
+  return resolved.slice(0, limit);
 }
 
 export function toEconomicNewsCardItemsAuto(
@@ -292,12 +326,12 @@ export function toEconomicNewsCardItemsAuto(
       const inferredSub = inferEconomicNewsCategoryFromItem(item);
       if (!inferredSub) return null;
 
-      const href = buildEconomicNewsDetailHref(locale, inferredSub, slug);
-      const tag =
-        item.category_label?.trim() ||
-        item.category?.trim() ||
-        item.kategori?.name?.trim() ||
-        (locale === "en" ? "Economic News" : "Berita Ekonomi");
+      const href = buildEconomicNewsDetailHref(
+        locale,
+        normalizeEconomicNewsRouteSub(inferredSub),
+        slug,
+      );
+      const tag = resolveEconomicTag(item, locale);
 
       const image =
         buildPortalNewsImageUrl(item.image_url || item.image || item.images?.[0]) ??

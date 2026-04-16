@@ -1,7 +1,9 @@
-const LOCAL_IMAGE_HOSTS = new Set([
+const LOCAL_IMAGE_HOSTS = new Set(["localhost", "127.0.0.1"]);
+
+const PROXY_IMAGE_HOSTS = new Set([
   "portalnews.newsmaker.test",
-  "localhost",
-  "127.0.0.1",
+  "portalnews.newsmaker.id",
+  ...LOCAL_IMAGE_HOSTS,
 ]);
 
 export const proxyPortalNewsImageUrl = (src: string) =>
@@ -16,7 +18,11 @@ export const resolvePortalNewsImageSrc = (src: string | null | undefined) => {
 
   try {
     const url = new URL(trimmed);
-    if (LOCAL_IMAGE_HOSTS.has(url.hostname)) {
+    const shouldProxy =
+      LOCAL_IMAGE_HOSTS.has(url.hostname) ||
+      (PROXY_IMAGE_HOSTS.has(url.hostname) && url.protocol === "http:");
+
+    if (shouldProxy) {
       return proxyPortalNewsImageUrl(trimmed);
     }
     return trimmed;
@@ -24,4 +30,3 @@ export const resolvePortalNewsImageSrc = (src: string | null | undefined) => {
     return trimmed;
   }
 };
-

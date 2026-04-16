@@ -8,6 +8,7 @@ import {
   buildEconomicNewsListHref,
   getEconomicNewsConfig,
   inferEconomicNewsCategoryFromItem,
+  isGlobalEconomyGroupSlug,
   resolveEconomicNewsLabel,
 } from "@/lib/news-routing";
 import { toEconomicNewsCardItems, toEconomicNewsCardItemsAuto } from "@/lib/news-cards";
@@ -116,7 +117,13 @@ export default async function EconomicNewsDetailPage({
   const { item } = await fetchPortalNewsArticle(slug);
   if (!item) notFound();
 
-  if (inferEconomicNewsCategoryFromItem(item) !== config.slug) notFound();
+  const inferred = inferEconomicNewsCategoryFromItem(item);
+  if (!inferred) notFound();
+  if (config.slug === "global-economy") {
+    if (!isGlobalEconomyGroupSlug(inferred)) notFound();
+  } else {
+    if (inferred !== config.slug) notFound();
+  }
 
   const title = resolveTitle(item, locale);
   const sectionLabel = resolveEconomicNewsLabel(messages, sub);
@@ -131,7 +138,14 @@ export default async function EconomicNewsDetailPage({
   const { items: allItems } = await fetchPortalNewsList();
   const relatedCandidates = allItems
     .filter((candidate) => candidate.slug !== slug)
-    .filter((candidate) => inferEconomicNewsCategoryFromItem(candidate) === config.slug);
+    .filter((candidate) => {
+      const candidateInferred = inferEconomicNewsCategoryFromItem(candidate);
+      if (!candidateInferred) return false;
+      if (config.slug === "global-economy") {
+        return isGlobalEconomyGroupSlug(candidateInferred);
+      }
+      return candidateInferred === config.slug;
+    });
 
   const relatedItems = toEconomicNewsCardItems(relatedCandidates, {
     locale,

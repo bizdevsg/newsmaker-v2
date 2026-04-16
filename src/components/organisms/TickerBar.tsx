@@ -63,6 +63,20 @@ const NEWS_TICK_LIMIT = 5;
 const MARKET_SYMBOL_LABELS = new Map<string, string>([
   ["^JKSE", "IHSG"],
   ["^JKLQ45", "LQ45"],
+  ["XUL10", "Gold"],
+  ["XAUUSD", "Gold"],
+  ["XAGUSD", "Silver"],
+  ["BCO10_BBJ", "Brent"],
+  ["UKOIL", "Brent"],
+  ["HKK50_BBJ", "Hang Seng"],
+  ["HSI", "Hang Seng"],
+  ["JPK50_BBJ", "Nikkei"],
+  ["NIKKEI", "Nikkei"],
+  ["EU10F_BBJ", "EUR/USD"],
+  ["UJ10F_BBJ", "USD/JPY"],
+  ["UC10F_BBJ", "USD/CHF"],
+  ["AU10F_BBJ", "AUD/USD"],
+  ["GU10F_BBJ", "GBP/USD"],
 ]);
 
 const formatNumber = (value: number) =>
@@ -80,6 +94,14 @@ const resolveTickerSymbol = (symbol: string, shortName?: string) => {
   const predefinedLabel = MARKET_SYMBOL_LABELS.get(symbol);
   if (predefinedLabel) {
     return predefinedLabel;
+  }
+
+  if (symbol.includes("XAG")) {
+    return "Silver";
+  }
+
+  if (symbol.includes("XAU") || symbol.includes("XUL")) {
+    return "Gold";
   }
 
   const formattedSymbol = symbol.replace(/^\^/, "").replace(/\.JK$/i, "");

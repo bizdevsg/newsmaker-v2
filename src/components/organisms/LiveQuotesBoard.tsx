@@ -97,14 +97,23 @@ const FUTURES_SYMBOL_MAP = new Map<
     },
   ],
   [
+    "XAGUSD",
+    {
+      label: "Silver",
+      subtitle: "XAGUSD",
+      badge: "SILV",
+      color: "bg-slate-500",
+    },
+  ],
+  [
     "BCO10_BBJ",
-    { label: "Oil", subtitle: "BCOUSD", badge: "OIL", color: "bg-slate-900" },
+    { label: "Brent", subtitle: "BRENT", badge: "OIL", color: "bg-slate-900" },
   ],
   [
     "HKK50_BBJ",
     {
-      label: "Hangseng",
-      subtitle: "HANGSENG",
+      label: "Hang Seng",
+      subtitle: "HSI",
       badge: "IDX",
       color: "bg-rose-600",
     },
@@ -112,7 +121,7 @@ const FUTURES_SYMBOL_MAP = new Map<
   [
     "JPK50_BBJ",
     {
-      label: "NIKKEI 255",
+      label: "Nikkei",
       subtitle: "NIKKEI",
       badge: "IDX",
       color: "bg-indigo-700",
@@ -126,8 +135,57 @@ const resolveQuoteCategory = (symbol: string): QuoteCategory => {
   return "futures";
 };
 
-const resolveSymbolPreset = (symbol: string) =>
-  FOREX_SYMBOL_MAP.get(symbol) ?? FUTURES_SYMBOL_MAP.get(symbol);
+const resolveSymbolPreset = (symbol: string) => {
+  const direct = FOREX_SYMBOL_MAP.get(symbol) ?? FUTURES_SYMBOL_MAP.get(symbol);
+  if (direct) return direct;
+
+  if (symbol.includes("XAG")) {
+    return {
+      label: "Silver",
+      subtitle: "XAGUSD",
+      badge: "SILV",
+      color: "bg-slate-500",
+    };
+  }
+
+  if (symbol.includes("XAU") || symbol.includes("XUL")) {
+    return {
+      label: "Gold",
+      subtitle: "XAUUSD",
+      badge: "GOLD",
+      color: "bg-amber-500",
+    };
+  }
+
+  if (symbol === "BCO10_BBJ" || symbol === "UKOIL" || symbol.includes("BRENT")) {
+    return {
+      label: "Brent",
+      subtitle: "BRENT",
+      badge: "OIL",
+      color: "bg-slate-900",
+    };
+  }
+
+  if (symbol === "HKK50_BBJ" || symbol === "HSI" || symbol.includes("HANGSENG")) {
+    return {
+      label: "Hang Seng",
+      subtitle: "HSI",
+      badge: "IDX",
+      color: "bg-rose-600",
+    };
+  }
+
+  if (symbol === "JPK50_BBJ" || symbol === "NIKKEI" || symbol.includes("NIKKEI")) {
+    return {
+      label: "Nikkei",
+      subtitle: "NIKKEI",
+      badge: "IDX",
+      color: "bg-indigo-700",
+    };
+  }
+
+  return undefined;
+};
 
 const ICONS = {
   gold: "/assets/gold-icon.png",
@@ -144,7 +202,8 @@ const resolveIconSrc = (
   category: QuoteCategory,
   mappedLabel?: string,
 ) => {
-  if (symbol === "XUL10" || mappedLabel === "XAUUSD") return ICONS.gold;
+  if (symbol === "XUL10" || symbol.includes("XAU") || symbol.includes("XUL"))
+    return ICONS.gold;
   if (symbol.includes("XAG") || mappedLabel === "XAGUSD") return ICONS.silver;
   if (symbol === "BCO10_BBJ" || mappedLabel === "UKOIL") return ICONS.oil;
   if (symbol === "HKK50_BBJ" || mappedLabel === "HSI") return ICONS.hsi;

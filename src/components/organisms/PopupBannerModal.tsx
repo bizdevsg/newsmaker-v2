@@ -2,6 +2,7 @@
 
 import React from "react";
 import { lockScroll, unlockScroll } from "@/utils/scrollLock";
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 import { useLoading } from "../providers/LoadingProvider";
 
 type PopupBannerItem = {
@@ -59,7 +60,8 @@ const normalizeHref = (value?: string | null) => {
 const toSafeUrl = (value?: string | null) => {
   const normalizedValue = normalizeHref(value);
   if (!normalizedValue) return undefined;
-  return /^\s*javascript:/i.test(normalizedValue) ? undefined : normalizedValue;
+  if (/^\s*javascript:/i.test(normalizedValue)) return undefined;
+  return resolvePortalNewsImageSrc(normalizedValue) ?? undefined;
 };
 
 const isExternalUrl = (value?: string) =>

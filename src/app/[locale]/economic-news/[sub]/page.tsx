@@ -9,6 +9,7 @@ import { toEconomicNewsCardItems } from "@/lib/news-cards";
 import {
   getEconomicNewsConfig,
   inferEconomicNewsCategoryFromItem,
+  isGlobalEconomyGroupSlug,
   resolveEconomicNewsLabel,
 } from "@/lib/news-routing";
 import { fetchPortalNewsList } from "@/lib/portalnews";
@@ -34,9 +35,14 @@ export default async function EconomicNewsSubPage({
   const sectionLabel = resolveEconomicNewsLabel(messages, sub);
 
   const { items } = await fetchPortalNewsList();
-  const filtered = items.filter(
-    (item) => inferEconomicNewsCategoryFromItem(item) === config.slug,
-  );
+  const filtered = items.filter((item) => {
+    const inferred = inferEconomicNewsCategoryFromItem(item);
+    if (!inferred) return false;
+    if (config.slug === "global-economy") {
+      return isGlobalEconomyGroupSlug(inferred);
+    }
+    return inferred === config.slug;
+  });
   const cards = toEconomicNewsCardItems(filtered, { locale, sub, limit: 80 });
 
   return (

@@ -132,7 +132,7 @@ export function NewsList({ items, readMoreLabel }: NewsListProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Share to WhatsApp"
-                    className="text-slate-400 hover:text-green-500 transition text-md"
+                    className="text-slate-400 hover:text-green-500 transition text-lg"
                   >
                     <i className="fa-brands fa-whatsapp" aria-hidden="true" />
                   </a>
@@ -141,7 +141,7 @@ export function NewsList({ items, readMoreLabel }: NewsListProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Share to Facebook"
-                    className="text-slate-400 hover:text-blue-600 transition text-md"
+                    className="text-slate-400 hover:text-blue-600 transition text-lg"
                   >
                     <i className="fa-brands fa-facebook" aria-hidden="true" />
                   </a>
@@ -150,7 +150,7 @@ export function NewsList({ items, readMoreLabel }: NewsListProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Share to X"
-                    className="text-slate-400 hover:text-slate-800 transition text-md"
+                    className="text-slate-400 hover:text-slate-800 transition text-lg"
                   >
                     <i className="fa-brands fa-x-twitter" aria-hidden="true" />
                   </a>
@@ -158,7 +158,7 @@ export function NewsList({ items, readMoreLabel }: NewsListProps) {
                     type="button"
                     onClick={() => copyLink(item.href, key)}
                     title="Copy link"
-                    className={`text-md cursor-pointer transition ${
+                    className={`text-lg cursor-pointer transition ${
                       isCopied
                         ? "text-blue-600"
                         : "text-slate-400 hover:text-blue-500"

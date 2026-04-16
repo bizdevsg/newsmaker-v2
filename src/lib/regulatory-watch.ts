@@ -1,4 +1,5 @@
 import type { Locale } from "@/locales";
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 
 export type RegulatoryWatchItem = {
   id?: number;
@@ -66,7 +67,7 @@ export const resolveRegulatoryWatchImage = (item: RegulatoryWatchItem) => {
     ? normalizedImage
     : `/${normalizedImage}`;
 
-  return `${REGULATORY_WATCH_ORIGIN}${normalizedPath}`;
+  return resolvePortalNewsImageSrc(`${REGULATORY_WATCH_ORIGIN}${normalizedPath}`);
 };
 
 export const formatRegulatoryWatchDate = (

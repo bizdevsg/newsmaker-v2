@@ -3,6 +3,7 @@ import type {
   PortalNewsCategory,
   PortalNewsItem,
 } from "@/lib/portalnews-shared";
+import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 export type {
   PortalNewsCategory,
   PortalNewsItem,
@@ -511,14 +512,16 @@ export const sortPortalNewsItemsByDate = (items: PortalNewsItem[]) =>
 
 export const buildPortalNewsImageUrl = (imagePath?: string | null) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith("http")) return imagePath;
+  if (imagePath.startsWith("http")) return resolvePortalNewsImageSrc(imagePath);
 
   const normalizedPath = imagePath.startsWith("/")
     ? imagePath
     : `/${imagePath}`;
-  return PORTALNEWS_IMAGE_BASE
+  const resolved = PORTALNEWS_IMAGE_BASE
     ? `${PORTALNEWS_IMAGE_BASE}${normalizedPath}`
     : normalizedPath;
+
+  return resolvePortalNewsImageSrc(resolved);
 };
 
 export async function fetchPortalNewsList(): Promise<{

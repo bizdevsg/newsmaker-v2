@@ -191,10 +191,9 @@ const NEWS_CATEGORY_SLUGS = new Set(
 
 const NEWS_SUB_TO_CATEGORY = new Map(
   NEWS_NAV_CONFIG.flatMap((category) =>
-    category.subs.map((sub) => [
-      normalizeNewsSlug(sub.slug),
-      category.slug,
-    ] as const),
+    category.subs.map(
+      (sub) => [normalizeNewsSlug(sub.slug), category.slug] as const,
+    ),
   ),
 );
 
@@ -251,7 +250,10 @@ export const inferMarketNewsCategoryFromItem = (
 
 export const buildMarketNewsDetailHrefForItem = (
   locale: Locale,
-  item: Pick<PortalNewsItem, "slug" | "kategori" | "main_category" | "sub_category">,
+  item: Pick<
+    PortalNewsItem,
+    "slug" | "kategori" | "main_category" | "sub_category"
+  >,
 ) => {
   const slug = item.slug?.trim() || "";
   if (!slug) return null;
@@ -307,7 +309,11 @@ export const buildNewsDetailHref = (
         slug,
       )}`;
 
-export type EconomicNewsSlug = "global-economy" | "fiscal-monetary";
+export type EconomicNewsSlug =
+  | "global"
+  | "economy"
+  | "global-economy"
+  | "fiscal-monetary";
 
 export type EconomicNewsConfig = {
   slug: EconomicNewsSlug;
@@ -317,9 +323,27 @@ export type EconomicNewsConfig = {
 
 export const ECONOMIC_NEWS_CONFIG: EconomicNewsConfig[] = [
   {
+    slug: "global",
+    labelKey: "globalEconomy",
+    matchTerms: ["global", "geopolitic", "geopolitics", "geopolitik", "world"],
+  },
+  {
+    slug: "economy",
+    labelKey: "globalEconomy",
+    matchTerms: [
+      "economy",
+      "economic",
+      "ekonomi",
+      "gdp",
+      "inflation",
+      "inflasi",
+    ],
+  },
+  {
     slug: "global-economy",
     labelKey: "globalEconomy",
     matchTerms: [
+      "global",
       "global economy",
       "global-economy",
       "ekonomi global",
@@ -419,7 +443,20 @@ export const buildEconomicNewsDetailHref = (
     slug,
   )}`;
 
-export type AnalysisSlug = "market-analysis" | "analisis-opinion" | "gold-corner";
+export const isGlobalEconomyGroupSlug = (value: string) => {
+  const normalized = normalizeRouteSlug(value);
+  return normalized === "global" || normalized === "economy" || normalized === "global-economy";
+};
+
+export const normalizeEconomicNewsRouteSub = (sub: EconomicNewsSlug): EconomicNewsSlug =>
+  sub === "global" || sub === "economy" || sub === "global-economy"
+    ? "global-economy"
+    : sub;
+
+export type AnalysisSlug =
+  | "market-analysis"
+  | "analisis-opinion"
+  | "gold-corner";
 
 export type AnalysisConfig = {
   slug: AnalysisSlug;
@@ -457,7 +494,11 @@ export const getAnalysisConfig = (slug: string) =>
 export const buildAnalysisListHref = (locale: Locale, sub: string) =>
   `/${locale}/analysis/${encodeURIComponent(sub)}`;
 
-export const buildAnalysisDetailHref = (locale: Locale, sub: string, slug: string) =>
+export const buildAnalysisDetailHref = (
+  locale: Locale,
+  sub: string,
+  slug: string,
+) =>
   `/${locale}/analysis/${encodeURIComponent(sub)}/${encodeURIComponent(slug)}`;
 
 const normalizeRouteSlug = (value?: string | null) =>
@@ -474,7 +515,8 @@ export const buildGoldCornerDetailHref = (locale: Locale, slug: string) =>
 
 export const isAnalysisPortalNewsItem = (item: PortalNewsItem) => {
   const type = item.type?.trim().toLowerCase() ?? "";
-  if (type === "analisis" || type === "analysis" || type === "gold-corner") return true;
+  if (type === "analisis" || type === "analysis" || type === "gold-corner")
+    return true;
 
   const categorySlugs = [
     item.sub_category?.slug,
@@ -488,7 +530,9 @@ export const isAnalysisPortalNewsItem = (item: PortalNewsItem) => {
   if (categorySlugs.includes("analisis-opinion")) return true;
   if (categorySlugs.includes("gold-corner")) return true;
 
-  return ANALYSIS_CONFIG.some((config) => itemMatchesTerms(item, config.matchTerms));
+  return ANALYSIS_CONFIG.some((config) =>
+    itemMatchesTerms(item, config.matchTerms),
+  );
 };
 
 export const inferEconomicNewsCategoryFromItem = (
@@ -497,10 +541,24 @@ export const inferEconomicNewsCategoryFromItem = (
   if (isAnalysisPortalNewsItem(item)) return null;
   if (inferMarketNewsCategoryFromItem(item) !== null) return null;
 
+  const explicitSlugs = [
+    item.sub_category?.slug,
+    item.main_category?.slug,
+    item.kategori?.slug,
+  ]
+    .map((value) => normalizeRouteSlug(value))
+    .filter(Boolean);
+
+  for (const slug of explicitSlugs) {
+    const direct = getEconomicNewsConfig(slug)?.slug ?? null;
+    if (direct) return direct;
+  }
+
   let best: EconomicNewsSlug | null = null;
   let bestScore = 0;
 
   for (const config of ECONOMIC_NEWS_CONFIG) {
+    if (config.slug === "global-economy") continue;
     const score = scoreItemTerms(item, config.matchTerms);
     if (score > bestScore) {
       bestScore = score;
@@ -517,7 +575,11 @@ export const inferAnalysisCategoryFromItem = (
   if (inferMarketNewsCategoryFromItem(item) !== null) return null;
   if (!isAnalysisPortalNewsItem(item)) return null;
 
-  const explicitCategory = [item.sub_category?.slug, item.main_category?.slug, item.kategori?.slug]
+  const explicitCategory = [
+    item.sub_category?.slug,
+    item.main_category?.slug,
+    item.kategori?.slug,
+  ]
     .map((value) => normalizeRouteSlug(value))
     .filter(Boolean)
     .find((value) => ANALYSIS_CONFIG.some((config) => config.slug === value));
@@ -540,7 +602,10 @@ export const inferAnalysisCategoryFromItem = (
   return bestScore > 0 ? best : null;
 };
 
-export const resolveNewsCategoryLabel = (messages: Messages, kategori: string) =>
+export const resolveNewsCategoryLabel = (
+  messages: Messages,
+  kategori: string,
+) =>
   getNewsCategoryConfig(kategori)
     ? String(messages.header.siteNav[getNewsCategoryConfig(kategori)!.labelKey])
     : kategori;
