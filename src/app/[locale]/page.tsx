@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+
+import { Container } from "@/components/layout/Container";
+import { DisclaimerCard } from "@/components/organisms/DisclaimerCard";
+import { Header } from "@/components/organisms/Header";
 import { HeroSection } from "@/components/organisms/HeroSection";
-import { PolicySnapshot } from "@/components/organisms/PolicySnapshot";
-import { RegulatoryWatch } from "@/components/organisms/RegulatoryWatch";
-import { MarketImpact } from "@/components/organisms/MarketImpact";
-import { FocusReport } from "@/components/organisms/FocusReport";
-import { RecentAnalysis } from "@/components/organisms/RecentAnalysis";
+import { HomeInsightBoards } from "@/components/organisms/HomeInsightBoards";
+import { HomeMenuPanels } from "@/components/organisms/HomeMenuPanels";
 import { InsightHub } from "@/components/organisms/InsightHub";
-import { INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
+import { LiveQuotesBoard } from "@/components/organisms/LiveQuotesBoard";
+import { NmAi } from "@/components/organisms/NmAi";
+import { Tagline } from "@/components/organisms/Tagline";
+import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
-  title: "Indonesia Market",
+  title: "Home",
 };
 
 export default async function Home({
@@ -25,35 +28,36 @@ export default async function Home({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages} showPopupBanner>
-      <HeroSection messages={messages} locale={locale} />
-      <PolicySnapshot messages={messages} locale={locale} />
-      <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-        <div className="contents lg:flex lg:flex-col lg:gap-4">
-          <div className="order-4">
-            <RegulatoryWatch messages={messages} locale={locale} />
-          </div>
-          <div className="order-2">
-            <RecentAnalysis
-              messages={messages}
+      <div className="flex flex-col gap-6">
+        <Container as="section">
+          <div className="flex flex-col gap-4">
+            <Header />
+            <HeroSection messages={messages} locale={locale} />
+            <LiveQuotesBoard
               locale={locale}
-              limit={4}
-              detailBasePath={INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH}
-              includeCategoryName="Analisis Market"
-              link={`/${locale}/indonesia-market/analysis`}
-              linkLabel={messages.equities.newsCategories.viewAll}
+              messages={messages}
+              title={messages.focusReport.kicker}
+              limit={9}
             />
+            <HomeMenuPanels locale={locale} messages={messages} />
+            <InsightHub locale={locale} />
           </div>
-        </div>
-        <div className="contents lg:flex lg:flex-col lg:gap-4">
-          <div className="order-1">
-            <MarketImpact messages={messages} locale={locale} />
+        </Container>
+
+        <section className="bg-blue-200/50">
+          <Container className="py-6">
+            <HomeInsightBoards locale={locale} messages={messages} />
+          </Container>
+        </section>
+
+        <Container as="section" className="mt-4">
+          <div className="flex flex-col gap-4">
+            <DisclaimerCard />
+            <NmAi />
+            <Tagline />
           </div>
-          <div className="order-3">
-            <FocusReport messages={messages} locale={locale} />
-          </div>
-        </div>
+        </Container>
       </div>
-      <InsightHub locale={locale} />
     </MarketPageTemplate>
   );
 }

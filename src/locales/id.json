@@ -141,7 +141,40 @@
     "activeNavKey": "home",
     "reports": "Laporan",
     "register": "Daftar",
-    "changeLanguageAria": "Ganti bahasa ke {locale}"
+    "changeLanguageAria": "Ganti bahasa ke {locale}",
+    "siteNav": {
+      "home": "Beranda",
+      "marketNews": "Berita Pasar",
+      "economicNews": "Berita Ekonomi",
+      "analysis": "Analisis",
+      "indonesiaMarket": "Pasar Indonesia",
+      "tools": "Tools",
+      "crypto": "Kripto",
+      "index": "Indeks",
+      "nikkei": "Nikkei",
+      "hangseng": "Hangseng",
+      "commodity": "Komoditas",
+      "gold": "Emas",
+      "silver": "Perak",
+      "oil": "Minyak",
+      "currencies": "Mata Uang",
+      "eurUsd": "EUR/USD",
+      "usdJpy": "USD/JPY",
+      "usdChf": "USD/CHF",
+      "audUsd": "AUD/USD",
+      "gbpUsd": "GBP/USD",
+      "usDollar": "Dolar AS",
+      "globalEconomy": "Global & Ekonomi",
+      "fiscalMoneter": "Fiskal & Moneter",
+      "marketAnalysis": "Analisis Pasar",
+      "economicCalendar": "Kalender Ekonomi",
+      "analysisOpinion": "Analisis & Opini",
+      "goldCorner": "Gold Corner",
+      "liveChart": "Live Chart",
+      "education": "Edukasi",
+      "historicalData": "Data Historis",
+      "pivotFibonacci": "Pivot & Fibonacci"
+    }
   },
   "hero": {
     "title": "Pasar Indonesia",
@@ -685,6 +718,9 @@
         }
       ],
       "economicCalendar": {
+        "title": "Kalender Ekonomi",
+        "eventsLabel": "event",
+        "warningText": "Data pemerintah AS dapat terpengaruh oleh penghentian operasional. Event bertanda 'Tentative' dapat mengalami penundaan, revisi, atau pembatalan.",
         "noData": "Tidak ada data yang tersedia.",
         "timeFrames": {
           "today": "Hari Ini",
@@ -696,8 +732,10 @@
           "date": "Tanggal",
           "time": "Waktu",
           "currency": "Negara",
-          "event": "Peristiwa",
           "impact": "Dampak",
+          "event": "Peristiwa",
+          "details": "Detail",
+          "history": "Riwayat",
           "previous": "Sebelumnya",
           "forecast": "Perkiraan",
           "actual": "Aktual"
@@ -709,8 +747,23 @@
           "frequency": "Frekuensi",
           "nextRelease": "Rilis Berikutnya",
           "notes": "Catatan",
-          "whyCare": "Mengapa Trader Peduli",
-          "detailHistory": "Detail Historis"
+          "whyCare": "Mengapa Trader Peduli"
+        },
+        "pagination": {
+          "prev": "Sebelumnya",
+          "next": "Berikutnya",
+          "page": "Halaman",
+          "of": "dari"
+        },
+        "empty": {
+          "notFound": "Data tidak ditemukan.",
+          "noData": "Tidak ada data.",
+          "noDetails": "Tidak ada detail tambahan.",
+          "noInformation": "Tidak ada informasi"
+        },
+        "aria": {
+          "expand": "Buka detail",
+          "collapse": "Tutup detail"
         }
       },
       "actions": {
@@ -738,8 +791,33 @@
         "Press Release"
       ]
     },
+    "liveChart": {
+      "title": "Grafik Langsung",
+      "warningText": "Chart disediakan oleh TradingView. Data market bisa tertunda atau berbeda dengan broker/exchange kamu. Selalu verifikasi harga sebelum trading."
+    },
     "historicData": {
       "title": "Data Historis",
+      "subtitle": "Data OHLC dari API Newsmaker.",
+      "labels": {
+        "category": "Kategori",
+        "date": "Tanggal",
+        "limit": "Limit",
+        "refresh": "Refresh"
+      },
+      "placeholders": {
+        "category": "LGD Daily",
+        "date": "2026-04-14"
+      },
+      "rowsLabel": "baris",
+      "table": {
+        "date": "Tanggal",
+        "open": "Open",
+        "high": "High",
+        "low": "Low",
+        "close": "Close",
+        "bankHoliday": "Libur Bank"
+      },
+      "empty": "Data belum tersedia.",
       "filters": {
         "start": "Mulai",
         "end": "Akhir",

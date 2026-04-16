@@ -3,22 +3,18 @@
 import React from "react";
 import { useLoading } from "../providers/LoadingProvider";
 import type { Messages } from "@/locales";
+import { Card } from "../atoms/Card";
+import { SectionHeader } from "../molecules/SectionHeader";
 
 type LiveQuotesBoardProps = {
   messages: Messages;
-  title: string;
+  locale?: string;
+  title?: string;
   subtitle?: string;
   limit?: number;
 };
 
 type MarketGroup = "index" | "equity";
-
-type MarketDefinition = {
-  symbol: string;
-  displaySymbol: string;
-  fallbackName: string;
-  group: MarketGroup;
-};
 
 type DisplayMetric = {
   key: string;
@@ -32,69 +28,131 @@ type DisplayMetric = {
   isAvailable: boolean;
 };
 
-type MarketPollingItem = {
+type LiveQuoteItem = {
   symbol?: string;
-  shortName?: string;
   price?: number;
-  change?: number;
-  change_percent?: number;
+  valueChange?: number;
+  percentChange?: number;
+  serverTime?: string;
+  serverDateTime?: string;
+  time?: string;
+  date_time?: string;
 };
 
-type MarketPollingResponse = {
-  type?: "market";
-  transport?: string;
-  interval_ms?: number;
-  at?: string;
-  data?: MarketPollingItem[];
+type LiveQuotesResponse = {
+  status?: string;
+  updatedAt?: string;
+  serverTime?: string;
+  total?: number;
+  data?: LiveQuoteItem[];
+  source?: string;
+  state?: string;
+  error?: unknown;
 };
 
-const MARKET_POLLING_URL = "/api/market";
+const LIVE_QUOTES_URL = "/api/live-quotes";
 const DEFAULT_POLL_INTERVAL_MS = 5_000;
 
 const normalizeSymbol = (value?: string) => value?.trim().toUpperCase() ?? "";
 
-const formatDisplaySymbol = (symbol: string) =>
-  symbol.replace(/^\^/, "").replace(/\.JK$/i, "");
+type QuoteCategory = "futures" | "forex";
 
-const resolveShortName = (value?: string) => {
-  if (typeof value !== "string") {
-    return undefined;
-  }
+const FOREX_SYMBOL_MAP = new Map<
+  string,
+  { label: string; subtitle: string; badge: string; color: string }
+>([
+  [
+    "EU10F_BBJ",
+    { label: "EUR/USD", subtitle: "EURUSD", badge: "FX", color: "bg-blue-600" },
+  ],
+  [
+    "UJ10F_BBJ",
+    { label: "USD/JPY", subtitle: "USDJPY", badge: "FX", color: "bg-blue-600" },
+  ],
+  [
+    "UC10F_BBJ",
+    { label: "USD/CHF", subtitle: "USDCHF", badge: "FX", color: "bg-blue-600" },
+  ],
+  [
+    "AU10F_BBJ",
+    { label: "AUD/USD", subtitle: "AUDUSD", badge: "FX", color: "bg-blue-600" },
+  ],
+  [
+    "GU10F_BBJ",
+    { label: "GBP/USD", subtitle: "GBPUSD", badge: "FX", color: "bg-blue-600" },
+  ],
+]);
 
-  const trimmedValue = value.trim();
-  return trimmedValue ? trimmedValue : undefined;
+const FUTURES_SYMBOL_MAP = new Map<
+  string,
+  { label: string; subtitle: string; badge: string; color: string }
+>([
+  [
+    "XUL10",
+    {
+      label: "Gold",
+      subtitle: "XAUUSD",
+      badge: "GOLD",
+      color: "bg-amber-500",
+    },
+  ],
+  [
+    "BCO10_BBJ",
+    { label: "Oil", subtitle: "BCOUSD", badge: "OIL", color: "bg-slate-900" },
+  ],
+  [
+    "HKK50_BBJ",
+    {
+      label: "Hangseng",
+      subtitle: "HANGSENG",
+      badge: "IDX",
+      color: "bg-rose-600",
+    },
+  ],
+  [
+    "JPK50_BBJ",
+    {
+      label: "NIKKEI 255",
+      subtitle: "NIKKEI",
+      badge: "IDX",
+      color: "bg-indigo-700",
+    },
+  ],
+]);
+
+const resolveQuoteCategory = (symbol: string): QuoteCategory => {
+  if (FOREX_SYMBOL_MAP.has(symbol)) return "forex";
+  if (symbol.endsWith("F_BBJ")) return "forex";
+  return "futures";
 };
 
-const resolveMarketGroup = (
+const resolveSymbolPreset = (symbol: string) =>
+  FOREX_SYMBOL_MAP.get(symbol) ?? FUTURES_SYMBOL_MAP.get(symbol);
+
+const ICONS = {
+  gold: "/assets/gold-icon.png",
+  silver: "/assets/silver-icon.png",
+  hsi: "/assets/hsi-icon.png",
+  nikkei: "/assets/nikkei-icon.png",
+  oil: "/assets/oil-icon.png",
+  forex: "/assets/forex-icon.png",
+  dollar: "/assets/dollar-icon.png",
+} as const;
+
+const resolveIconSrc = (
   symbol: string,
-): MarketGroup =>
-  symbol.startsWith("^") || /^IDX\d+/i.test(symbol) ? "index" : "equity";
-
-const mergeMarketsWithApiItems = (
-  items: MarketPollingItem[],
+  category: QuoteCategory,
+  mappedLabel?: string,
 ) => {
-  const marketMap = new Map<string, MarketDefinition>();
-
-  items.forEach((item) => {
-    const symbol = normalizeSymbol(item.symbol);
-    if (!symbol) {
-      return;
-    }
-
-    const dedupeKey = formatDisplaySymbol(symbol);
-    if (marketMap.has(dedupeKey)) {
-      return;
-    }
-
-    marketMap.set(dedupeKey, {
-      symbol,
-      displaySymbol: dedupeKey,
-      fallbackName: resolveShortName(item.shortName) ?? dedupeKey,
-      group: resolveMarketGroup(symbol),
-    });
-  });
-
-  return Array.from(marketMap.values());
+  if (symbol === "XUL10" || mappedLabel === "XAUUSD") return ICONS.gold;
+  if (symbol.includes("XAG") || mappedLabel === "XAGUSD") return ICONS.silver;
+  if (symbol === "BCO10_BBJ" || mappedLabel === "UKOIL") return ICONS.oil;
+  if (symbol === "HKK50_BBJ" || mappedLabel === "HSI") return ICONS.hsi;
+  if (symbol === "JPK50_BBJ" || mappedLabel === "NIKKEI") return ICONS.nikkei;
+  if (symbol.includes("DOLLAR") || mappedLabel === "US Dollar")
+    return ICONS.dollar;
+  if (category === "forex") return ICONS.forex;
+  return null;
 };
 
 const formatNumber = (value: number | undefined, digits = 2) => {
@@ -111,76 +169,73 @@ const formatSignedNumber = (value: number | undefined, digits = 2) => {
   return `${sign}${formatNumber(value, digits)}`;
 };
 
-const resolveDigits = (group: DisplayMetric["group"], value?: number) => {
-  if (
-    group === "equity" &&
-    typeof value === "number" &&
-    Number.isFinite(value)
-  ) {
-    return 0;
-  }
-
+const resolveDigits = (value?: number) => {
   if (value === undefined) return 2;
   if (Math.abs(value) >= 1_000) return 0;
   if (Math.abs(value) >= 1) return 2;
   return 4;
 };
 
-const buildMetrics = (
-  markets: MarketDefinition[],
-  items?: MarketPollingItem[],
-): DisplayMetric[] => {
-  const itemMap = new Map(
-    Array.isArray(items)
-      ? items
-          .filter(
-            (item): item is MarketPollingItem & { symbol: string } =>
-              typeof item.symbol === "string" && item.symbol.length > 0,
-          )
-          .map((item) => [normalizeSymbol(item.symbol), item] as const)
-      : [],
-  );
-
-  return markets.map((market) => {
-    const item =
-      itemMap.get(normalizeSymbol(market.symbol)) ??
-      itemMap.get(market.displaySymbol) ??
-      itemMap.get(`${market.displaySymbol}.JK`) ??
-      itemMap.get(`^${market.displaySymbol}`);
-    const digits = resolveDigits(market.group, item?.price);
-    const changeParts = [
-      formatSignedNumber(item?.change, digits),
-      item?.change_percent !== undefined
-        ? `(${formatSignedNumber(item.change_percent, 2)}%)`
-        : undefined,
-    ].filter((value): value is string => Boolean(value));
-    const subtitle =
-      resolveShortName(item?.shortName) ??
-      market.fallbackName ??
-      market.displaySymbol;
-
-    const tone =
-      item?.change !== undefined
-        ? item.change < 0
-          ? "down"
-          : item.change > 0
-            ? "up"
-            : "flat"
-        : "flat";
-
-    return {
-      key: market.symbol,
-      label: market.displaySymbol,
-      subtitle,
-      badge: market.displaySymbol,
-      group: market.group,
-      value: formatNumber(item?.price, digits) ?? "-",
-      tone,
-      meta: item ? changeParts.join(" ") || "No change" : "Unavailable",
-      isAvailable: Boolean(item),
-    };
-  });
+const resolveMarketGroup = (symbol: string): MarketGroup => {
+  if (/K50/i.test(symbol) || /^IDX\d+/i.test(symbol) || /^XUL/i.test(symbol)) {
+    return "index";
+  }
+  return "equity";
 };
+
+const resolveTone = (item: LiveQuoteItem): DisplayMetric["tone"] => {
+  const percent = item.percentChange;
+  if (typeof percent === "number" && Number.isFinite(percent)) {
+    if (percent > 0) return "up";
+    if (percent < 0) return "down";
+    return "flat";
+  }
+
+  const absolute = item.valueChange;
+  if (typeof absolute === "number" && Number.isFinite(absolute)) {
+    if (absolute > 0) return "up";
+    if (absolute < 0) return "down";
+    return "flat";
+  }
+
+  return "flat";
+};
+
+const buildMetrics = (items: LiveQuoteItem[]): DisplayMetric[] =>
+  items
+    .filter(
+      (item): item is LiveQuoteItem & { symbol: string } =>
+        typeof item.symbol === "string" && item.symbol.trim().length > 0,
+    )
+    .map((item) => {
+      const symbol = normalizeSymbol(item.symbol);
+      const digits = resolveDigits(item.price);
+      const changeParts = [
+        formatSignedNumber(item.valueChange, digits),
+        item.percentChange !== undefined
+          ? `(${formatSignedNumber(item.percentChange, 2)}%)`
+          : undefined,
+      ].filter((value): value is string => Boolean(value));
+
+      const tone = resolveTone(item);
+
+      const subtitle =
+        String(item.serverTime ?? item.time ?? "").trim() ||
+        String(item.serverDateTime ?? item.date_time ?? "").trim() ||
+        "Live";
+
+      return {
+        key: symbol,
+        label: symbol,
+        subtitle,
+        badge: symbol,
+        group: resolveMarketGroup(symbol),
+        value: formatNumber(item.price, digits) ?? "-",
+        tone,
+        meta: changeParts.join(" ") || "No change",
+        isAvailable: item.price !== undefined,
+      };
+    });
 
 const getMetricStateLabel = (metric: DisplayMetric) => {
   if (!metric.isAvailable) return "Waiting";
@@ -196,19 +251,24 @@ const getMetricStateLabel = (metric: DisplayMetric) => {
 };
 
 export function LiveQuotesBoard({
+  title,
+  subtitle,
   limit,
 }: LiveQuotesBoardProps) {
   const { start, stop } = useLoading();
-  const [items, setItems] = React.useState<MarketPollingItem[]>([]);
+  const [items, setItems] = React.useState<LiveQuoteItem[]>([]);
+  const [activeCategory, setActiveCategory] =
+    React.useState<QuoteCategory>("futures");
   const loadingTokenRef = React.useRef<symbol | null>(null);
   const pollTimeoutRef = React.useRef<number | null>(null);
   const pollIntervalRef = React.useRef(DEFAULT_POLL_INTERVAL_MS);
-  const displayMarkets = React.useMemo(() => {
-    const mergedMarkets = mergeMarketsWithApiItems(items);
-    return typeof limit === "number"
-      ? mergedMarkets.slice(0, limit)
-      : mergedMarkets;
-  }, [items, limit]);
+  const scrollerRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollByCards = (direction: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const delta = Math.max(240, Math.round(el.clientWidth * 0.85)) * direction;
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  };
 
   React.useEffect(() => {
     let isMounted = true;
@@ -241,40 +301,30 @@ export function LiveQuotesBoard({
           return;
         }
 
-        void loadMarket();
+        void loadQuotes();
       }, delay);
     };
 
-    const loadMarket = async () => {
+    const loadQuotes = async () => {
       if (!isMounted) {
         return;
       }
 
       try {
-        const response = await fetch(MARKET_POLLING_URL, {
+        const response = await fetch(LIVE_QUOTES_URL, {
           cache: "no-store",
         });
 
-        if (!response.ok) {
-          throw new Error("market_poll_failed");
-        }
+        if (!response.ok) throw new Error("live_quotes_fetch_failed");
 
-        const payload = (await response.json()) as MarketPollingResponse;
+        const payload = (await response.json()) as LiveQuotesResponse;
 
         if (
-          payload.type !== "market" ||
+          payload.status !== "success" ||
           !Array.isArray(payload.data) ||
           !isMounted
         ) {
-          throw new Error("market_poll_invalid_payload");
-        }
-
-        if (
-          typeof payload.interval_ms === "number" &&
-          Number.isFinite(payload.interval_ms) &&
-          payload.interval_ms > 0
-        ) {
-          pollIntervalRef.current = payload.interval_ms;
+          throw new Error("live_quotes_invalid_payload");
         }
 
         setItems(payload.data);
@@ -294,11 +344,11 @@ export function LiveQuotesBoard({
       }
 
       clearPollTimer();
-      void loadMarket();
+      void loadQuotes();
     };
 
     loadingTokenRef.current = start("live-quotes");
-    void loadMarket();
+    void loadQuotes();
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
@@ -309,34 +359,79 @@ export function LiveQuotesBoard({
     };
   }, [start, stop]);
 
+  const categoryItems = React.useMemo(() => {
+    const filtered = items.filter((item) => {
+      const symbol = normalizeSymbol(item.symbol);
+      return resolveQuoteCategory(symbol) === activeCategory;
+    });
+
+    return typeof limit === "number" ? filtered.slice(0, limit) : filtered;
+  }, [activeCategory, items, limit]);
+
   const metrics = React.useMemo(
-    () => buildMetrics(displayMarkets, items),
-    [displayMarkets, items],
+    () => buildMetrics(categoryItems),
+    [categoryItems],
   );
 
+  const resolvedTitle = title?.trim() || "Live Quotes";
+  const resolvedSubtitle = subtitle?.trim();
+
   return (
-    <div className="rounded-2xl">
-      {/* <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">{title}</p>
-          {subtitle ? (
-            <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
-          ) : null}
-          <p className="mt-1 text-xs text-slate-500">
-            {messages.policy.biRatePage.updatedLabel}:{" "}
-            {updatedTime || "--:--:--"}
-          </p>
-        </div>
+    <Card>
+      <SectionHeader
+        title={resolvedTitle}
+        optional={resolvedSubtitle}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollByCards(-1)}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-blue-200 bg-white text-blue-700 transition hover:bg-blue-50"
+              aria-label="Scroll left"
+            >
+              <i className="fa-solid fa-chevron-left text-[11px]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCards(1)}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-blue-200 bg-white text-blue-700 transition hover:bg-blue-50"
+              aria-label="Scroll right"
+            >
+              <i className="fa-solid fa-chevron-right text-[11px]" />
+            </button>
+          </div>
+        }
+      />
 
-        <span
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ${feedStatusClass}`}
+      <div className="flex items-center gap-2 px-4 pb-3 pt-4">
+        <button
+          type="button"
+          onClick={() => setActiveCategory("futures")}
+          className={`h-7 rounded-full px-4 text-xs font-semibold transition ${
+            activeCategory === "futures"
+              ? "bg-blue-700 text-white"
+              : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+          }`}
         >
-          <span className={`h-2 w-2 rounded-full ${feedStatusDotClass}`} />
-          {feedStatusLabel}
-        </span>
-      </div> */}
+          Futures
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveCategory("forex")}
+          className={`h-7 rounded-full px-4 text-xs font-semibold transition ${
+            activeCategory === "forex"
+              ? "bg-blue-700 text-white"
+              : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+          }`}
+        >
+          Forex
+        </button>
+      </div>
 
-      <ul className="grid gap-2">
+      <div
+        ref={scrollerRef}
+        className="flex gap-3 overflow-x-auto px-4 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         {metrics.map((metric) => {
           const toneClass =
             metric.tone === "up"
@@ -344,83 +439,69 @@ export function LiveQuotesBoard({
               : metric.tone === "down"
                 ? "text-rose-600"
                 : "text-slate-500";
-          const badgeClass =
-            metric.group === "index"
-              ? "bg-blue-100 text-blue-700 ring-blue-200"
-              : "bg-emerald-100 text-emerald-700 ring-emerald-200";
-          const surfaceClass = !metric.isAvailable
-            ? "border-slate-200 bg-white"
-            : metric.tone === "up"
-              ? "border-emerald-100 bg-emerald-50/40"
-              : metric.tone === "down"
-                ? "border-rose-100 bg-rose-50/40"
-                : "border-slate-200 bg-white";
-          const typeClass =
-            metric.group === "index"
-              ? "bg-blue-50 text-blue-700"
-              : "bg-emerald-50 text-emerald-700";
-          const stateClass = !metric.isAvailable
-            ? "bg-slate-100 text-slate-500"
-            : metric.tone === "up"
+
+          const symbolKey = normalizeSymbol(metric.label);
+          const mapped = resolveSymbolPreset(symbolKey);
+
+          const label = mapped?.label ?? metric.label;
+          const subtitle = mapped?.subtitle ?? metric.subtitle;
+          const badgeText =
+            mapped?.badge ?? (metric.group === "index" ? "IDX" : "MKT");
+          const iconSrc = resolveIconSrc(
+            symbolKey,
+            activeCategory,
+            mapped?.label,
+          );
+          const pillClass =
+            metric.tone === "up"
               ? "bg-emerald-50 text-emerald-700"
               : metric.tone === "down"
                 ? "bg-rose-50 text-rose-700"
                 : "bg-slate-100 text-slate-600";
 
           return (
-            <li
+            <div
               key={metric.key}
-              className={`rounded-xl border px-3 py-3 transition-colors ${surfaceClass}`}
+              className="min-w-[300px] flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span
-                    className={`inline-flex h-10 min-w-10 items-center justify-center rounded-lg px-2 text-[11px] font-bold tracking-[0.16em] ring-1 ${badgeClass}`}
-                  >
-                    {metric.badge}
-                  </span>
-
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-900">
-                        {metric.label}
-                      </p>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${typeClass}`}
-                      >
-                        {metric.group}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      {metric.subtitle}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-end justify-between gap-1 sm:min-w-44 sm:flex-col sm:items-end">
-                  <div className="flex items-center gap-2">
-                    <p className={`text-sm font-semibold ${toneClass}`}>
-                      {metric.meta}
-                    </p>
-
-                    <p className="text-base font-semibold text-slate-900">
-                      {metric.value}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 sm:flex-col sm:items-end">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${stateClass}`}
-                    >
-                      {getMetricStateLabel(metric)}
+              <div className="flex h-full items-center gap-4">
+                <div className="flex w-16 shrink-0 items-center justify-center self-stretch">
+                  {iconSrc ? (
+                    <img
+                      src={iconSrc}
+                      alt=""
+                      className="h-16 w-16 object-contain"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <span className="text-xs font-bold tracking-wide text-slate-700">
+                      {badgeText}
                     </span>
-                  </div>
+                  )}
                 </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-bold text-blue-900">
+                    {label}
+                  </p>
+                  <p className="mt-1 text-lg font-bold leading-none text-slate-900">
+                    {metric.value}
+                  </p>
+                  <p className={`mt-1 text-[10px] font-semibold ${toneClass}`}>
+                    {metric.meta}
+                  </p>
+                </div>
+
+                <span
+                  className={`inline-flex h-6 items-center rounded-full px-3 text-[10px] font-bold uppercase tracking-[0.16em] ${pillClass}`}
+                >
+                  {getMetricStateLabel(metric)}
+                </span>
               </div>
-            </li>
+            </div>
           );
         })}
-      </ul>
-    </div>
+      </div>
+    </Card>
   );
 }

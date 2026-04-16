@@ -20,7 +20,7 @@ export function SectionHeader({
 
   return (
     <div className="space-y-5 px-4 pt-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-semibold leading-none tracking-[-0.04em] text-[#1f3f6b] md:text-xl">
           {title}
         </h3>

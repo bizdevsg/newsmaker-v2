@@ -1,14 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLoading } from "../providers/LoadingProvider";
 import { resolvePortalNewsTitle } from "@/lib/portalnews-shared";
-import {
-  INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH,
-  INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH,
-} from "@/lib/indonesia-market-sections";
 import type { Locale } from "@/locales";
 
 type TickerBarProps = {
@@ -42,21 +37,23 @@ type NewsItem = {
 
 type MarketApiItem = {
   symbol?: string;
-  shortName?: string;
   price?: number;
-  change?: number;
-  change_percent?: number;
+  valueChange?: number;
+  percentChange?: number;
 };
 
 type MarketApiResponse = {
-  type?: string;
-  transport?: string;
-  interval_ms?: number;
-  at?: string;
+  status?: string;
+  updatedAt?: string;
+  serverTime?: string;
+  total?: number;
   data?: MarketApiItem[];
+  source?: string;
+  state?: string;
+  error?: unknown;
 };
 
-const MARKET_API_URL = "/api/market";
+const MARKET_API_URL = "/api/live-quotes";
 const NEWS_API_URL = `/api/ticker-news`;
 const MARKET_REFRESH_INTERVAL_MS = 1000;
 const NEWS_REFRESH_INTERVAL_MS = 300_000;
@@ -167,21 +164,29 @@ export function TickerBar({
 
       const priceText = formatNumber(item.price);
       const changePercentText =
-        typeof item.change_percent === "number" &&
-        Number.isFinite(item.change_percent)
-          ? formatSignedPercent(item.change_percent)
+        typeof item.percentChange === "number" &&
+        Number.isFinite(item.percentChange)
+          ? formatSignedPercent(item.percentChange)
           : undefined;
       const tone =
-        typeof item.change === "number" && Number.isFinite(item.change)
-          ? item.change > 0
+        typeof item.percentChange === "number" &&
+        Number.isFinite(item.percentChange)
+          ? item.percentChange > 0
             ? "up"
-            : item.change < 0
+            : item.percentChange < 0
               ? "down"
               : "flat"
+          : typeof item.valueChange === "number" &&
+              Number.isFinite(item.valueChange)
+            ? item.valueChange > 0
+              ? "up"
+              : item.valueChange < 0
+                ? "down"
+                : "flat"
           : "flat";
       return {
-        key: `${item.symbol}-${item.price}-${item.change ?? 0}`,
-        symbol: resolveTickerSymbol(item.symbol, item.shortName),
+        key: `${item.symbol}-${item.price}-${item.valueChange ?? 0}`,
+        symbol: resolveTickerSymbol(item.symbol),
         priceText,
         changePercentText,
         tone,
@@ -190,16 +195,6 @@ export function TickerBar({
 
     const toNewsTick = (item: NewsItem, index: number): LiveTick => {
       const slug = item.slug?.trim();
-      const basePath =
-        item.type === "analisis"
-          ? INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH
-          : item.type === "regulasi-institusi"
-            ? "regulasi-institusi"
-            : INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH;
-
-      const href = slug
-        ? `/${resolvedLocale}/${basePath}/${encodeURIComponent(slug)}`
-        : `/${resolvedLocale}/${basePath}`;
 
       return {
         key: `news-${item.id ?? slug ?? index}`,
@@ -208,7 +203,6 @@ export function TickerBar({
           resolvedLocale,
           "Latest update",
         ),
-        href,
       };
     };
 
@@ -223,12 +217,13 @@ export function TickerBar({
         const payload = await fetchJson<MarketApiResponse>(MARKET_API_URL);
         if (!isActive) return;
 
-        const nextTicks = Array.isArray(payload?.data)
-          ? payload.data
-              .map(toTick)
-              .filter((item): item is LiveTick => item !== null)
-              .slice(0, MARKET_TICK_LIMIT)
-          : [];
+        const nextTicks =
+          payload?.status === "success" && Array.isArray(payload?.data)
+            ? payload.data
+                .map(toTick)
+                .filter((item): item is LiveTick => item !== null)
+                .slice(0, MARKET_TICK_LIMIT)
+            : [];
 
         if (nextTicks.length) {
           setLiveTicks(nextTicks);
@@ -322,10 +317,6 @@ export function TickerBar({
       : "text-white/85";
     const wrapperClass =
       "inline-flex items-center gap-2 transition-colors hover:text-white";
-    const newsLinkLabel = resolvedLocale === "en" ? "Open news" : "Buka berita";
-    const linkClass = item.symbol
-      ? `${wrapperClass} cursor-pointer hover:underline`
-      : `${wrapperClass} cursor-pointer hover:underline focus-visible:underline underline-offset-4 decoration-current`;
     const content = item.symbol ? (
       <>
         <span className={symbolClass}>{item.symbol}</span>
@@ -337,28 +328,6 @@ export function TickerBar({
     ) : (
       <span className={priceClass}>{item.priceText}</span>
     );
-
-    if (item.href) {
-      return (
-        <span
-          key={`${item.key}-${variant}-${index}`}
-          className="inline-flex items-center gap-2"
-        >
-          <Link
-            href={item.href}
-            className={linkClass}
-            aria-label={`${newsLinkLabel}: ${item.priceText}`}
-          >
-            {content}
-          </Link>
-          {nextIsTick ? (
-            <span className="ticker-dot" aria-hidden="true">
-              &bull;
-            </span>
-          ) : null}
-        </span>
-      );
-    }
 
     return (
       <span

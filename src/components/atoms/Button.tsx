@@ -12,6 +12,8 @@ type ButtonAs = "button" | "a" | "span";
 type ButtonProps = {
   children: React.ReactNode;
   href?: string;
+  target?: string;
+  rel?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -41,6 +43,8 @@ const variants: Record<ButtonVariant, string> = {
 export function Button({
   children,
   href,
+  target,
+  rel,
   onClick,
   variant = "primary",
   size = "md",
@@ -55,7 +59,7 @@ export function Button({
 
   if (href && as !== "button") {
     return (
-      <a href={href} className={classes}>
+      <a href={href} target={target} rel={rel} className={classes}>
         {children}
       </a>
     );

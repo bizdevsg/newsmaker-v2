@@ -26,6 +26,7 @@ type RecentAnalysisProps = {
   excludeCategoryNames?: string[];
   link?: string;
   linkLabel?: string;
+  enableItemLinks?: boolean;
 };
 
 type RecentAnalysisItem = {
@@ -172,14 +173,15 @@ async function fetchRecentAnalysis(
 export async function RecentAnalysis({
   messages,
   locale,
-  limit = 4,
   detailBasePath,
   includeCategoryName = "Analisis Market",
   includeMainCategorySlug = null,
   excludeCategoryNames = [],
   link,
   linkLabel,
+  enableItemLinks = true,
 }: RecentAnalysisProps) {
+  const limit = 2;
   const items = await fetchRecentAnalysis(
     locale,
     limit,
@@ -190,50 +192,52 @@ export async function RecentAnalysis({
     messages,
   );
 
+  const resolvedItems = enableItemLinks
+    ? items
+    : items.map((item) => ({ ...item, href: undefined }));
+
   return (
     <Card>
       <SectionHeader
-        title={messages?.widgets?.recentAnalysis?.title || "Recent Analysis"}
+        title={"Market Outlook"}
         link={link}
         linkLabel={linkLabel}
       />
-      {items.length > 0 ? (
-        <div
-          className={`grid items-stretch gap-4 px-4 pb-6 pt-4 sm:grid-cols-1 lg:grid-cols-2`}
-        >
-          {items.map((item) => (
+      {resolvedItems.length > 0 ? (
+        <div className="grid items-stretch gap-4 px-4 pb-6 pt-4">
+          {resolvedItems.map((item) => (
             <article
               key={item.key ?? item.title}
-              className="flex h-full flex-col overflow-hidden rounded-md border border-slate-200 bg-white"
+              className="flex h-full flex-col overflow-hidden"
             >
-              <div className="aspect-video flex-shrink-0 overflow-hidden bg-slate-100">
+              <div className="aspect-video shrink-0 bg-slate-100  border border-zinc-200 rounded-md overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.title}
                   className="h-full w-full object-cover"
                 />
               </div>
-              <div className="flex flex-1 flex-col gap-2 p-3">
-                <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
+              <div className="flex flex-1 flex-col gap-2 mt-2">
+                <h4 className="line-clamp-1 text-sm font-semibold leading-snug text-slate-800">
                   {item.title}
                 </h4>
-                {item.date ? (
-                  <p className="text-[11px] font-semibold text-slate-400">
-                    {item.date}
-                  </p>
-                ) : null}
-                <p className="line-clamp-3 flex-1 text-xs text-slate-500">
-                  {item.summary}
-                </p>
-                {item.href ? (
-                  <Link
-                    href={item.href}
-                    className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
-                  >
-                    {messages?.widgets?.recentAnalysis?.itemCta ||
-                      "Read More >"}
-                  </Link>
-                ) : null}
+                <div className="flex items-center justify-between">
+                  {item.date ? (
+                    <p className="text-[11px] font-semibold text-slate-400">
+                      {item.date}
+                    </p>
+                  ) : null}
+
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      className="mt-auto pt-1 text-xs font-semibold text-blue-700 hover:text-blue-800"
+                    >
+                      {messages?.widgets?.recentAnalysis?.itemCta ||
+                        "Read More >"}
+                    </Link>
+                  ) : null}
+                </div>
               </div>
             </article>
           ))}

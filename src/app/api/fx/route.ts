@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
-const FRANKFURTER_BASE_URL = process.env.FRANKFURTER_BASE_URL ?? "";
+const FRANKFURTER_BASE_URL =
+  process.env.FRANKFURTER_BASE_URL ?? "https://api.frankfurter.dev/v1";
 
 function normalizeCurrency(value: string | null, fallback: string) {
   return (value || fallback).trim().toUpperCase();

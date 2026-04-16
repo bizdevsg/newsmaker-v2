@@ -6,6 +6,10 @@ import { TickerBar } from "../organisms/TickerBar";
 import { ScrollUpButton } from "../organisms/ScrollUpButton";
 import { PopupBannerModal } from "../organisms/PopupBannerModal";
 import type { Locale, Messages } from "@/locales";
+import { Container } from "../layout/Container";
+import { DisclaimerCard } from "../organisms/DisclaimerCard";
+import { NmAi } from "../organisms/NmAi";
+import { Tagline } from "../organisms/Tagline";
 
 type MarketPageTemplateProps = {
   children: React.ReactNode;
@@ -39,11 +43,7 @@ export function MarketPageTemplate({
             />
           </div>
         </div>
-        <main className="px-4 py-4">
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
-            {children}
-          </div>
-        </main>
+        <div className=" px-4">{children}</div>
         {/* <FloatingPartnerButtons /> */}
         <ScrollUpButton />
         {showPopupBanner ? <PopupBannerModal /> : null}

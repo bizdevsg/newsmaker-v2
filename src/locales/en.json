@@ -145,7 +145,40 @@
     "activeNavKey": "home",
     "reports": "Reports",
     "register": "Register",
-    "changeLanguageAria": "Change language to {locale}"
+    "changeLanguageAria": "Change language to {locale}",
+    "siteNav": {
+      "home": "Home",
+      "marketNews": "Market News",
+      "economicNews": "Economic News",
+      "analysis": "Analysis",
+      "indonesiaMarket": "Indonesia Market",
+      "tools": "Tools",
+      "crypto": "Crypto",
+      "index": "Index",
+      "nikkei": "Nikkei",
+      "hangseng": "Hangseng",
+      "commodity": "Commodity",
+      "gold": "Gold",
+      "silver": "Silver",
+      "oil": "Oil",
+      "currencies": "Currencies",
+      "eurUsd": "EUR/USD",
+      "usdJpy": "USD/JPY",
+      "usdChf": "USD/CHF",
+      "audUsd": "AUD/USD",
+      "gbpUsd": "GBP/USD",
+      "usDollar": "US Dollar",
+      "globalEconomy": "Global & Economy",
+      "fiscalMoneter": "Fiscal & Monetary",
+      "marketAnalysis": "Market Analysis",
+      "economicCalendar": "Economic Calendar",
+      "analysisOpinion": "Analysis & Opinion",
+      "goldCorner": "Gold Corner",
+      "liveChart": "Live Chart",
+      "education": "Education",
+      "historicalData": "Historical Data",
+      "pivotFibonacci": "Pivot & Fibonacci"
+    }
   },
   "hero": {
     "title": "Indonesia Market",
@@ -689,6 +722,9 @@
         }
       ],
       "economicCalendar": {
+        "title": "Economic Calendar",
+        "eventsLabel": "events",
+        "warningText": "US government data may be affected by operational disruptions. Events marked 'Tentative' may be delayed, revised, or canceled.",
         "noData": "No data available.",
         "timeFrames": {
           "today": "Today",
@@ -700,8 +736,10 @@
           "date": "Date",
           "time": "Time",
           "currency": "Country",
-          "event": "Event",
           "impact": "Impact",
+          "event": "Event",
+          "details": "Details",
+          "history": "History",
           "previous": "Previous",
           "forecast": "Forecast",
           "actual": "Actual"
@@ -713,8 +751,23 @@
           "frequency": "Frequency",
           "nextRelease": "Next Released",
           "notes": "Notes",
-          "whyCare": "Why Traders Care",
-          "detailHistory": "Detail History"
+          "whyCare": "Why Traders Care"
+        },
+        "pagination": {
+          "prev": "Prev",
+          "next": "Next",
+          "page": "Page",
+          "of": "of"
+        },
+        "empty": {
+          "notFound": "Data not found.",
+          "noData": "No data available.",
+          "noDetails": "No additional details available.",
+          "noInformation": "No Information"
+        },
+        "aria": {
+          "expand": "Expand details",
+          "collapse": "Collapse details"
         }
       },
       "actions": {
@@ -742,8 +795,33 @@
         "Press Release"
       ]
     },
+    "liveChart": {
+      "title": "Live Chart",
+      "warningText": "Charts are provided by TradingView. Market data may be delayed or differ from your broker/exchange. Always verify prices before trading."
+    },
     "historicData": {
       "title": "Historical Data",
+      "subtitle": "OHLC data from Newsmaker API.",
+      "labels": {
+        "category": "Category",
+        "date": "Date",
+        "limit": "Limit",
+        "refresh": "Refresh"
+      },
+      "placeholders": {
+        "category": "LGD Daily",
+        "date": "2026-04-14"
+      },
+      "rowsLabel": "rows",
+      "table": {
+        "date": "Date",
+        "open": "Open",
+        "high": "High",
+        "low": "Low",
+        "close": "Close",
+        "bankHoliday": "Bank Holiday"
+      },
+      "empty": "No data available.",
       "filters": {
         "start": "Start",
         "end": "End",

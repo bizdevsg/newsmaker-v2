@@ -14,10 +14,22 @@ type ApiItemBase = {
   updated_at?: string;
   category?: string;
   category_label?: string;
+  kategori?: {
+    name?: string;
+    slug?: string;
+  };
+  main_category?: {
+    name?: string;
+    slug?: string;
+  };
+  sub_category?: {
+    name?: string;
+    slug?: string;
+  };
 };
 
 type TickerNewsItem = ApiItemBase & {
-  type: "berita" | "analisis" | "regulasi-institusi";
+  type: "berita";
   titles?: { default?: string; id?: string; en?: string };
 };
 
@@ -26,27 +38,18 @@ type ApiPayload<T> = {
   data?: T;
 };
 
-const DEFAULT_NEWS_URL =
-  "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita";
-const DEFAULT_ANALYSIS_URL =
-  "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis";
-const DEFAULT_REGULATORY_WATCH_URL =
-  "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/regulasi-institusi";
+const DEFAULT_NEWS_URL = "http://portalnews.newsmaker.test/api/v1/newsmaker/berita";
 
-const NEWS_URL = (process.env.PORTALNEWS_PASAR_INDONESIA_URL ?? DEFAULT_NEWS_URL).replace(
-  /\/$/,
-  "",
-);
-const ANALYSIS_URL = (
-  process.env.PORTALNEWS_PASAR_INDONESIA_ANALYSIS_URL ?? DEFAULT_ANALYSIS_URL
-).replace(/\/$/, "");
-const REGULATORY_WATCH_URL = (
-  process.env.PORTALNEWS_REGULATORY_WATCH_URL ?? DEFAULT_REGULATORY_WATCH_URL
+const NEWS_URL = (
+  process.env.PORTALNEWS_NEWS_LIST_URL ??
+  process.env.PORTALNEWS_API_URL ??
+  process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
+  DEFAULT_NEWS_URL
 ).replace(/\/$/, "");
 
 const TOKEN =
-  process.env.PORTALNEWS_PASAR_INDONESIA_TOKEN ??
-  process.env.PORTALNEWS_REGULATORY_WATCH_TOKEN ??
+  process.env.PORTALNEWS_TOKEN ??
+  process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ??
   "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -64,7 +67,6 @@ const getTimestamp = (item: Pick<ApiItemBase, "updated_at" | "created_at">) => {
 };
 
 const toTickerItem = (
-  type: TickerNewsItem["type"],
   value: unknown,
 ): TickerNewsItem | null => {
   if (!isRecord(value)) return null;
@@ -81,10 +83,28 @@ const toTickerItem = (
 
   const category = normalizeText(value.category) || undefined;
   const category_label = normalizeText(value.category_label) || undefined;
+  const kategori = isRecord(value.kategori)
+    ? {
+        name: normalizeText(value.kategori.name) || undefined,
+        slug: normalizeText(value.kategori.slug) || undefined,
+      }
+    : undefined;
+  const main_category = isRecord(value.main_category)
+    ? {
+        name: normalizeText(value.main_category.name) || undefined,
+        slug: normalizeText(value.main_category.slug) || undefined,
+      }
+    : undefined;
+  const sub_category = isRecord(value.sub_category)
+    ? {
+        name: normalizeText(value.sub_category.name) || undefined,
+        slug: normalizeText(value.sub_category.slug) || undefined,
+      }
+    : undefined;
 
   return {
     id,
-    type,
+    type: "berita",
     slug,
     title_id: titleId,
     title_en: titleEn,
@@ -98,6 +118,9 @@ const toTickerItem = (
     updated_at,
     category,
     category_label,
+    kategori,
+    main_category,
+    sub_category,
   };
 };
 
@@ -127,27 +150,13 @@ const fetchApiList = async <T,>(url: string): Promise<ApiPayload<T> | null> => {
 
 export async function GET() {
   try {
-    const [newsPayload, analysisPayload, regulatoryPayload] = await Promise.all([
-      fetchApiList<unknown[]>(NEWS_URL),
-      fetchApiList<unknown[]>(ANALYSIS_URL),
-      fetchApiList<unknown[]>(REGULATORY_WATCH_URL),
-    ]);
-
+    const newsPayload = await fetchApiList<unknown[]>(NEWS_URL);
     const newsItems = Array.isArray(newsPayload?.data) ? newsPayload?.data : [];
-    const analysisItems = Array.isArray(analysisPayload?.data)
-      ? analysisPayload?.data
-      : [];
-    const regulatoryItems = Array.isArray(regulatoryPayload?.data)
-      ? regulatoryPayload?.data
-      : [];
 
-    const merged: TickerNewsItem[] = [
-      ...newsItems.map((item) => toTickerItem("berita", item)),
-      ...analysisItems.map((item) => toTickerItem("analisis", item)),
-      ...regulatoryItems.map((item) => toTickerItem("regulasi-institusi", item)),
-    ].filter((item): item is TickerNewsItem => item !== null);
-
-    merged.sort((a, b) => getTimestamp(b) - getTimestamp(a));
+    const merged: TickerNewsItem[] = newsItems
+      .map((item) => toTickerItem(item))
+      .filter((item): item is TickerNewsItem => item !== null)
+      .sort((a, b) => getTimestamp(b) - getTimestamp(a));
 
     const seen = new Set<string>();
     const unique = merged.filter((item) => {

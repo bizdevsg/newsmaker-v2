@@ -3,14 +3,24 @@ import { Button } from "../atoms/Button";
 import { Tag } from "../atoms/Tag";
 import Link from "next/link";
 import type { Locale, Messages } from "@/locales";
+import { itemMatchesTerms } from "@/lib/news-filter";
 import {
   buildPortalNewsImageUrl,
-  fetchPasarIndonesiaNews,
+  fetchPortalNewsList,
   sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import type { PortalNewsItem } from "@/lib/portalnews";
-import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
-import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
+import {
+  ANALYSIS_CONFIG,
+  buildEconomicNewsDetailHref,
+  buildEconomicNewsListHref,
+  buildMarketNewsDetailHrefForItem,
+  buildNewsCategoryHref,
+  buildNewsSubHref,
+  inferEconomicNewsCategoryFromItem,
+  inferMarketNewsCategoryFromItem,
+  resolveEconomicNewsLabel,
+} from "@/lib/news-routing";
 
 type HeroSectionProps = {
   messages: Messages;
@@ -19,6 +29,16 @@ type HeroSectionProps = {
 
 const FALLBACK_HERO_IMAGE =
   "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp";
+
+type HeroArticle = {
+  key: string;
+  title: string;
+  summary: string;
+  image: string;
+  tag: string;
+  date: string;
+  href: string;
+};
 
 const stripHtml = (value: string) =>
   value
@@ -45,6 +65,8 @@ const formatDate = (value: string | undefined, locale: Locale) => {
     year: "numeric",
   });
 };
+
+const normalizeAssetUrl = (value: string) => value.replace(/ /g, "%20");
 
 const resolvePortalNewsTitle = (
   article: PortalNewsItem | null | undefined,
@@ -93,99 +115,255 @@ const resolvePortalNewsContent = (
   );
 };
 
-async function getHeroArticle(locale: Locale, messages: Messages) {
+const normalizeSlug = (value?: string | null) =>
+  String(value ?? "")
+    .toLowerCase()
+    .replace(/[-_]+/g, "-")
+    .trim();
+
+const isAnalysisItem = (article: PortalNewsItem) => {
+  const type = article.type?.trim().toLowerCase() ?? "";
+  if (type === "analisis" || type === "analysis" || type === "gold-corner")
+    return true;
+
+  const categorySlugs = [
+    article.sub_category?.slug,
+    article.main_category?.slug,
+    article.kategori?.slug,
+  ]
+    .map((value) => normalizeSlug(value))
+    .filter(Boolean);
+
+  if (categorySlugs.includes("market-analysis")) return true;
+  if (categorySlugs.includes("analisis-opinion")) return true;
+  if (categorySlugs.includes("gold-corner")) return true;
+
+  return ANALYSIS_CONFIG.some((config) =>
+    itemMatchesTerms(article, config.matchTerms),
+  );
+};
+
+const toHeroArticle = (
+  article: PortalNewsItem,
+  locale: Locale,
+  messages: Messages,
+  index: number,
+): HeroArticle | null => {
+  if (isAnalysisItem(article)) return null;
+
+  const slug = article.slug?.trim() || "";
+  const marketKategori = inferMarketNewsCategoryFromItem(article);
+  const economicSub = !marketKategori
+    ? inferEconomicNewsCategoryFromItem(article)
+    : null;
+
+  if (!marketKategori && !economicSub) return null;
+
+  const sub =
+    article.sub_category?.slug?.trim() ||
+    article.main_category?.slug?.trim() ||
+    article.kategori?.slug?.trim() ||
+    "";
+
+  const href = marketKategori
+    ? (buildMarketNewsDetailHrefForItem(locale, article) ??
+      (sub
+        ? buildNewsSubHref(locale, marketKategori, sub)
+        : buildNewsCategoryHref(locale, marketKategori)))
+    : slug
+      ? buildEconomicNewsDetailHref(locale, economicSub!, slug)
+      : buildEconomicNewsListHref(locale, economicSub!);
+
+  return {
+    key: String(article.id ?? slug ?? `hero-${index}`),
+    title: resolvePortalNewsTitle(article, locale, messages.hero.bannerTitle),
+    summary: toSummary(
+      resolvePortalNewsContent(article, locale),
+      messages.hero.bannerSubtitle,
+    ),
+    image: normalizeAssetUrl(
+      buildPortalNewsImageUrl(
+        article.image_url || article.image || article.images?.[0],
+      ) ?? FALLBACK_HERO_IMAGE,
+    ),
+    tag: marketKategori
+      ? (
+          article.category_label?.trim() ||
+          article.category?.trim() ||
+          article.kategori?.name?.trim() ||
+          messages.hero.bannerTag ||
+          "MARKET"
+        ).toUpperCase()
+      : resolveEconomicNewsLabel(messages, economicSub!).toUpperCase(),
+    date: formatDate(article.updated_at ?? article.created_at, locale),
+    href,
+  };
+};
+
+async function getHeroArticles(locale: Locale, messages: Messages) {
   try {
-    const { items } = await fetchPasarIndonesiaNews();
+    const { items } = await fetchPortalNewsList();
+    const sorted = sortPortalNewsItemsByDate(items as PortalNewsItem[]);
 
-    const article = sortPortalNewsItemsByDate(items as PortalNewsItem[])[0];
+    const eligible = sorted
+      .map((article, index) => toHeroArticle(article, locale, messages, index))
+      .filter((value): value is HeroArticle => value !== null);
 
-    if (!article) return null;
+    if (!eligible.length) return null;
 
-    const articleSlug = article.slug?.trim();
-    const categorySlug =
-      resolveIndonesiaMarketNewsCategorySlugFromItem(article);
-    const href = articleSlug
-      ? `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${categorySlug}/${articleSlug}`
-      : `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/all`;
+    const featured = eligible[0];
+    const secondary = eligible.slice(1, 4);
 
-    return {
-      title: resolvePortalNewsTitle(article, locale, messages.hero.bannerTitle),
-      summary: toSummary(
-        resolvePortalNewsContent(article, locale),
-        messages.hero.bannerSubtitle,
-      ),
-      image:
-        buildPortalNewsImageUrl(
-          article.image_url || article.image || article.images?.[0],
-        ) ?? FALLBACK_HERO_IMAGE,
-      href,
-      tag: (
-        article.category_label?.trim() ||
-        article.category?.trim() ||
-        article.kategori?.name?.trim() ||
-        "MARKET"
-      ).toUpperCase(),
-      date: formatDate(article.updated_at ?? article.created_at, locale),
-    };
+    return { featured, secondary };
   } catch {
     return null;
   }
 }
 
 export async function HeroSection({ messages, locale }: HeroSectionProps) {
-  const heroArticle = await getHeroArticle(locale, messages);
+  const heroArticles = await getHeroArticles(locale, messages);
+  const readMoreLabel = locale === "en" ? "Read More" : "Read More";
+
+  const fallbackFeatured: HeroArticle = {
+    key: "hero-featured-fallback",
+    title: messages.hero.bannerTitle,
+    summary: messages.hero.bannerSubtitle,
+    image: normalizeAssetUrl(FALLBACK_HERO_IMAGE),
+    tag: (messages.hero.bannerTag || "MARKET").toUpperCase(),
+    date: "",
+    href: `/${locale}/news`,
+  };
+
+  const featured = heroArticles?.featured ?? fallbackFeatured;
+  const secondary = heroArticles?.secondary ?? [];
 
   return (
-    <section className="space-y-6">
-      <div className="mt-3">
-        {/* <h1 className="text-3xl font-semibold tracking-tight text-slate-800 md:text-4xl uppercase">
-          {messages.hero.title}
-        </h1> */}
-        <p className="text-base md:text-lg text-center text-blue-900 font-bold font-serif">
-          Market & Economic Intelligence Platform Insight on Macro, Commodities,
-          Equities & Policy
-        </p>
-      </div>
-
-      <Link
-        href={
-          heroArticle?.href ??
-          `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/all`
-        }
-        className="block relative group overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
-      >
-        <div
-          className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
-          style={{
-            backgroundImage: `url('${heroArticle?.image ?? FALLBACK_HERO_IMAGE}')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1061B3] to-[#1061B3]/60" />
-        <div className="relative flex min-h-55 flex-col gap-7 p-7 md:flex-row md:items-center">
-          <div className="flex-1 space-y-5 max-w-xl">
-            <Tag tone="slate" className="bg-white/15 text-white">
-              {heroArticle?.tag ?? messages.hero.bannerTag}
-            </Tag>
-
-            <h2 className="text-3xl font-semibold">
-              {heroArticle?.title ?? messages.hero.bannerTitle}
-            </h2>
-
-            <p className="text-base text-white/80 line-clamp-4">
-              {heroArticle?.summary ?? messages.hero.bannerSubtitle}
-            </p>
+    <section className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+        <Link
+          href={featured.href}
+          className="group relative block overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+            style={{ backgroundImage: `url('${featured.image}')` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0b2f63] via-[#0b2f63]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+          <div className="relative flex min-h-[310px] h-full flex-col justify-between gap-4 p-7 sm:min-h-[340px]">
+            <div className="space-y-3">
+              <Tag tone="slate" className="bg-white/15 text-white uppercase">
+                {featured.tag}
+              </Tag>
+              <h2 className="max-w-2xl text-2xl font-semibold leading-snug sm:text-3xl">
+                {featured.title}
+              </h2>
+              {featured.date ? (
+                <p className="text-sm font-semibold text-white/80">
+                  {featured.date}
+                </p>
+              ) : null}
+            </div>
 
             <Button
               as="span"
               variant="outline"
               size="sm"
-              className="border-white/60 text-white"
+              className="border-white/60 bg-white text-slate-900 hover:bg-white/95 w-fit"
             >
               {messages.hero.bannerCta}
             </Button>
           </div>
+        </Link>
+
+        <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+            {secondary.slice(0, 2).map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                className="group relative block overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                  style={{ backgroundImage: `url('${item.image}')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f63] via-[#0b2f63]/35 to-transparent" />
+                <div className="relative flex min-h-[160px] flex-col justify-between gap-4 p-4">
+                  <div className="space-y-2">
+                    <div className="bg-blue-500/50 w-fit rounded-full px-3 py-0.5">
+                      <p className="text-[11px] font-bold tracking-wide text-white/90">
+                        {item.tag}
+                      </p>
+                    </div>
+                    <p className="line-clamp-2 text-sm font-semibold leading-snug">
+                      {item.title}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    {item.date ? (
+                      <p className="text-xs font-semibold text-white/80">
+                        {item.date}
+                      </p>
+                    ) : null}
+
+                    <Button
+                      as="span"
+                      variant="outline"
+                      size="sm"
+                      className="border-white/60 bg-white text-slate-900 hover:bg-white/95 w-fit"
+                    >
+                      {readMoreLabel}
+                    </Button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {secondary[2] ? (
+            <Link
+              key={secondary[2].key}
+              href={secondary[2].href}
+              className="group relative block overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                style={{ backgroundImage: `url('${secondary[2].image}')` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f63] via-[#0b2f63]/40 to-transparent" />
+              <div className="relative flex min-h-[170px] flex-col justify-between gap-4 p-5">
+                <div className="space-y-2">
+                  <div className="bg-blue-500/50 w-fit rounded-full px-3 py-0.5">
+                    <p className="text-[11px] font-bold tracking-wide text-white/90">
+                      {secondary[2].tag}
+                    </p>
+                  </div>
+                  <p className="line-clamp-2 text-base font-semibold leading-snug">
+                    {secondary[2].title}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center">
+                  {secondary[2].date ? (
+                    <p className="text-xs font-semibold text-white/80">
+                      {secondary[2].date}
+                    </p>
+                  ) : null}
+
+                  <Button
+                    as="span"
+                    variant="outline"
+                    size="sm"
+                    className="border-white/60 bg-white text-slate-900 hover:bg-white/95 w-fit"
+                  >
+                    {readMoreLabel}
+                  </Button>
+                </div>
+              </div>
+            </Link>
+          ) : null}
         </div>
-      </Link>
+      </div>
     </section>
   );
 }

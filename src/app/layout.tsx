@@ -6,9 +6,10 @@ import { cookies } from "next/headers";
 import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 const roboto = Roboto({
-  variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["100", "300", "400", "500", "700", "900"],
+  variable: "--font-roboto",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

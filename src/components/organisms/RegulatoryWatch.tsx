@@ -23,17 +23,15 @@ export async function RegulatoryWatch({
   const items =
     apiItems.length > 0
       ? apiItems.slice(0, 3).map((item, index) => {
-          const slug = item.slug?.trim();
-
           return {
-            key: slug ?? String(item.id ?? index),
+            key: item.slug?.trim() ?? String(item.id ?? index),
             title: resolveRegulatoryWatchTitle(item, locale),
             date: formatRegulatoryWatchDate(
               item.updated_at ?? item.created_at,
               locale,
             ),
             tag: resolveRegulatoryWatchTag(item, locale),
-            href: slug ? `/${locale}/regulasi-institusi/${slug}` : undefined,
+            href: undefined,
           };
         })
       : messages.regulatoryWatch.items.map((item) => ({
@@ -46,11 +44,7 @@ export async function RegulatoryWatch({
 
   return (
     <Card as="section">
-      <SectionHeader
-        title={messages.regulatoryWatch.title}
-        link={`/${locale}/regulasi-institusi`}
-        linkLabel={messages.regulatoryWatch.ctaLabel}
-      />
+      <SectionHeader title={messages.regulatoryWatch.title} />
       <div className="flex flex-col gap-4 px-4 py-4">
         {items.map((item) => (
           <ListItem

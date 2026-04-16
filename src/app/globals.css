@@ -1,10 +1,12 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "flag-icons/css/flag-icons.min.css";
+@import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
 :root {
   --background: #f7f8fb;
   --foreground: #0f172a;
+  --font-roboto: "Roboto";
   --font-sans: var(--font-roboto);
   --font-display: var(--font-roboto);
 }
@@ -32,7 +34,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display), ui-serif, serif;
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui;
 }
 
 * {

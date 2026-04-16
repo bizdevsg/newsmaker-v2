@@ -24,7 +24,7 @@ const PRIMARY_NEWS_LIST_URL =
 
 const derivedNewsmakerBaseUrl = PRIMARY_NEWS_LIST_URL
   ? PRIMARY_NEWS_LIST_URL.replace(
-      /\/api\/v1\/berita(?:\/.*)?$/i,
+      /\/api\/v1\/(?:newsmaker\/)?berita(?:\/.*)?$/i,
       "/api/v1/newsmaker",
     )
   : "";
@@ -41,6 +41,10 @@ const FALLBACK_NEWS_LIST_URL =
   process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita` : "");
 
+const NEWSMAKER_BERITA_BASE_URL =
+  process.env.PORTALNEWS_NEWSMAKER_BERITA_BASE_URL ??
+  (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita` : "");
+
 const FALLBACK_NEWS_DETAIL_URL =
   process.env.PORTALNEWS_NEWS_DETAIL_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita` : "");
@@ -49,13 +53,19 @@ const FALLBACK_NEWS_SHOW_URL =
   process.env.PORTALNEWS_NEWS_SHOW_URL ??
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/berita/show` : "");
 
+const NEWSMAKER_BERITA_SHOW_BASE_URL =
+  process.env.PORTALNEWS_NEWSMAKER_BERITA_SHOW_BASE_URL ??
+  (NEWSMAKER_BERITA_BASE_URL ? `${NEWSMAKER_BERITA_BASE_URL}/show` : "");
+
 const PRIMARY_NEWS_DETAIL_URL =
   process.env.PORTALNEWS_NEWS_DETAIL_URL ?? PRIMARY_NEWS_LIST_URL;
+
+const DEFAULT_PORTALNEWS_TOKEN = "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
 
 const NEWS_TOKEN =
   process.env.PORTALNEWS_TOKEN ??
   process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ??
-  "";
+  DEFAULT_PORTALNEWS_TOKEN;
 
 const PASAR_INDONESIA_NEWS_URL =
   process.env.PORTALNEWS_PASAR_INDONESIA_URL ??
@@ -66,7 +76,7 @@ const PASAR_INDONESIA_ANALYSIS_URL =
   (NEWSMAKER_BASE_URL ? `${NEWSMAKER_BASE_URL}/pasar-indonesia/analisis` : "");
 
 const PASAR_INDONESIA_TOKEN =
-  process.env.PORTALNEWS_PASAR_INDONESIA_TOKEN ?? "";
+  process.env.PORTALNEWS_PASAR_INDONESIA_TOKEN ?? DEFAULT_PORTALNEWS_TOKEN;
 
 export const PORTALNEWS_IMAGE_BASE = (
   process.env.PORTALNEWS_IMAGE_BASE ??
@@ -202,14 +212,6 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
   const subCategory = normalizeCategoryRecord(value.sub_category);
   const mainCategory = normalizeCategoryRecord(value.main_category);
   const primaryCategory = category ?? subCategory ?? mainCategory;
-  const inferredCategory: PortalNewsCategory | null =
-    !primaryCategory && value.type === "analisis"
-      ? {
-          name: "Analisis Market",
-          slug: "analisis-market",
-        }
-      : null;
-  const resolvedPrimaryCategory = primaryCategory ?? inferredCategory;
 
   const titlesRecord = isRecord(value.titles) ? value.titles : null;
   const contentsRecord = isRecord(value.contents) ? value.contents : null;
@@ -322,9 +324,9 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
           ? value.sub_category_id
           : typeof value.main_category_id === "number"
             ? value.main_category_id
-            : resolvedPrimaryCategory?.id,
+            : primaryCategory?.id,
 
-    kategori: resolvedPrimaryCategory ?? undefined,
+    kategori: primaryCategory ?? undefined,
     main_category: mainCategory ?? undefined,
     sub_category: subCategory ?? undefined,
 
@@ -549,6 +551,54 @@ export async function fetchPortalNewsList(): Promise<{
   };
 }
 
+export async function fetchPortalNewsListByCategory(
+  slug: string,
+): Promise<{
+  ok: boolean;
+  status: number;
+  items: PortalNewsItem[];
+  category: PortalNewsCategory | null;
+  meta: unknown;
+  source: PortalNewsSource;
+}> {
+  const normalizedSlug = slug.trim();
+  if (!normalizedSlug || !NEWSMAKER_BERITA_BASE_URL) {
+    return {
+      ok: false,
+      status: 0,
+      items: [],
+      category: null,
+      meta: null,
+      source: "newsmaker",
+    };
+  }
+
+  const url = `${NEWSMAKER_BERITA_BASE_URL}/${encodeURIComponent(
+    normalizedSlug,
+  )}`;
+  const result = await fetchJson(url);
+  const items = extractItemArray(result.payload);
+
+  const category =
+    isRecord(result.payload) && "category" in result.payload
+      ? normalizeCategoryRecord(result.payload.category)
+      : null;
+
+  const meta =
+    isRecord(result.payload) && "meta" in result.payload
+      ? result.payload.meta
+      : null;
+
+  return {
+    ok: result.ok,
+    status: result.status,
+    items,
+    category,
+    meta,
+    source: "newsmaker",
+  };
+}
+
 export async function fetchPortalNewsCategories(): Promise<{
   categories: PortalNewsCategory[];
   source: PortalNewsSource;
@@ -583,12 +633,18 @@ export async function fetchPortalNewsArticle(slug: string): Promise<{
   const normalizedSlug = slug.trim();
   const detailRequests = [
     {
+      url: NEWSMAKER_BERITA_SHOW_BASE_URL
+        ? `${NEWSMAKER_BERITA_SHOW_BASE_URL}/${normalizedSlug}`
+        : "",
+      source: "newsmaker" as const,
+    },
+    {
       url: `${
         PASAR_INDONESIA_NEWS_URL ||
         "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita"
       }/${normalizedSlug}`,
       source: "newsmaker" as const,
-      token: PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ",
+      token: PASAR_INDONESIA_TOKEN,
     },
     {
       url: `${
@@ -596,7 +652,7 @@ export async function fetchPortalNewsArticle(slug: string): Promise<{
         "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis"
       }/${normalizedSlug}`,
       source: "newsmaker" as const,
-      token: PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ",
+      token: PASAR_INDONESIA_TOKEN,
     },
     {
       url: PRIMARY_NEWS_DETAIL_URL
@@ -645,7 +701,7 @@ export async function fetchPasarIndonesiaNews(): Promise<{
   const url =
     PASAR_INDONESIA_NEWS_URL ||
     "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita";
-  const token = PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
+  const token = PASAR_INDONESIA_TOKEN;
 
   const result = await fetchJson(url, token);
   const items = extractItemArray(result.payload);
@@ -665,7 +721,7 @@ export async function fetchPasarIndonesiaAnalysis(): Promise<{
   const url =
     PASAR_INDONESIA_ANALYSIS_URL ||
     "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis";
-  const token = PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
+  const token = PASAR_INDONESIA_TOKEN;
 
   const result = await fetchJson(url, token);
   const items = extractItemArray(result.payload);

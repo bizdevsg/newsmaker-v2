@@ -20,8 +20,9 @@ export function SiteHeader() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLangOpenDesktop, setIsLangOpenDesktop] = useState(false);
   const [isLangOpenMobile, setIsLangOpenMobile] = useState(false);
-  const [isIndonesiaMarketOpenMobile, setIsIndonesiaMarketOpenMobile] =
-    useState(false);
+  const [mobileNavExpanded, setMobileNavExpanded] = useState<
+    Record<string, boolean>
+  >({});
   const langDesktopRef = useRef<HTMLDivElement | null>(null);
   const langMobileRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -41,6 +42,7 @@ export function SiteHeader() {
     messages.equities?.newsCategories?.searchPlaceholder || "Search news...";
   const searchButtonLabel =
     messages.equities?.newsCategories?.searchBtn || "Search";
+  const siteNavLabels = messages.header.siteNav;
   const currentSearchQuery = useMemo(() => {
     const queryParam = searchParams?.get("q")?.trim();
     if (queryParam) return queryParam;
@@ -68,43 +70,229 @@ export function SiteHeader() {
   }, [currentLocale]);
 
   const normalizedPath = pathname.replace(/\/$/, "") || `/${currentLocale}`;
+  const currentQueryString = searchParams?.toString() ?? "";
 
-  const isActivePath = (href: string, options?: { exact?: boolean }) => {
-    if (options?.exact) return normalizedPath === href;
-    return normalizedPath === href || normalizedPath.startsWith(`${href}/`);
-  };
+  const isExternalHref = (href: string) =>
+    /^(https?:|mailto:|tel:)/i.test(href);
 
-  const navLabels = useMemo(() => {
-    if (currentLocale === "en") {
-      return {
-        home: "Home",
-        indonesiaMarket: "Indonesia Market",
-        stockMarket: "Stock Market",
-        commodities: "Commodities",
-        analysis: "Analysis",
-        regulation: "Regulation & Institutions",
-      };
+  const isActiveHref = (href: string, options?: { exact?: boolean }) => {
+    if (!href || isExternalHref(href)) return false;
+
+    let parsed: URL;
+    try {
+      parsed = new URL(href, "http://local");
+    } catch {
+      return false;
     }
 
-    return {
-      home: "Home",
-      indonesiaMarket: "Indonesia Market",
-      stockMarket: "Pasar Saham",
-      commodities: "Komoditas",
-      analysis: "Analisis",
-      regulation: "Regulasi & Institusi",
-    };
-  }, [currentLocale]);
+    const hrefPath = parsed.pathname.replace(/\/$/, "") || `/${currentLocale}`;
+    const pathMatches = options?.exact
+      ? normalizedPath === hrefPath
+      : normalizedPath === hrefPath ||
+        normalizedPath.startsWith(`${hrefPath}/`);
+    if (!pathMatches) return false;
 
-  const navLinks = useMemo(() => {
-    return {
-      home: homeHref,
-      analysis: `/${currentLocale}/indonesia-market/analysis`,
-      regulation: `/${currentLocale}/regulasi-institusi`,
-      stockMarket: `/${currentLocale}/indonesia-market/news/pasar-saham`,
-      commodities: `/${currentLocale}/indonesia-market/news/komoditas`,
-    };
-  }, [currentLocale, homeHref]);
+    const hrefQuery = parsed.searchParams.toString();
+    if (!hrefQuery) {
+      if (options?.exact && currentQueryString) return false;
+      return true;
+    }
+
+    const currentParams = new URLSearchParams(currentQueryString);
+    for (const [key, value] of parsed.searchParams.entries()) {
+      if (currentParams.get(key) !== value) return false;
+    }
+    return true;
+  };
+
+  type NavItem = {
+    key: string;
+    label: string;
+    href?: string;
+    children?: NavItem[];
+  };
+
+  const isNavItemActive = (item: NavItem): boolean => {
+    if (item.href && isActiveHref(item.href, { exact: item.key === "home" })) {
+      return true;
+    }
+    if (!item.children?.length) return false;
+    return item.children.some(isNavItemActive);
+  };
+
+  const navItems = useMemo<NavItem[]>(() => {
+    const home = homeHref;
+    const routeTo = (path: string) => `${home}/${path.replace(/^\/+/, "")}`;
+    const newsTo = (kategori: string, sub?: string) =>
+      sub
+        ? `${home}/news/${encodeURIComponent(kategori)}/${encodeURIComponent(
+            sub,
+          )}`
+        : `${home}/news/${encodeURIComponent(kategori)}`;
+
+    return [
+      { key: "home", label: siteNavLabels.home, href: home },
+      {
+        key: "market-news",
+        label: siteNavLabels.marketNews,
+        children: [
+          {
+            key: "market-news:crypto",
+            label: siteNavLabels.crypto,
+            href: newsTo("crypto"),
+          },
+          {
+            key: "market-news:index",
+            label: siteNavLabels.index,
+            href: newsTo("index", "nikkei"),
+            children: [
+              {
+                key: "market-news:index:nikkei",
+                label: siteNavLabels.nikkei,
+                href: newsTo("index", "nikkei"),
+              },
+              {
+                key: "market-news:index:hangseng",
+                label: siteNavLabels.hangseng,
+                href: newsTo("index", "hangseng"),
+              },
+            ],
+          },
+          {
+            key: "market-news:commodity",
+            label: siteNavLabels.commodity,
+            href: newsTo("commodity", "gold"),
+            children: [
+              {
+                key: "market-news:commodity:gold",
+                label: siteNavLabels.gold,
+                href: newsTo("commodity", "gold"),
+              },
+              {
+                key: "market-news:commodity:silver",
+                label: siteNavLabels.silver,
+                href: newsTo("commodity", "silver"),
+              },
+              {
+                key: "market-news:commodity:oil",
+                label: siteNavLabels.oil,
+                href: newsTo("commodity", "oil"),
+              },
+            ],
+          },
+          {
+            key: "market-news:currencies",
+            label: siteNavLabels.currencies,
+            href: newsTo("currencies", "eur-usd"),
+            children: [
+              {
+                key: "market-news:currencies:eur-usd",
+                label: siteNavLabels.eurUsd,
+                href: newsTo("currencies", "eur-usd"),
+              },
+              {
+                key: "market-news:currencies:usd-jpy",
+                label: siteNavLabels.usdJpy,
+                href: newsTo("currencies", "usd-jpy"),
+              },
+              {
+                key: "market-news:currencies:usd-chf",
+                label: siteNavLabels.usdChf,
+                href: newsTo("currencies", "usd-chf"),
+              },
+              {
+                key: "market-news:currencies:aud-usd",
+                label: siteNavLabels.audUsd,
+                href: newsTo("currencies", "aud-usd"),
+              },
+              {
+                key: "market-news:currencies:gbp-usd",
+                label: siteNavLabels.gbpUsd,
+                href: newsTo("currencies", "gbp-usd"),
+              },
+              {
+                key: "market-news:currencies:us-dollar",
+                label: siteNavLabels.usDollar,
+                href: newsTo("currencies", "us-dollar"),
+              },
+            ],
+          },
+        ],
+      },
+      {
+        key: "economic-news",
+        label: siteNavLabels.economicNews,
+        children: [
+          {
+            key: "economic-news:global-economy",
+            label: siteNavLabels.globalEconomy,
+            href: routeTo("economic-news/global-economy"),
+          },
+          {
+            key: "economic-news:fiscal-monetary",
+            label: siteNavLabels.fiscalMoneter,
+            href: routeTo("economic-news/fiscal-monetary"),
+          },
+        ],
+      },
+      {
+        key: "analysis",
+        label: siteNavLabels.analysis,
+        children: [
+          {
+            key: "analysis:market-analysis",
+            label: siteNavLabels.marketAnalysis,
+            href: routeTo("analysis/market-analysis"),
+          },
+          {
+            key: "analysis:economic-calendar",
+            label: siteNavLabels.economicCalendar,
+            href: routeTo("analysis/economic-calendar"),
+          },
+          {
+            key: "analysis:opinion",
+            label: siteNavLabels.analysisOpinion,
+            href: routeTo("analysis/analisis-opinion"),
+          },
+          {
+            key: "analysis:live-chart",
+            label: siteNavLabels.liveChart,
+            href: routeTo("analysis/live-chart"),
+          },
+          {
+            key: "analysis:education",
+            label: siteNavLabels.education,
+            href: "https://ebook.newsmaker.id/",
+          },
+        ],
+      },
+      {
+        key: "indonesia-market",
+        label: siteNavLabels.indonesiaMarket,
+        href: "https://5xbbtdch-3001.asse.devtunnels.ms/",
+      },
+      {
+        key: "tools",
+        label: siteNavLabels.tools,
+        children: [
+          {
+            key: "tools:historical-data",
+            label: siteNavLabels.historicalData,
+            href: routeTo("tools/historical-data"),
+          },
+          {
+            key: "tools:pivot-fibonacci",
+            label: siteNavLabels.pivotFibonacci,
+            href: routeTo("tools/pivot-fibonacci"),
+          },
+        ],
+      },
+    ];
+  }, [homeHref, siteNavLabels]);
+
+  const toggleMobileKey = (key: string) => {
+    setMobileNavExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const setLanguage = (value: string) => {
     const next = value === "en" ? "en" : "id";
@@ -160,9 +348,27 @@ export function SiteHeader() {
   }, [isMobileOpen]);
 
   useEffect(() => {
+    if (!isMobileOpen) return;
+
+    const nextExpanded: Record<string, boolean> = {};
+
+    const markActiveBranch = (item: NavItem): boolean => {
+      if (!item.children?.length) return isNavItemActive(item);
+
+      const anyChildActive = item.children.some(markActiveBranch);
+      if (anyChildActive) nextExpanded[item.key] = true;
+      return anyChildActive || isNavItemActive(item);
+    };
+
+    navItems.forEach(markActiveBranch);
+    setMobileNavExpanded((prev) => ({ ...prev, ...nextExpanded }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobileOpen, pathname, currentQueryString]);
+
+  useEffect(() => {
     setIsMobileOpen(false);
     setIsLangOpenMobile(false);
-    setIsIndonesiaMarketOpenMobile(false);
+    setMobileNavExpanded({});
   }, [pathname]);
 
   useEffect(() => {
@@ -296,77 +502,111 @@ export function SiteHeader() {
       <div className="border-t border-white/15 bg-[#1061B3] px-4">
         <div className="mx-auto max-w-7xl">
           <nav className="hidden items-center justify-center gap-8 text-sm font-semibold text-white/90 md:flex">
-            <Link
-              href={navLinks.home}
-              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
-                isActivePath(navLinks.home, { exact: true })
-                  ? "text-white after:scale-x-100"
-                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-              }`}
-            >
-              {navLabels.home}
-            </Link>
+            {navItems.map((item) => {
+              const baseLinkClass =
+                "relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200";
+              const inactiveClass =
+                "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100";
+              const activeClass = "text-white after:scale-x-100";
+              const itemIsActive = isNavItemActive(item);
 
-            <div className="group relative">
-              <button
-                type="button"
-                className={`relative flex items-center gap-2 py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
-                  isActivePath(navLinks.stockMarket) ||
-                  isActivePath(navLinks.commodities)
-                    ? "text-white after:scale-x-100"
-                    : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-                }`}
-                aria-haspopup="menu"
-              >
-                <span>{navLabels.indonesiaMarket}</span>
-                <i className="fa-solid fa-chevron-down text-[10px] opacity-90" />
-              </button>
+              if (!item.children?.length) {
+                const href = item.href ?? homeHref;
+                return (
+                  <Link
+                    key={item.key}
+                    href={href}
+                    className={`${baseLinkClass} ${
+                      isActiveHref(href, { exact: item.key === "home" })
+                        ? activeClass
+                        : inactiveClass
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              }
 
-              <div className="invisible absolute left-0 top-full z-50 mt-2 w-56 translate-y-1 rounded-lg border border-slate-200 bg-white py-1 text-sm font-semibold text-slate-700 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                <Link
-                  href={navLinks.stockMarket}
-                  className={`block px-4 py-2 transition-colors hover:bg-slate-50 ${
-                    isActivePath(navLinks.stockMarket)
-                      ? "text-blue-700"
-                      : "text-slate-700"
-                  }`}
-                >
-                  {navLabels.stockMarket}
-                </Link>
-                <Link
-                  href={navLinks.commodities}
-                  className={`block px-4 py-2 transition-colors hover:bg-slate-50 ${
-                    isActivePath(navLinks.commodities)
-                      ? "text-blue-700"
-                      : "text-slate-700"
-                  }`}
-                >
-                  {navLabels.commodities}
-                </Link>
-              </div>
-            </div>
+              return (
+                <div key={item.key} className="group relative">
+                  <button
+                    type="button"
+                    className={`${baseLinkClass} ${
+                      itemIsActive ? activeClass : inactiveClass
+                    } flex cursor-pointer items-center gap-2`}
+                    aria-haspopup="menu"
+                  >
+                    <span>{item.label}</span>
+                    <i className="fa-solid fa-chevron-down text-[10px] opacity-90" />
+                  </button>
 
-            <Link
-              href={navLinks.analysis}
-              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
-                isActivePath(navLinks.analysis)
-                  ? "text-white after:scale-x-100"
-                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-              }`}
-            >
-              {navLabels.analysis}
-            </Link>
+                  <div className="invisible absolute left-0 top-full z-50 mt-2 w-64 translate-y-1 rounded-lg border border-slate-200 bg-white py-2 text-sm font-semibold text-slate-700 opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                    {item.children.map((child) => {
+                      const hasChildren = Boolean(child.children?.length);
 
-            <Link
-              href={navLinks.regulation}
-              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
-                isActivePath(navLinks.regulation)
-                  ? "text-white after:scale-x-100"
-                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
-              }`}
-            >
-              {navLabels.regulation}
-            </Link>
+                      if (!hasChildren) {
+                        const childHref = child.href ?? homeHref;
+                        const childIsActive = isNavItemActive({
+                          ...child,
+                          href: childHref,
+                        });
+                        return (
+                          <Link
+                            key={child.key}
+                            href={childHref}
+                            className={`flex items-center justify-between px-4 py-2 transition-colors hover:bg-slate-50 hover:text-blue-700 ${
+                              childIsActive ? "bg-slate-50 text-blue-700" : ""
+                            }`}
+                          >
+                            <span>{child.label}</span>
+                          </Link>
+                        );
+                      }
+
+                      return (
+                        <div key={child.key} className="relative">
+                          <button
+                            type="button"
+                            className={`peer flex w-full items-center justify-between px-4 py-2 text-left transition-colors hover:bg-slate-50 hover:text-blue-700 cursor-pointer ${
+                              isNavItemActive(child)
+                                ? "bg-slate-50 text-blue-700"
+                                : ""
+                            }`}
+                            aria-haspopup="menu"
+                          >
+                            <span>{child.label}</span>
+                            <i className="fa-solid fa-chevron-right text-[10px] opacity-80" />
+                          </button>
+
+                          <div className="invisible absolute left-full top-0 z-50 -ml-px w-64 rounded-lg border border-slate-200 bg-white py-2 text-sm font-semibold text-slate-700 opacity-0 shadow-xl transition-opacity peer-hover:visible peer-hover:opacity-100 peer-focus:visible peer-focus:opacity-100 hover:visible hover:opacity-100 focus-within:visible focus-within:opacity-100">
+                            {child.children!.map((leaf) => {
+                              const leafHref = leaf.href ?? homeHref;
+                              const leafIsActive = isNavItemActive({
+                                ...leaf,
+                                href: leafHref,
+                              });
+                              return (
+                                <Link
+                                  key={leaf.key}
+                                  href={leafHref}
+                                  className={`block px-4 py-2 transition-colors hover:bg-slate-50 hover:text-blue-700 ${
+                                    leafIsActive
+                                      ? "bg-slate-50 text-blue-700"
+                                      : ""
+                                  }`}
+                                >
+                                  {leaf.label}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </nav>
         </div>
       </div>
@@ -492,88 +732,135 @@ export function SiteHeader() {
           <hr className="border-blue-500/20" />
 
           <nav className="flex flex-col gap-2 px-4 pb-4 mt-4">
-            <Link
-              href={navLinks.home}
-              onClick={() => setIsMobileOpen(false)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                isActivePath(navLinks.home, { exact: true })
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-              }`}
-            >
-              {navLabels.home}
-            </Link>
+            {navItems.map((item) => {
+              const hasChildren = Boolean(item.children?.length);
+              const isExpanded = Boolean(mobileNavExpanded[item.key]);
+              const baseItemClass =
+                "rounded-lg px-3 py-2 text-sm font-semibold transition-colors";
+              const activeClass = "bg-blue-100 text-blue-700";
+              const inactiveClass =
+                "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700";
+              const itemIsActive = isNavItemActive(item);
 
-            <button
-              type="button"
-              onClick={() => setIsIndonesiaMarketOpenMobile((prev) => !prev)}
-              className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                isActivePath(navLinks.stockMarket) ||
-                isActivePath(navLinks.commodities)
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-              }`}
-              aria-expanded={isIndonesiaMarketOpenMobile}
-            >
-              <span>{navLabels.indonesiaMarket}</span>
-              <i
-                className={`fa-solid fa-chevron-down text-[10px] transition-transform ${
-                  isIndonesiaMarketOpenMobile ? "rotate-180" : ""
-                }`}
-                aria-hidden="true"
-              />
-            </button>
+              if (!hasChildren) {
+                const href = item.href ?? homeHref;
+                return (
+                  <Link
+                    key={item.key}
+                    href={href}
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`${baseItemClass} ${
+                      isActiveHref(href, { exact: item.key === "home" })
+                        ? activeClass
+                        : inactiveClass
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              }
 
-            {isIndonesiaMarketOpenMobile && (
-              <div className="grid gap-2 rounded-lg bg-slate-50 p-2">
-                <Link
-                  href={navLinks.stockMarket}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
-                    isActivePath(navLinks.stockMarket)
-                      ? "bg-white text-blue-700"
-                      : "text-slate-700 hover:bg-white hover:text-blue-700"
-                  }`}
-                >
-                  {navLabels.stockMarket}
-                </Link>
-                <Link
-                  href={navLinks.commodities}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
-                    isActivePath(navLinks.commodities)
-                      ? "bg-white text-blue-700"
-                      : "text-slate-700 hover:bg-white hover:text-blue-700"
-                  }`}
-                >
-                  {navLabels.commodities}
-                </Link>
-              </div>
-            )}
+              return (
+                <div key={item.key} className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleMobileKey(item.key)}
+                    className={`${baseItemClass} ${
+                      itemIsActive ? activeClass : inactiveClass
+                    } flex w-full cursor-pointer items-center justify-between`}
+                    aria-expanded={isExpanded}
+                  >
+                    <span>{item.label}</span>
+                    <i
+                      className={`fa-solid fa-chevron-down text-[10px] transition-transform ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </button>
 
-            <Link
-              href={navLinks.analysis}
-              onClick={() => setIsMobileOpen(false)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                isActivePath(navLinks.analysis)
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-              }`}
-            >
-              {navLabels.analysis}
-            </Link>
+                  {isExpanded ? (
+                    <div className="grid gap-2 rounded-lg bg-slate-50 p-2">
+                      {item.children!.map((child) => {
+                        const childHasChildren = Boolean(
+                          child.children?.length,
+                        );
+                        const childExpanded = Boolean(
+                          mobileNavExpanded[child.key],
+                        );
+                        const childIsActive = isNavItemActive(child);
 
-            <Link
-              href={navLinks.regulation}
-              onClick={() => setIsMobileOpen(false)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                isActivePath(navLinks.regulation)
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-              }`}
-            >
-              {navLabels.regulation}
-            </Link>
+                        if (!childHasChildren) {
+                          const childHref = child.href ?? homeHref;
+                          return (
+                            <Link
+                              key={child.key}
+                              href={childHref}
+                              onClick={() => setIsMobileOpen(false)}
+                              className={`rounded-md bg-white px-3 py-2 text-sm font-semibold transition hover:text-blue-700 ${
+                                isNavItemActive({ ...child, href: childHref })
+                                  ? "text-blue-700"
+                                  : "text-slate-700"
+                              }`}
+                            >
+                              {child.label}
+                            </Link>
+                          );
+                        }
+
+                        return (
+                          <div key={child.key} className="space-y-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleMobileKey(child.key)}
+                              className={`flex w-full cursor-pointer items-center justify-between rounded-md bg-white px-3 py-2 text-sm font-semibold transition hover:text-blue-700 ${
+                                childIsActive
+                                  ? "text-blue-700"
+                                  : "text-slate-700"
+                              }`}
+                              aria-expanded={childExpanded}
+                            >
+                              <span>{child.label}</span>
+                              <i
+                                className={`fa-solid fa-chevron-down text-[10px] transition-transform ${
+                                  childExpanded ? "rotate-180" : ""
+                                }`}
+                                aria-hidden="true"
+                              />
+                            </button>
+                            {childExpanded ? (
+                              <div className="grid gap-2 rounded-md bg-white/70 p-2">
+                                {child.children!.map((leaf) => {
+                                  const leafHref = leaf.href ?? homeHref;
+                                  const leafIsActive = isNavItemActive({
+                                    ...leaf,
+                                    href: leafHref,
+                                  });
+                                  return (
+                                    <Link
+                                      key={leaf.key}
+                                      href={leafHref}
+                                      onClick={() => setIsMobileOpen(false)}
+                                      className={`rounded-md px-3 py-2 text-sm font-semibold transition hover:bg-white hover:text-blue-700 ${
+                                        leafIsActive
+                                          ? "bg-white text-blue-700"
+                                          : "text-slate-700"
+                                      }`}
+                                    >
+                                      {leaf.label}
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </nav>
         </aside>
       </div>

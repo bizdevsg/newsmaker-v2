@@ -6,9 +6,7 @@ import { ImpactCard } from "../molecules/ImpactCard";
 import type { Messages } from "@/locales";
 import { useLoading } from "../providers/LoadingProvider";
 import { SectionHeader } from "../molecules/SectionHeader";
-import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
-import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
 
 type MarketImpactProps = {
   messages: Messages;
@@ -63,12 +61,6 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
 
   const [newsData, setNewsData] = useState<MarketImpactNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const fullListHref = `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/all`;
-
-  const viewAllLabel =
-    messages?.equities?.newsCategories?.viewAll ||
-    (locale === "en" ? "View All" : "Lihat Semua");
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -126,7 +118,6 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
   };
 
   const displayItems = newsData.map((item, index) => {
-    const slug = item.slug?.trim();
     const title =
       (locale === "en"
         ? item.title_en || item.title_id
@@ -158,9 +149,7 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
           ? summaryText.slice(0, 150) + "..."
           : summaryText,
       date: formattedDate,
-      href: slug
-        ? `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${resolveIndonesiaMarketNewsCategorySlugFromItem(item)}/${slug}`
-        : fullListHref,
+      href: undefined,
       imageLabel: imageUrl,
       author,
     };
@@ -168,11 +157,7 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
 
   return (
     <Card as="section">
-      <SectionHeader
-        title={messages.marketImpact.title}
-        link={fullListHref}
-        linkLabel={viewAllLabel}
-      />
+      <SectionHeader title={messages.marketImpact.title} />
 
       <div className="px-4 py-4 space-y-4">
         {isLoading ? (
