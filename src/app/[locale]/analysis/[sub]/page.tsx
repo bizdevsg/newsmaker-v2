@@ -41,7 +41,7 @@ export default async function AnalysisSubPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <Card className="overflow-hidden">
           <NewsListView
             title={sectionLabel}
@@ -55,7 +55,9 @@ export default async function AnalysisSubPage({
             ]}
             items={cards}
             backHref={`/${locale}/analysis`}
-            backLabel={locale === "en" ? "Back to Sections" : "Kembali ke Kategori"}
+            backLabel={
+              locale === "en" ? "Back to Sections" : "Kembali ke Kategori"
+            }
             emptyMessage={
               locale === "en"
                 ? "No articles yet."

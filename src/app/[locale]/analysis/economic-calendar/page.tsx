@@ -24,7 +24,7 @@ export default async function EconomicCalendarPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <EconomicCalendarClient
           items={items}
           locale={locale}

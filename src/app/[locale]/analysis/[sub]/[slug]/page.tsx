@@ -131,7 +131,9 @@ export default async function AnalysisDetailPage({
   const { items: allItems } = await fetchPortalNewsList();
   const relatedCandidates = allItems
     .filter((candidate) => candidate.slug !== slug)
-    .filter((candidate) => inferAnalysisCategoryFromItem(candidate) === config.slug);
+    .filter(
+      (candidate) => inferAnalysisCategoryFromItem(candidate) === config.slug,
+    );
   const relatedItems = toAnalysisCardItems(relatedCandidates, {
     locale,
     sub,
@@ -155,7 +157,7 @@ export default async function AnalysisDetailPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <NewsArticleDetail
           locale={locale}
           title={title}

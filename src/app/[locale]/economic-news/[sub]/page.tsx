@@ -47,21 +47,25 @@ export default async function EconomicNewsSubPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <Card className="overflow-hidden">
           <NewsListView
             title={sectionLabel}
             locale={locale}
             breadcrumb={[
               {
-                label: String(messages.header.siteNav.economicNews ?? "Economic News"),
+                label: String(
+                  messages.header.siteNav.economicNews ?? "Economic News",
+                ),
                 href: `/${locale}/economic-news`,
               },
               { label: sectionLabel },
             ]}
             items={cards}
             backHref={`/${locale}/economic-news`}
-            backLabel={locale === "en" ? "Back to Sections" : "Kembali ke Kategori"}
+            backLabel={
+              locale === "en" ? "Back to Sections" : "Kembali ke Kategori"
+            }
             emptyMessage={
               locale === "en"
                 ? "No articles yet."

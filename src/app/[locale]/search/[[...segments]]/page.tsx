@@ -93,7 +93,7 @@ export default async function SearchPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <Card className="overflow-hidden">
           <NewsListView
             title={title}
@@ -121,4 +121,3 @@ export default async function SearchPage({
     </MarketPageTemplate>
   );
 }
-

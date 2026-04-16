@@ -285,7 +285,7 @@ export function EconomicCalendarClient({
               return (
                 <div
                   key={item.key}
-                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className={`rounded-xl border border-slate-200 p-4 shadow-sm ${item.impact >= 3 ? "bg-blue-300/30" : "bg-white"}`}
                 >
                   {/* Dropdown trigger (mobile): tap card header */}
                   <button

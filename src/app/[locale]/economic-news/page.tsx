@@ -33,7 +33,7 @@ export default async function EconomicNewsIndexPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <Card className="overflow-hidden">
           <NewsListView
             title={title}
@@ -43,9 +43,7 @@ export default async function EconomicNewsIndexPage({
             backHref={null}
             backLabel={null}
             emptyMessage={
-              locale === "en"
-                ? "No articles yet."
-                : "Belum ada berita ekonomi."
+              locale === "en" ? "No articles yet." : "Belum ada berita ekonomi."
             }
           />
         </Card>

@@ -5,7 +5,10 @@ import { Container } from "@/components/layout/Container";
 import { NewsArticleDetail } from "@/components/organisms/news/NewsArticleDetail";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { toMarketNewsCardItemsAuto, toNewsCardItems } from "@/lib/news-cards";
-import { inferMarketNewsCategoryFromItem, resolveNewsCategoryLabel } from "@/lib/news-routing";
+import {
+  inferMarketNewsCategoryFromItem,
+  resolveNewsCategoryLabel,
+} from "@/lib/news-routing";
 import { fetchPortalNewsArticle, fetchPortalNewsList } from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
@@ -122,7 +125,8 @@ export default async function CryptoNewsDetailPage({
   const { items: allItems } = await fetchPortalNewsList();
   const relatedCandidates = allItems.filter(
     (candidate) =>
-      candidate.slug !== slug && inferMarketNewsCategoryFromItem(candidate) === "crypto",
+      candidate.slug !== slug &&
+      inferMarketNewsCategoryFromItem(candidate) === "crypto",
   );
   const relatedItems = toNewsCardItems(relatedCandidates, {
     locale,
@@ -149,7 +153,7 @@ export default async function CryptoNewsDetailPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <NewsArticleDetail
           locale={locale}
           title={title}
@@ -173,4 +177,3 @@ export default async function CryptoNewsDetailPage({
     </MarketPageTemplate>
   );
 }
-

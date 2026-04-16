@@ -157,25 +157,24 @@ export default async function NewsSubPage({
           )
         : [];
 
-	    const { items: allItems } = await fetchPortalNewsList();
-		    const latestItems = toMarketNewsCardItemsAuto(
-		      allItems.filter((candidate) => candidate.slug !== slug),
-		      { locale, limit: 5 },
-		    );
-	    const popularItems = (() => {
-	      const latestKeys = new Set(latestItems.map((entry) => entry.key));
-	      const candidates = toMarketNewsCardItemsAuto(
-	        allItems.filter((candidate) => candidate.slug !== slug),
-	        { locale, limit: 80 },
-	      )
-	        .filter((entry) => !latestKeys.has(entry.key));
+    const { items: allItems } = await fetchPortalNewsList();
+    const latestItems = toMarketNewsCardItemsAuto(
+      allItems.filter((candidate) => candidate.slug !== slug),
+      { locale, limit: 5 },
+    );
+    const popularItems = (() => {
+      const latestKeys = new Set(latestItems.map((entry) => entry.key));
+      const candidates = toMarketNewsCardItemsAuto(
+        allItems.filter((candidate) => candidate.slug !== slug),
+        { locale, limit: 80 },
+      ).filter((entry) => !latestKeys.has(entry.key));
 
-	      return seededShuffle(candidates, hashSeed(slug)).slice(0, 6);
-	    })();
+      return seededShuffle(candidates, hashSeed(slug)).slice(0, 6);
+    })();
 
     return (
       <MarketPageTemplate locale={locale} messages={messages}>
-        <Container as="section" className="py-8">
+        <Container as="section" className="py-8 px-4">
           <NewsArticleDetail
             locale={locale}
             title={title}
@@ -188,17 +187,17 @@ export default async function NewsSubPage({
             shareHref={`/${locale}/news/${encodeURIComponent(
               kategori,
             )}/${encodeURIComponent(slug)}`}
-	            breadcrumb={[
-	              { label: "News", href: `/${locale}/news` },
-	              { label: categoryLabel, href: categoryHref },
-	              { label: title },
-	            ]}
-	            latestItems={latestItems.length ? latestItems : null}
-	            popularItems={popularItems.length ? popularItems : null}
-	            relatedItems={relatedItems.length ? relatedItems : null}
-	          />
-	        </Container>
-	      </MarketPageTemplate>
+            breadcrumb={[
+              { label: "News", href: `/${locale}/news` },
+              { label: categoryLabel, href: categoryHref },
+              { label: title },
+            ]}
+            latestItems={latestItems.length ? latestItems : null}
+            popularItems={popularItems.length ? popularItems : null}
+            relatedItems={relatedItems.length ? relatedItems : null}
+          />
+        </Container>
+      </MarketPageTemplate>
     );
   }
 
@@ -221,7 +220,7 @@ export default async function NewsSubPage({
 
     return (
       <MarketPageTemplate locale={locale} messages={messages}>
-        <Container as="section" className="py-8">
+        <Container as="section" className="py-8 px-4">
           <Card className="overflow-hidden">
             <NewsListView
               title={subLabel}
@@ -266,7 +265,7 @@ export default async function NewsSubPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <Card className="overflow-hidden">
           <NewsListView
             title={subLabel}

@@ -11,7 +11,10 @@ import {
   isGlobalEconomyGroupSlug,
   resolveEconomicNewsLabel,
 } from "@/lib/news-routing";
-import { toEconomicNewsCardItems, toEconomicNewsCardItemsAuto } from "@/lib/news-cards";
+import {
+  toEconomicNewsCardItems,
+  toEconomicNewsCardItemsAuto,
+} from "@/lib/news-cards";
 import { fetchPortalNewsArticle, fetchPortalNewsList } from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
@@ -170,7 +173,7 @@ export default async function EconomicNewsDetailPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <NewsArticleDetail
           locale={locale}
           title={title}
@@ -185,7 +188,9 @@ export default async function EconomicNewsDetailPage({
           )}/${encodeURIComponent(slug)}`}
           breadcrumb={[
             {
-              label: String(messages.header.siteNav.economicNews ?? "Economic News"),
+              label: String(
+                messages.header.siteNav.economicNews ?? "Economic News",
+              ),
               href: `/${locale}/economic-news`,
             },
             { label: sectionLabel, href: listHref },

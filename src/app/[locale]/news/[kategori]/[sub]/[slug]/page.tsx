@@ -166,15 +166,14 @@ export default async function NewsDetailPage({
     const candidates = toMarketNewsCardItemsAuto(
       allItems.filter((candidate) => candidate.slug !== slug),
       { locale, limit: 80 },
-    )
-      .filter((entry) => !latestKeys.has(entry.key));
+    ).filter((entry) => !latestKeys.has(entry.key));
 
     return seededShuffle(candidates, hashSeed(slug)).slice(0, 6);
   })();
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <NewsArticleDetail
           locale={locale}
           title={title}

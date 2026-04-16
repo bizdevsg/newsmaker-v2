@@ -19,11 +19,13 @@ export default async function LiveChartPage({
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const messages = getMessages(locale);
   const warningText = messages.policy.liveChart.warningText;
-  const pageTitle = messages.header.siteNav.liveChart?.trim() || messages.policy.liveChart.title;
+  const pageTitle =
+    messages.header.siteNav.liveChart?.trim() ||
+    messages.policy.liveChart.title;
 
   return (
-      <MarketPageTemplate locale={locale} messages={messages}>
-        <Container as="section" className="py-8">
+    <MarketPageTemplate locale={locale} messages={messages}>
+      <Container as="section" className="py-8 px-4">
         <LiveChartClient locale={locale} title={pageTitle} />
 
         <Card className="mt-8 overflow-hidden">

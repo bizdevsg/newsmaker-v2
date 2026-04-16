@@ -25,7 +25,7 @@ export default async function PivotFibonacciPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <Card className="overflow-hidden">
           <SectionHeader title={pageTitle} />
           <div className="px-4 pb-6">
@@ -45,16 +45,28 @@ export default async function PivotFibonacciPage({
                       >
                         Date
                       </th>
-                      <th scope="col" className="px-4 py-3 border-b border-slate-200">
+                      <th
+                        scope="col"
+                        className="px-4 py-3 border-b border-slate-200"
+                      >
                         Open
                       </th>
-                      <th scope="col" className="px-4 py-3 border-b border-slate-200">
+                      <th
+                        scope="col"
+                        className="px-4 py-3 border-b border-slate-200"
+                      >
                         High
                       </th>
-                      <th scope="col" className="px-4 py-3 border-b border-slate-200">
+                      <th
+                        scope="col"
+                        className="px-4 py-3 border-b border-slate-200"
+                      >
                         Low
                       </th>
-                      <th scope="col" className="px-4 py-3 border-b border-slate-200">
+                      <th
+                        scope="col"
+                        className="px-4 py-3 border-b border-slate-200"
+                      >
                         Close
                       </th>
                     </tr>

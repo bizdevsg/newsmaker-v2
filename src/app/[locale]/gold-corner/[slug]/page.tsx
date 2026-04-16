@@ -4,12 +4,19 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/Container";
 import { NewsArticleDetail } from "@/components/organisms/news/NewsArticleDetail";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
-import { toGoldCornerCardItems, toMarketNewsCardItemsAuto } from "@/lib/news-cards";
+import {
+  toGoldCornerCardItems,
+  toMarketNewsCardItemsAuto,
+} from "@/lib/news-cards";
 import {
   buildGoldCornerListHref,
   inferAnalysisCategoryFromItem,
 } from "@/lib/news-routing";
-import { fetchPortalNewsArticle, fetchPortalNewsListByCategory, fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  fetchPortalNewsArticle,
+  fetchPortalNewsListByCategory,
+  fetchPortalNewsList,
+} from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
@@ -121,7 +128,9 @@ export default async function GoldCornerDetailPage({
   const sourceLabel = item.source || "";
 
   const listHref = buildGoldCornerListHref(locale);
-  const sectionLabel = String(messages.header.siteNav.goldCorner ?? "Gold Corner");
+  const sectionLabel = String(
+    messages.header.siteNav.goldCorner ?? "Gold Corner",
+  );
 
   const categoryResult = await fetchPortalNewsListByCategory("gold-corner");
   const relatedItems = toGoldCornerCardItems(
@@ -147,7 +156,7 @@ export default async function GoldCornerDetailPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8">
+      <Container as="section" className="py-8 px-4">
         <NewsArticleDetail
           locale={locale}
           title={title}
@@ -170,4 +179,3 @@ export default async function GoldCornerDetailPage({
     </MarketPageTemplate>
   );
 }
-
