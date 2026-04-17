@@ -1,39 +1,45 @@
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
-export type TikTokItem = {
+export type VideoBriefingItem = {
   id?: number;
   title?: string;
   embed_code?: string;
+  image_url?: string;
   backup_video_url?: string | null;
   created_at?: string;
   updated_at?: string;
 };
 
-type TikTokResponse = {
-  data?: TikTokItem[];
+type VideoBriefingResponse = {
+  data?: VideoBriefingItem[];
 };
 
-const buildTikTokUrl = () => {
+const buildVideoBriefingUrl = () => {
+  const explicit =
+    process.env.PORTALNEWS_VIDEO_BRIEFING_URL ??
+    process.env.NEXT_PUBLIC_PORTALNEWS_VIDEO_BRIEFING_URL ??
+    "";
+  if (explicit) return explicit;
+
+  const base =
+    process.env.PORTALNEWS_NEWSMAKER_BASE_URL ??
+    process.env.NEXT_PUBLIC_PORTALNEWS_NEWSMAKER_BASE_URL ??
+    "";
+  if (base) return `${base.replace(/\/+$/, "")}/video-briefing`;
+
   const legacyNewsListUrl =
     process.env.PORTALNEWS_API_URL ??
     process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
     "";
 
-  const derivedNewsmakerBaseUrl = legacyNewsListUrl
-    ? legacyNewsListUrl.replace(
-        /\/api\/v1\/berita(?:\/.*)?$/i,
-        "/api/v1/newsmaker",
-      )
+  const derivedBase = legacyNewsListUrl
+    ? legacyNewsListUrl.replace(/\/berita(?:\/.*)?$/i, "")
     : "";
 
-  return (
-    process.env.PORTALNEWS_TIKTOK_URL ??
-    process.env.NEXT_PUBLIC_PORTALNEWS_TIKTOK_URL ??
-    (derivedNewsmakerBaseUrl ? `${derivedNewsmakerBaseUrl}/tiktok` : "")
-  );
+  return derivedBase ? `${derivedBase.replace(/\/+$/, "")}/video-briefing` : "";
 };
 
-const sortByNewest = (items: TikTokItem[]) => {
+const sortByNewest = (items: VideoBriefingItem[]) => {
   const parse = (value?: string) => {
     if (!value) return Number.NaN;
     const parsed = new Date(value).getTime();
@@ -52,10 +58,12 @@ const sortByNewest = (items: TikTokItem[]) => {
   });
 };
 
-export async function fetchTikToks(limit = 3): Promise<TikTokItem[]> {
+export async function fetchVideoBriefings(
+  limit = 3,
+): Promise<VideoBriefingItem[]> {
   try {
-    const tiktokApi = buildTikTokUrl();
-    if (!tiktokApi) return [];
+    const videoBriefingApi = buildVideoBriefingUrl();
+    if (!videoBriefingApi) return [];
 
     const token =
       process.env.PORTALNEWS_TOKEN ??
@@ -63,7 +71,7 @@ export async function fetchTikToks(limit = 3): Promise<TikTokItem[]> {
       "";
 
     const response = await fetchWithTimeout(
-      tiktokApi,
+      videoBriefingApi,
       {
         method: "GET",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -75,10 +83,9 @@ export async function fetchTikToks(limit = 3): Promise<TikTokItem[]> {
 
     const json = (await response
       .json()
-      .catch(() => null)) as TikTokResponse | null;
+      .catch(() => null)) as VideoBriefingResponse | null;
     const items = Array.isArray(json?.data) ? json?.data : [];
-
-    const unique: TikTokItem[] = [];
+    const unique: VideoBriefingItem[] = [];
     const seen = new Set<string>();
     for (const item of items) {
       const key = String(item?.id ?? "").trim();
@@ -90,13 +97,14 @@ export async function fetchTikToks(limit = 3): Promise<TikTokItem[]> {
     }
 
     const sorted = sortByNewest(unique);
-    return sorted.slice(0, Math.max(0, limit));
+    const capped = sorted.slice(0, Math.max(0, limit));
+    return capped;
   } catch {
     return [];
   }
 }
 
-export async function fetchLatestTikTok(): Promise<TikTokItem | null> {
-  const items = await fetchTikToks(1);
+export async function fetchLatestVideoBriefing(): Promise<VideoBriefingItem | null> {
+  const items = await fetchVideoBriefings(1);
   return items[0] ?? null;
 }

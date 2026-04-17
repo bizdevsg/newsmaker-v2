@@ -797,7 +797,20 @@
     },
     "liveChart": {
       "title": "Live Chart",
-      "warningText": "Charts are provided by TradingView. Market data may be delayed or differ from your broker/exchange. Always verify prices before trading."
+      "warningText": "Charts are provided by TradingView. Market data may be delayed or differ from your broker/exchange. Always verify prices before trading.",
+      "ohlcQuotes": {
+        "title": "Live Quotes",
+        "updatedLabel": "Updated",
+        "empty": "Live quotes unavailable",
+        "columns": {
+          "symbol": "Symbol",
+          "open": "Open",
+          "high": "High",
+          "low": "Low",
+          "close": "Close",
+          "change": "Change"
+        }
+      }
     },
     "historicData": {
       "title": "Historical Data",

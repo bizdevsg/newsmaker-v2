@@ -21,10 +21,9 @@ export const buildSearchPath = (locale: Locale, query?: string | null) => {
   const normalizedQuery = normalizeSearchQuery(query);
   if (!normalizedQuery) return `/${locale}/search`;
 
-  return `/${locale}/search/${normalizedQuery
-    .split(" ")
-    .map(encodeURIComponent)
-    .join("/")}`;
+  // Use query-string to avoid path-segment issues with reserved characters
+  // (e.g. "AUD/USD") and to keep the URL stable under proxies/CDNs.
+  return `/${locale}/search?q=${encodeURIComponent(normalizedQuery)}`;
 };
 
 export const getSearchQueryFromSegments = (segments?: string[]) =>

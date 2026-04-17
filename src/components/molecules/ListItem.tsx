@@ -31,14 +31,11 @@ export function ListItem({
           {tag ? <Tag tone="blue">{tag}</Tag> : null}
         </div>
       </div>
-      {/* <Button
-        href={href}
-        variant="primary"
-        size="sm"
-        className="h-8 rounded-full px-3 text-[11px]"
-      >
-        {actionLabel}
-      </Button> */}
+      {href ? (
+        <span className="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700">
+          {actionLabel}
+        </span>
+      ) : null}
     </>
   );
 

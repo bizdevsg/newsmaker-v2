@@ -640,7 +640,7 @@ export function SiteHeader() {
                     type="button"
                     onClick={() => setIsLangOpenMobile((prev) => !prev)}
                     aria-label={changeLanguageLabel}
-                    className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:border-blue-200 hover:text-blue-700"
+                    className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition cursor-pointer hover:border-blue-200 hover:text-blue-700"
                   >
                     <span
                       className={`fi ${localeFlagClass} h-3 w-4 rounded-sm`}

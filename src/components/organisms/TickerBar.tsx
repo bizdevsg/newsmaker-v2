@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLoading } from "../providers/LoadingProvider";
 import { resolvePortalNewsTitle } from "@/lib/portalnews-shared";
+import { buildMarketNewsDetailHrefForItem } from "@/lib/news-routing";
 import type { Locale } from "@/locales";
 
 type TickerBarProps = {
@@ -30,6 +32,14 @@ type NewsItem = {
   slug?: string;
   created_at?: string;
   kategori?: {
+    name?: string;
+    slug?: string;
+  };
+  main_category?: {
+    name?: string;
+    slug?: string;
+  };
+  sub_category?: {
     name?: string;
     slug?: string;
   };
@@ -217,6 +227,10 @@ export function TickerBar({
 
     const toNewsTick = (item: NewsItem, index: number): LiveTick => {
       const slug = item.slug?.trim();
+      const href = buildMarketNewsDetailHrefForItem(
+        resolvedLocale,
+        item as Parameters<typeof buildMarketNewsDetailHrefForItem>[1],
+      );
 
       return {
         key: `news-${item.id ?? slug ?? index}`,
@@ -225,6 +239,7 @@ export function TickerBar({
           resolvedLocale,
           "Latest update",
         ),
+        href: href ?? undefined,
       };
     };
 
@@ -356,7 +371,13 @@ export function TickerBar({
         key={`${item.key}-${variant}-${index}`}
         className="inline-flex items-center gap-2"
       >
-        <span className={wrapperClass}>{content}</span>
+        {item.href ? (
+          <Link href={item.href} className={wrapperClass}>
+            {content}
+          </Link>
+        ) : (
+          <span className={wrapperClass}>{content}</span>
+        )}
         {nextIsTick ? (
           <span className="ticker-dot" aria-hidden="true">
             &bull;

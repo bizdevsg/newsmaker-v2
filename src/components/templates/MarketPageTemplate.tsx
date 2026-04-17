@@ -6,10 +6,6 @@ import { TickerBar } from "../organisms/TickerBar";
 import { ScrollUpButton } from "../organisms/ScrollUpButton";
 import { PopupBannerModal } from "../organisms/PopupBannerModal";
 import type { Locale, Messages } from "@/locales";
-import { Container } from "../layout/Container";
-import { DisclaimerCard } from "../organisms/DisclaimerCard";
-import { NmAi } from "../organisms/NmAi";
-import { Tagline } from "../organisms/Tagline";
 
 type MarketPageTemplateProps = {
   children: React.ReactNode;

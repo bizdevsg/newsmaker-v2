@@ -261,7 +261,7 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
             className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
             style={{ backgroundImage: `url('${featured.image}')` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0b2f63] via-[#0b2f63]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0b2f63] via-[#0b2f63]/70 to-[#0b2f63]/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
           <div className="relative flex min-h-[310px] h-full flex-col justify-between gap-4 p-7 sm:min-h-[340px]">
             <div className="space-y-3">
@@ -301,7 +301,7 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                   style={{ backgroundImage: `url('${item.image}')` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f63] via-[#0b2f63]/35 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f63] via-[#0b2f63]/50 to-[#0b2f63]/20" />
                 <div className="relative flex min-h-[160px] flex-col justify-between gap-4 p-4">
                   <div className="space-y-2">
                     <div className="bg-blue-500/50 w-fit rounded-full px-3 py-0.5">

@@ -6,12 +6,13 @@ import { Container } from "@/components/layout/Container";
 import { NewsArticleDetail } from "@/components/organisms/news/NewsArticleDetail";
 import { NewsListView } from "@/components/organisms/news/NewsListView";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
-import { filterItemsByTerms } from "@/lib/news-filter";
+import { filterItemsByTermsStrict } from "@/lib/news-filter";
 import { toMarketNewsCardItemsAuto, toNewsCardItems } from "@/lib/news-cards";
 import {
   buildNewsCategoryHref,
   getNewsCategoryConfig,
   getNewsSubConfig,
+  isAnalysisPortalNewsItem,
   resolveNewsCategoryLabel,
   resolveNewsSubLabel,
 } from "@/lib/news-routing";
@@ -203,9 +204,20 @@ export default async function NewsSubPage({
 
   const apiResult = await fetchPortalNewsListByCategory(sub);
   const canUseApi = apiResult.ok && apiResult.items.length > 0;
+  const subConfigForValidation = getNewsSubConfig(kategori, sub);
+  const validatedApiItems = subConfigForValidation
+    ? filterItemsByTermsStrict(
+        apiResult.items,
+        subConfigForValidation.matchTerms,
+      )
+    : apiResult.items;
+  const nonAnalysisApiItems = validatedApiItems.filter(
+    (item) => !isAnalysisPortalNewsItem(item),
+  );
+  const canUseValidatedApi = canUseApi && nonAnalysisApiItems.length > 0;
 
-  if (canUseApi) {
-    const cards = toNewsCardItems(apiResult.items, {
+  if (canUseValidatedApi) {
+    const cards = toNewsCardItems(nonAnalysisApiItems, {
       locale,
       kategori,
       fixedSub: sub,
@@ -213,9 +225,7 @@ export default async function NewsSubPage({
     });
 
     const categoryLabel = resolveNewsCategoryLabel(messages, kategori);
-    const subLabel =
-      apiResult.category?.name?.trim() ||
-      resolveNewsSubLabel(messages, kategori, sub);
+    const subLabel = resolveNewsSubLabel(messages, kategori, sub);
     const backHref = buildNewsCategoryHref(locale, kategori);
 
     return (
@@ -251,7 +261,9 @@ export default async function NewsSubPage({
   if (!subConfig) notFound();
 
   const { items } = await fetchPortalNewsList();
-  const filtered = filterItemsByTerms(items, subConfig.matchTerms);
+  const filtered = filterItemsByTermsStrict(items, subConfig.matchTerms).filter(
+    (item) => !isAnalysisPortalNewsItem(item),
+  );
   const cards = toNewsCardItems(filtered, {
     locale,
     kategori,

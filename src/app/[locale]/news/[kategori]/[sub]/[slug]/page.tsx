@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Card } from "@/components/atoms/Card";
 import { Container } from "@/components/layout/Container";
 import { NewsArticleDetail } from "@/components/organisms/news/NewsArticleDetail";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";

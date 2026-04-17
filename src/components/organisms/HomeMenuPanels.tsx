@@ -17,19 +17,10 @@ export function HomeMenuPanels({ locale, messages }: HomeMenuPanelsProps) {
     <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr_1.25fr]">
       <div className="grid gap-4">
         <TechnicalAnalysisIndicatorCard symbol="XAUUSD" />
-        <EconomicCalendarCard
-          locale={locale}
-          messages={messages}
-        />
+        <EconomicCalendarCard locale={locale} messages={messages} />
       </div>
-      <MarketOutlookCard
-        locale={locale}
-        readMoreLabel={readMoreLabel}
-      />
-      <DigitalAssetsCard
-        locale={locale}
-        readMoreLabel={readMoreLabel}
-      />
+      <MarketOutlookCard locale={locale} readMoreLabel={readMoreLabel} />
+      <DigitalAssetsCard locale={locale} readMoreLabel={readMoreLabel} />
     </section>
   );
 }

@@ -36,6 +36,20 @@ const resolveHaystack = (item: PortalNewsItem) => {
   return cleanText(`${title} ${content}`);
 };
 
+const resolveTitleHaystack = (item: PortalNewsItem) => {
+  const title =
+    item.title_id?.trim() ||
+    item.title_en?.trim() ||
+    item.title?.trim() ||
+    item.titles?.id?.trim() ||
+    item.titles?.en?.trim() ||
+    item.titles?.default?.trim() ||
+    "";
+
+  // Surround with spaces so we can do cheap "word-ish" matching via includes.
+  return ` ${cleanText(title)} `;
+};
+
 export const itemMatchesTerms = (item: PortalNewsItem, terms: string[]) => {
   const normalizedTerms = terms
     .map((term) => normalizePortalNewsCategory(term))
@@ -56,6 +70,34 @@ export const itemMatchesTerms = (item: PortalNewsItem, terms: string[]) => {
   });
 };
 
+export const itemMatchesTermsStrict = (
+  item: PortalNewsItem,
+  terms: string[],
+) => {
+  const normalizedTerms = terms
+    .map((term) => normalizePortalNewsCategory(term))
+    .filter(Boolean);
+
+  if (!normalizedTerms.length) return true;
+
+  const categoryKeys = new Set(getPortalNewsCategoryKeys(item));
+  const titleHaystack = resolveTitleHaystack(item);
+
+  return normalizedTerms.some((term) => {
+    if (!term) return false;
+    if (categoryKeys.has(term)) return true;
+    for (const key of categoryKeys) {
+      if (key.includes(term) || term.includes(key)) return true;
+    }
+    // Match in title only, with padding to reduce substring false-positives.
+    return titleHaystack.includes(` ${term} `) || titleHaystack.includes(term);
+  });
+};
+
 export const filterItemsByTerms = (items: PortalNewsItem[], terms: string[]) =>
   items.filter((item) => itemMatchesTerms(item, terms));
 
+export const filterItemsByTermsStrict = (
+  items: PortalNewsItem[],
+  terms: string[],
+) => items.filter((item) => itemMatchesTermsStrict(item, terms));

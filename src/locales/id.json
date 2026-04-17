@@ -793,7 +793,20 @@
     },
     "liveChart": {
       "title": "Grafik Langsung",
-      "warningText": "Chart disediakan oleh TradingView. Data market bisa tertunda atau berbeda dengan broker/exchange kamu. Selalu verifikasi harga sebelum trading."
+      "warningText": "Chart disediakan oleh TradingView. Data market bisa tertunda atau berbeda dengan broker/exchange kamu. Selalu verifikasi harga sebelum trading.",
+      "ohlcQuotes": {
+        "title": "Live Quotes",
+        "updatedLabel": "Diperbarui",
+        "empty": "Live quotes belum tersedia.",
+        "columns": {
+          "symbol": "Simbol",
+          "open": "Buka",
+          "high": "Tinggi",
+          "low": "Rendah",
+          "close": "Tutup",
+          "change": "Perubahan"
+        }
+      }
     },
     "historicData": {
       "title": "Data Historis",

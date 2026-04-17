@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Card } from "@/components/atoms/Card";
 import { Container } from "@/components/layout/Container";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
+import { LiveQuotesOhlcTable } from "@/components/organisms/LiveQuotesOhlcTable";
 import { LiveChartClient } from "@/components/organisms/live-chart/LiveChartClient";
 import { getMessages, type Locale } from "@/locales";
 
@@ -26,6 +27,14 @@ export default async function LiveChartPage({
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
       <Container as="section" className="py-8 px-4">
+        <div className="mb-4">
+          <LiveQuotesOhlcTable
+            messages={messages}
+            locale={locale}
+            limit={10}
+            pollIntervalMs={1000}
+          />
+        </div>
         <LiveChartClient locale={locale} title={pageTitle} />
 
         <Card className="mt-8 overflow-hidden">

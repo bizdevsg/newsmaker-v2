@@ -28,7 +28,6 @@ type DigitalAssetsCardProps = {
   locale: Locale;
   title?: string;
   readMoreLabel: string;
-  heroImage?: string;
   items?: DigitalAssetsItem[];
 };
 
@@ -140,7 +139,6 @@ export async function DigitalAssetsCard({
   locale,
   title = "Digital Assets",
   readMoreLabel,
-  heroImage = "/assets/goldIMG.png",
   items,
 }: DigitalAssetsCardProps) {
   const apiItems = !items?.length ? await getCryptoItems(locale) : null;

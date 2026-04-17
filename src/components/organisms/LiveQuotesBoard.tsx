@@ -503,7 +503,6 @@ export function LiveQuotesBoard({
           const mapped = resolveSymbolPreset(symbolKey);
 
           const label = mapped?.label ?? metric.label;
-          const subtitle = mapped?.subtitle ?? metric.subtitle;
           const badgeText =
             mapped?.badge ?? (metric.group === "index" ? "IDX" : "MKT");
           const iconSrc = resolveIconSrc(

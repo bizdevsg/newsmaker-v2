@@ -29,19 +29,6 @@ import {
   INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH,
 } from "@/lib/indonesia-market-sections";
 
-type Pagination = {
-  has_more_pages?: boolean;
-  next_page_url?: string | null;
-};
-
-type PortalPayload<T> = {
-  status?: string;
-  data?: T;
-  meta?: {
-    pagination?: Pagination;
-  };
-};
-
 const MAX_PORTAL_PAGES = 25;
 
 const DEFAULT_NEWS_URL =

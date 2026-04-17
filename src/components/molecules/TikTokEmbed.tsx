@@ -125,6 +125,23 @@ export function TikTokEmbed({
     forceBackupUrl,
   ]);
 
+  const responsiveClassName = [
+    "relative flex h-full w-full min-h-0 min-w-0 overflow-hidden",
+    "[&_.tiktok-embed]:!m-0",
+    "[&_.tiktok-embed]:!w-full",
+    "[&_.tiktok-embed]:!max-w-full",
+    "[&_.tiktok-embed]:!min-w-0",
+    "[&_.tiktok-embed]:!border-0",
+    "[&_.tiktok-embed]:!shadow-none",
+    "[&_.tiktok-embed]:!rounded-none",
+    "[&_iframe]:block",
+    "[&_iframe]:!h-full",
+    "[&_iframe]:!w-full",
+  ]
+    .concat(className ? [className] : [])
+    .join(" ")
+    .trim();
+
   return (
     <>
       <Script
@@ -138,31 +155,35 @@ export function TikTokEmbed({
           }
         }}
       />
-      {renderMode === "video" && backupVideoUrl ? (
-        <video
-          className={`h-full w-full ${className}`.trim()}
-          src={backupVideoUrl}
-          controls
-          playsInline
-        />
-      ) : renderMode === "iframe" && iframeVideoId ? (
-        <iframe
-          className={`h-full w-full ${className}`.trim()}
-          src={iframeSrc}
-          scrolling="no"
-          frameBorder="0"
-          allow="encrypted-media; picture-in-picture"
-          allowFullScreen
-          title="TikTok video"
-        />
-      ) : (
+      {renderMode === "html" ? (
         <div
           ref={rootRef}
-          className={className}
+          className={responsiveClassName}
           // Upstream gives prebuilt embed markup.
-          // We keep it isolated inside a card with overflow hidden.
+          // We drop scripts and control hydration via next/script.
           dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
         />
+      ) : (
+        <div ref={rootRef} className={responsiveClassName}>
+          {renderMode === "video" && backupVideoUrl ? (
+            <video
+              className="h-full w-full flex-1 min-h-0 min-w-0"
+              src={backupVideoUrl}
+              controls
+              playsInline
+            />
+          ) : renderMode === "iframe" && iframeVideoId ? (
+            <iframe
+              className="!h-full !w-full flex-1 min-h-0 min-w-0"
+              src={iframeSrc}
+              scrolling="no"
+              frameBorder="0"
+              allow="encrypted-media; picture-in-picture"
+              allowFullScreen
+              title="TikTok video"
+            />
+          ) : null}
+        </div>
       )}
     </>
   );

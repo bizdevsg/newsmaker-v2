@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -23,6 +24,8 @@ const MAX_LOADING_MS = 10000;
 const ROUTE_LOADING_MIN_MS = 250;
 const ROUTE_LOADING_MAX_MS = 5000;
 const HIDE_AFTER_IDLE_MS = 200;
+const INITIAL_ROUTE_GRACE_MS = 900;
+const MIN_OVERLAY_VISIBLE_MS = 5000;
 
 function GlobalLoadingOverlay({ fadingOut }: { fadingOut: boolean }) {
   return (
@@ -56,6 +59,8 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const tokenTimers = useRef(new Map<symbol, number>());
   const routeTokenRef = useRef<symbol | null>(null);
   const routeStartedAtRef = useRef(0);
+  const initialLoadRef = useRef(true);
+  const overlayStartedAtRef = useRef(0);
   const sawNonRouteTokenRef = useRef(false);
   const routeMaxTimerRef = useRef<number | null>(null);
   const pathname = usePathname();
@@ -71,6 +76,9 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     setPendingCount((count) => count + 1);
     setShowOverlay(true);
     setFadeOut(false);
+    if (!overlayStartedAtRef.current) {
+      overlayStartedAtRef.current = Date.now();
+    }
     const timer = window.setTimeout(() => {
       // Safety: auto-stop if a request hangs
       if (tokens.current.has(token)) {
@@ -93,6 +101,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       tokenTimers.current.delete(token);
     }
     if (routeTokenRef.current === token) {
+      initialLoadRef.current = false;
       routeTokenRef.current = null;
       sawNonRouteTokenRef.current = false;
       if (routeMaxTimerRef.current) {
@@ -102,7 +111,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (routeTokenRef.current) {
       stop(routeTokenRef.current);
       routeTokenRef.current = null;
@@ -149,7 +158,10 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     if (!routeToken) return;
 
     const elapsed = Date.now() - routeStartedAtRef.current;
-    const waitMs = Math.max(0, ROUTE_LOADING_MIN_MS - elapsed);
+    const minVisibleMs = initialLoadRef.current
+      ? INITIAL_ROUTE_GRACE_MS
+      : ROUTE_LOADING_MIN_MS;
+    const waitMs = Math.max(0, minVisibleMs - elapsed);
 
     // If no data fetch starts on this route, stop after a small minimum delay
     // to prevent flicker. If data fetches do start, keep the route token alive
@@ -180,13 +192,20 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
 
     if (showOverlay) {
       let hideTimeout: number | undefined;
+      const elapsed = overlayStartedAtRef.current
+        ? Date.now() - overlayStartedAtRef.current
+        : 0;
+      const remaining = Math.max(0, MIN_OVERLAY_VISIBLE_MS - elapsed);
+      const fadeDelay = Math.max(HIDE_AFTER_IDLE_MS, remaining);
+
       const fadeTimeout = window.setTimeout(() => {
         setFadeOut(true);
         hideTimeout = window.setTimeout(() => {
           setShowOverlay(false);
           setFadeOut(false);
+          overlayStartedAtRef.current = 0;
         }, 300);
-      }, HIDE_AFTER_IDLE_MS);
+      }, fadeDelay);
       return () => {
         window.clearTimeout(fadeTimeout);
         if (hideTimeout) window.clearTimeout(hideTimeout);

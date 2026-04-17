@@ -48,14 +48,6 @@ const DEFAULT_ITEMS = (locale: Locale): MarketOutlookItem[] => [
   },
 ];
 
-const stripHtml = (value: string) =>
-  value
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;|&#160;/gi, " ")
-    .replace(/&[a-z0-9#]+;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
 const formatDateTimeShort = (value: string | undefined, locale: Locale) => {
   if (!value) return "";
   const parsed = new Date(value);
