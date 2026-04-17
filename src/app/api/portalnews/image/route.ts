@@ -18,14 +18,23 @@ const getAllowedHosts = () => {
     process.env.PORTALNEWS_PASAR_INDONESIA_ANALYSIS_URL,
     process.env.PORTALNEWS_IMAGE_BASE,
     process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE,
+    process.env.NEXT_PUBLIC_PORTALNEWS_PROXY_HOSTS,
+    process.env.PORTALNEWS_PROXY_HOSTS,
   ].filter(Boolean) as string[];
 
   maybeUrls.forEach((value) => {
-    try {
-      allowedHosts.add(new URL(value).hostname);
-    } catch {
-      // ignore
-    }
+    // Allow comma/space separated hostnames in the *_PROXY_HOSTS env vars.
+    const parts = value.includes(",") || value.includes(" ")
+      ? value.split(/[,\s]+/g).map((entry) => entry.trim()).filter(Boolean)
+      : [value];
+
+    parts.forEach((part) => {
+      try {
+        allowedHosts.add(new URL(part).hostname);
+      } catch {
+        if (/^[a-z0-9.-]+$/i.test(part)) allowedHosts.add(part);
+      }
+    });
   });
 
   return allowedHosts;
@@ -99,4 +108,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

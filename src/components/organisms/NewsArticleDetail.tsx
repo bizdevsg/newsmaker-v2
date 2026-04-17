@@ -8,6 +8,7 @@ import type { Messages } from "@/locales";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 import { RotatingAdSlot } from "@/components/molecules/RotatingAdSlot";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { Card } from "../atoms/Card";
 
 const formatArticleHtml = (value: string) =>
   value
@@ -15,6 +16,85 @@ const formatArticleHtml = (value: string) =>
     .replace(/\s(?:class|style|lang|align)=(["']).*?\1/gi, "")
     .replace(/\s(?:class|style|lang|align)=([^\s>]+)/gi, "")
     .replace(/<p>\s*(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/gi, "");
+
+const rewritePortalNewsHtmlImages = (html: string, imageBase?: string) => {
+  if (typeof DOMParser === "undefined") return html;
+  const normalizedHtml = String(html ?? "");
+  if (!normalizedHtml.trim()) return normalizedHtml;
+
+  let baseOrigin = "";
+  if (imageBase) {
+    try {
+      baseOrigin = new URL(imageBase).origin;
+    } catch {
+      baseOrigin = "";
+    }
+  }
+
+  const resolveWithBase = (src: string) => {
+    const trimmed = src.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("data:") || trimmed.startsWith("blob:"))
+      return trimmed;
+    if (trimmed.startsWith("//")) return `https:${trimmed}`;
+
+    if (trimmed.startsWith("http")) return trimmed;
+
+    if (baseOrigin) {
+      try {
+        return new URL(trimmed, `${baseOrigin}/`).toString();
+      } catch {
+        return trimmed;
+      }
+    }
+
+    return trimmed;
+  };
+
+  const rewriteSrcset = (raw: string) => {
+    const items = raw
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    const rewritten = items.map((entry) => {
+      const [url, descriptor] = entry.split(/\s+/, 2);
+      const resolved = resolvePortalNewsImageSrc(resolveWithBase(url)) ?? url;
+      return descriptor ? `${resolved} ${descriptor}` : resolved;
+    });
+
+    return rewritten.join(", ");
+  };
+
+  const doc = new DOMParser().parseFromString(
+    `<div>${normalizedHtml}</div>`,
+    "text/html",
+  );
+
+  doc.querySelectorAll("img").forEach((img) => {
+    const src = img.getAttribute("src");
+    if (src) {
+      const resolved = resolvePortalNewsImageSrc(resolveWithBase(src));
+      if (resolved) img.setAttribute("src", resolved);
+    }
+
+    const srcset = img.getAttribute("srcset");
+    if (srcset) {
+      const resolved = rewriteSrcset(srcset);
+      if (resolved) img.setAttribute("srcset", resolved);
+    }
+  });
+
+  doc.querySelectorAll("source").forEach((source) => {
+    const srcset = source.getAttribute("srcset");
+    if (srcset) {
+      const resolved = rewriteSrcset(srcset);
+      if (resolved) source.setAttribute("srcset", resolved);
+    }
+  });
+
+  return doc.body.innerHTML;
+};
 
 type NewsArticleAuthor =
   | string
@@ -355,7 +435,10 @@ export function NewsArticleDetail({
 
   const title = resolveTitle(article, locale, "Judul berita");
   const articleContent = resolveContent(article, locale, "");
-  const articleHtml = formatArticleHtml(articleContent);
+  const articleHtml = rewritePortalNewsHtmlImages(
+    formatArticleHtml(articleContent),
+    imageBase,
+  );
   const thumb = resolveImage(article);
 
   const dateStr = formatArticleDateTime(
@@ -456,84 +539,89 @@ export function NewsArticleDetail({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
-      <article>
-        <nav className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mb-6 sm:text-xs">
-          {parentHref && parentLabel ? (
-            <>
-              <Link
-                href={parentHref}
-                className="hover:text-blue-600 transition"
-              >
-                {parentLabel}
-              </Link>
-              <span>/</span>
-            </>
-          ) : null}
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <Card className="min-w-0 rounded-2xl bg-white shadow-sm">
+        <div className="p-5 sm:p-7">
+          <nav className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mb-6 sm:text-xs">
+            {parentHref && parentLabel ? (
+              <>
+                <Link
+                  href={parentHref}
+                  className="hover:text-blue-600 transition"
+                >
+                  {parentLabel}
+                </Link>
+                <span>/</span>
+              </>
+            ) : null}
 
-          <Link
-            href={resolvedListingHref}
-            className="hover:text-blue-600 transition capitalize"
-          >
-            {resolvedListingLabel}
-          </Link>
+            <Link
+              href={resolvedListingHref}
+              className="hover:text-blue-600 transition capitalize"
+            >
+              {resolvedListingLabel}
+            </Link>
 
-          <span>/</span>
-          <span className="text-slate-600 truncate">{title}</span>
-        </nav>
+            <span>/</span>
+            <span className="text-slate-600 truncate">{title}</span>
+          </nav>
 
-        <h1 className="text-center text-xl w-full max-w-none font-bold leading-tight text-blue-800 md:text-4xl">
-          {title}
-        </h1>
+          <h1 className="text-center text-xl w-full max-w-none font-bold leading-tight text-blue-800 md:text-4xl">
+            {title}
+          </h1>
 
-        <div className="mt-3 flex flex-col items-center gap-1 text-center">
-          {authorName || sourceName ? (
-            <p className="text-sm text-slate-500">
-              {authorName ? (
-                <span className="font-medium text-slate-700">{authorName}</span>
-              ) : null}
-              {authorName && sourceName ? (
-                <span className="px-2 text-slate-300">-</span>
-              ) : null}
-              {sourceName ? (
-                <span className="font-semibold text-rose-600">
-                  {sourceName}
-                </span>
-              ) : null}
+          <div className="mt-3 flex flex-col items-center gap-1 text-center">
+            {authorName || sourceName ? (
+              <p className="text-sm text-slate-500">
+                {authorName ? (
+                  <span className="font-medium text-slate-700">
+                    {authorName}
+                  </span>
+                ) : null}
+                {authorName && sourceName ? (
+                  <span className="px-2 text-slate-300">-</span>
+                ) : null}
+                {sourceName ? (
+                  <span className="font-semibold text-rose-600">
+                    {sourceName}
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
+
+            {dateStr ? (
+              <p className="text-xs text-slate-400">{dateStr}</p>
+            ) : null}
+
+            <span className="mt-4 h-px w-24 bg-slate-200" />
+          </div>
+
+          {thumb && !heroImageError && (
+            <div className="relative mx-auto mt-6 w-full aspect-video overflow-hidden rounded-xl shadow-lg">
+              <Image
+                src={thumb}
+                alt={title}
+                fill
+                sizes="(max-width: 1080px) 100vw, 900px"
+                className="object-cover"
+                quality={100}
+                priority
+                unoptimized
+                onError={() => setHeroImageError(true)}
+              />
+            </div>
+          )}
+
+          {sourceName ? (
+            <p className="mx-auto mt-2 w-full text-xs text-slate-400">
+              {nc.source}: <span className="text-slate-500">{sourceName}</span>
             </p>
           ) : null}
 
-          {dateStr ? <p className="text-xs text-slate-400">{dateStr}</p> : null}
-
-          <span className="mt-4 h-px w-24 bg-slate-200" />
-        </div>
-
-        {thumb && !heroImageError && (
-          <div className="relative mx-auto mt-6 w-full aspect-video overflow-hidden rounded-xl shadow-lg">
-            <Image
-              src={thumb}
-              alt={title}
-              fill
-              sizes="(max-width: 1080px) 100vw, 900px"
-              className="object-cover"
-              quality={100}
-              priority
-              unoptimized
-              onError={() => setHeroImageError(true)}
-            />
-          </div>
-        )}
-
-        {sourceName ? (
-          <p className="mx-auto mt-2 w-full text-xs text-slate-400">
-            {nc.source}: <span className="text-slate-500">{sourceName}</span>
-          </p>
-        ) : null}
-
-        <div
-          ref={copyScopeRef}
-          onCopy={handleCopy}
-          className="news-article-prose prose prose-slate mt-8 w-full max-w-none text-[15px] leading-8 sm:text-base
+          <div
+            ref={copyScopeRef}
+            onCopy={handleCopy}
+            className="news-article-prose prose prose-slate mt-8 w-full max-w-none text-[15px] leading-8 sm:text-base
                         prose-headings:font-display prose-headings:font-semibold prose-headings:text-slate-900
                         prose-h2:mt-10 prose-h2:mb-4 prose-h2:border-t prose-h2:border-slate-200 prose-h2:pt-8 prose-h2:text-2xl
                         prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl
@@ -546,64 +634,63 @@ export function NewsArticleDetail({
                         prose-li:text-slate-700 prose-li:marker:text-blue-700
                         prose-blockquote:rounded-r-2xl prose-blockquote:border-l-4 prose-blockquote:border-blue-700 prose-blockquote:bg-blue-50/80 prose-blockquote:px-5 prose-blockquote:py-3 prose-blockquote:not-italic prose-blockquote:text-slate-700
                         prose-hr:my-8 prose-hr:border-slate-200"
-          dangerouslySetInnerHTML={{ __html: articleHtml }}
-        />
+            dangerouslySetInnerHTML={{ __html: articleHtml }}
+          />
 
-        <div className="mt-10 w-full border-t-2 border-slate-200 pt-6">
-          <div className="flex flex-col items-center max-w-3xl gap-3">
-            <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
-              {locale === "en" ? "Share:" : "Bagikan:"}
-            </p>
-            <div className="flex flex-wrap items-center justify-start gap-4 text-slate-400">
-              <a
-                href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share to WhatsApp"
-                className="hover:text-green-500 transition"
-              >
-                <i className="fa-brands fa-whatsapp text-xl"></i>
-              </a>
+          <div className="mt-10 w-full border-t-2 border-slate-200 pt-6">
+            <div className="flex flex-col items-center max-w-3xl gap-3">
+              <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                {locale === "en" ? "Share:" : "Bagikan:"}
+              </p>
+              <div className="flex flex-wrap items-center justify-start gap-4 text-slate-400">
+                <a
+                  href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Share to WhatsApp"
+                  className="hover:text-green-500 transition"
+                >
+                  <i className="fa-brands fa-whatsapp text-xl"></i>
+                </a>
 
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share to Facebook"
-                className="hover:text-blue-600 transition"
-              >
-                <i className="fa-brands fa-facebook text-xl"></i>
-              </a>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Share to Facebook"
+                  className="hover:text-blue-600 transition"
+                >
+                  <i className="fa-brands fa-facebook text-xl"></i>
+                </a>
 
-              <a
-                href={`https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share to X"
-                className="hover:text-slate-800 transition"
-              >
-                <i className="fa-brands fa-x-twitter text-xl"></i>
-              </a>
+                <a
+                  href={`https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Share to X"
+                  className="hover:text-slate-800 transition"
+                >
+                  <i className="fa-brands fa-x-twitter text-xl"></i>
+                </a>
 
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="hover:text-slate-800 transition"
-                title={locale === "en" ? "Copy link" : "Salin tautan"}
-              >
-                <i className="fa-solid fa-link text-xl" />
-              </button>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="hover:text-slate-800 transition"
+                  title={locale === "en" ? "Copy link" : "Salin tautan"}
+                >
+                  <i className="fa-solid fa-link text-xl" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </article>
+      </Card>
 
       <aside className="space-y-8">
-        <div className="bg-white rounded-lg border border-blue-300 shadow-sm shadow-blue-300/50 p-5">
-          <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-            {nc.latestNews}
-          </h2>
-          <div className="space-y-4">
+        <div className="bg-white rounded-lg border border-blue-300 shadow-sm shadow-blue-300/50">
+          <SectionHeader title={nc.latestNews} />
+          <div className="space-y-4 p-4">
             {latest.map((item, i) => {
               const t = resolveTitle(item, locale, "Judul berita");
               const th = resolveImage(item);
@@ -656,12 +743,9 @@ export function NewsArticleDetail({
         </div>
 
         {related.length > 0 && (
-          <div className="bg-white rounded-lg border border-blue-300 shadow-sm shadow-blue-300/50 p-5">
-            {/* <SectionHeader title={nc.popularNews} /> */}
-            <h2 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-              {nc.popularNews}
-            </h2>
-            <div className="space-y-4">
+          <div className="bg-white rounded-lg border border-blue-300 shadow-sm shadow-blue-300/50">
+            <SectionHeader title={nc.popularNews} />
+            <div className="space-y-4 p-4">
               {related.map((item, i) => {
                 const t = resolveTitle(item, locale, "Judul berita");
                 const th = resolveImage(item);

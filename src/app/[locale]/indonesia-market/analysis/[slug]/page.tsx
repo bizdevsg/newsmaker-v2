@@ -14,6 +14,7 @@ import {
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
 import { getMessages, type Locale } from "@/locales";
+import { Container } from "@/components/layout/Container";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
@@ -112,7 +113,7 @@ export default async function IndonesiaMarketAnalysisArticlePage({
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
-      <section className="min-h-[80vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+      <Container className="py-8">
         <NewsArticleDetail
           slug={slug}
           categorySlug={INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG}
@@ -132,7 +133,7 @@ export default async function IndonesiaMarketAnalysisArticlePage({
           locale={locale}
           messages={customMessages}
         />
-      </section>
+      </Container>
     </MarketPageTemplate>
   );
 }

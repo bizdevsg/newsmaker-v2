@@ -6,6 +6,7 @@ import {
   INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH,
 } from "@/lib/indonesia-market-sections";
 import { getMessages, type Locale } from "@/locales";
+import { Card } from "@/components/atoms/Card";
 
 export const metadata: Metadata = {
   title: "Indonesia Market Analysis",
@@ -29,13 +30,11 @@ export default async function IndonesiaMarketAnalysisPage({
   };
 
   const analysisLabel =
-    locale === "en"
-      ? "Analysis Market Indonesia"
-      : "Analisis Market Indonesia";
+    locale === "en" ? "Analysis Market Indonesia" : "Analisis Market Indonesia";
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
-      <section className="min-h-[60vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+      <Card className="my-8">
         <NewsCategoryList
           categorySlug={INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG}
           locale={locale}
@@ -50,7 +49,7 @@ export default async function IndonesiaMarketAnalysisPage({
               : "Belum ada analisis Indonesia Market."
           }
         />
-      </section>
+      </Card>
     </MarketPageTemplate>
   );
 }

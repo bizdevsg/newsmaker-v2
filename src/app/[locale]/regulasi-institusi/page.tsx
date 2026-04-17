@@ -3,6 +3,7 @@ import { RegulatoryWatchNewsList } from "@/components/organisms/RegulatoryWatchN
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { fetchRegulatoryWatchList } from "@/lib/regulatory-watch.server";
 import { getMessages, type Locale } from "@/locales";
+import { Card } from "@/components/atoms/Card";
 
 const REGULATORY_WATCH_BASE_PATH = "regulasi-institusi";
 
@@ -59,7 +60,7 @@ export default async function RegulatoryWatchListPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
-      <section className="min-h-[60vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+      <Card>
         <RegulatoryWatchNewsList
           locale={locale}
           messages={customMessages}
@@ -70,7 +71,7 @@ export default async function RegulatoryWatchListPage({
           emptyLabel={labels.empty}
           detailBasePath={REGULATORY_WATCH_BASE_PATH}
         />
-      </section>
+      </Card>
     </MarketPageTemplate>
   );
 }

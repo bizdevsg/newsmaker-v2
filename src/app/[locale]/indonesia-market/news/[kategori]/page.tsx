@@ -9,6 +9,7 @@ import {
   isValidIndonesiaMarketNewsArticle,
 } from "@/lib/indonesia-market-news";
 import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
+import { Card } from "@/components/atoms/Card";
 
 const CATEGORY_LABELS = {
   all: { en: "Latest News", id: "Berita Terbaru" },
@@ -18,7 +19,9 @@ const CATEGORY_LABELS = {
 
 type CategorySlug = keyof typeof CATEGORY_LABELS;
 
-const normalizeCategorySlug = (value: string | undefined): CategorySlug | null => {
+const normalizeCategorySlug = (
+  value: string | undefined,
+): CategorySlug | null => {
   if (!value) return null;
   const normalized = value.trim().toLowerCase();
   if (normalized === "semua") return "all";
@@ -78,8 +81,9 @@ export default async function IndonesiaMarketNewsCategoryPage({
       notFound();
     }
 
-    const resolvedCategory =
-      resolveIndonesiaMarketNewsCategorySlugFromItem(detail.article);
+    const resolvedCategory = resolveIndonesiaMarketNewsCategorySlugFromItem(
+      detail.article,
+    );
     permanentRedirect(
       `/${locale}/${INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH}/${resolvedCategory}/${slug}`,
     );
@@ -94,7 +98,7 @@ export default async function IndonesiaMarketNewsCategoryPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
-      <section className="min-h-[60vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+      <Card className="my-8">
         <NewsCategoryList
           categorySlug={categorySlug}
           locale={locale}
@@ -109,8 +113,7 @@ export default async function IndonesiaMarketNewsCategoryPage({
               : `Belum ada ${labelOverride.toLowerCase()}.`
           }
         />
-      </section>
+      </Card>
     </MarketPageTemplate>
   );
 }
-

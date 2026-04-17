@@ -557,7 +557,7 @@ export function NewsCategoryList({
 
   if (articles.length === 0) {
     return (
-      <div>
+      <div className="px-6 py-6">
         {/* Category Header */}
         <div className="flex items-center justify-between">
           <div className="mb-8">
@@ -723,7 +723,7 @@ export function NewsCategoryList({
   }
 
   return (
-    <div>
+    <div className="px-6 py-6">
       {/* Category Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -741,7 +741,7 @@ export function NewsCategoryList({
           </div>
 
           <div className="mb-8">
-            <h1 className="text-xl md:text-3xl font-bold text-slate-900">
+            <h1 className="text-xl md:text-xl font-bold text-slate-900">
               {label}
             </h1>
             <p className="text-slate-500 mt-2 text-sm">

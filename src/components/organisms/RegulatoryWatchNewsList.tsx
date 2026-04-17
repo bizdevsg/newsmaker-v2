@@ -172,7 +172,7 @@ export function RegulatoryWatchNewsList({
 
   if (mappedItems.length === 0) {
     return (
-      <div>
+      <div className="px-6 py-6">
         <div className="flex items-center justify-between">
           <div className="mb-8">
             <div className="mb-3 flex items-center gap-2 text-sm text-slate-400">
@@ -220,7 +220,7 @@ export function RegulatoryWatchNewsList({
   }
 
   return (
-    <div>
+    <div className="px-6 py-6">
       <div className="flex items-center justify-between">
         <div className="mb-8">
           <div className="mb-3 flex items-center gap-2 text-sm text-slate-400">

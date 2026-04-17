@@ -14,6 +14,7 @@ import {
   fetchRegulatoryWatchList,
 } from "@/lib/regulatory-watch.server";
 import { getMessages, type Locale } from "@/locales";
+import { Container } from "@/components/layout/Container";
 
 const REGULATORY_WATCH_BASE_PATH = "regulasi-institusi";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -291,7 +292,10 @@ export default async function RegulatoryWatchDetailPage({
   const mappedDetail = mapToNewsArticleLike(detail, locale);
   const currentSlug = normalizeText(detail.slug);
   const siblingItems = listItems
-    .filter((item) => normalizeText(item.slug) && normalizeText(item.slug) !== currentSlug)
+    .filter(
+      (item) =>
+        normalizeText(item.slug) && normalizeText(item.slug) !== currentSlug,
+    )
     .sort((a, b) => getTimestamp(b) - getTimestamp(a));
 
   const latestItems = siblingItems
@@ -326,7 +330,7 @@ export default async function RegulatoryWatchDetailPage({
 
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
-      <section className="min-h-[80vh] rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-100">
+      <Container className="py-8">
         <NewsArticleDetail
           slug={slug}
           categorySlug="regulasi"
@@ -345,7 +349,7 @@ export default async function RegulatoryWatchDetailPage({
           locale={locale}
           messages={customMessages}
         />
-      </section>
+      </Container>
     </MarketPageTemplate>
   );
 }
