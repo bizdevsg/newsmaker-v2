@@ -157,7 +157,7 @@ export default function CalenderEkonomiHome({
           }
         />
         <div className="divide-y divide-slate-200 px-4 pb-4">
-          {items.slice(0, 6).map((item, index) => {
+          {items.slice(0, 10).map((item, index) => {
             const stars = impactStars(item.impact);
             return (
               <div

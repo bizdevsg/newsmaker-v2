@@ -3,6 +3,7 @@ import { MarketInsightHero } from "@/components/organisms/MarketInsightHero";
 import { MarketInsightSection } from "@/components/organisms/MarketInsightSection";
 import { MarketOutlookSection } from "@/components/organisms/MarketOutlookSection";
 import { RecentAnalysis } from "@/components/organisms/RecentAnalysis";
+import { NewsCategories } from "@/components/organisms/NewsCategories";
 import { getMessages, type Locale } from "@/locales";
 import type { Metadata } from "next";
 
@@ -26,6 +27,8 @@ export default async function InsightPage({
       <MarketOutlookSection locale={locale} limit={4} />
 
       <RecentAnalysis messages={messages} locale={locale} limit={4} />
+
+      <NewsCategories locale={locale} messages={messages} />
     </MarketPageTemplate>
   );
 }

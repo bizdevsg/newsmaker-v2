@@ -40,10 +40,10 @@ const formatNewsDate = (value: string | undefined) => {
   return Number.isNaN(date.getTime())
     ? "-"
     : date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
 };
 
 export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
@@ -56,7 +56,7 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
     const fetchNews = async () => {
       const token = start("market-impact");
       try {
-        const res = await fetch("/api/portalnews?limit=2");
+        const res = await fetch("/api/portalnews?limit=4");
         const json = await res.json().catch(() => null);
         if (!res.ok) {
           const message = json?.message
