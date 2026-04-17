@@ -28,25 +28,33 @@ export function LiveQuotesWidget() {
         {
           "title": "Futures",
           "symbols": [
-            { "s": "OANDA:XAUUSD", "d": "XAUUSD" },
-            { "s": "OANDA:XAGUSD", "d": "XAGUSD" },
-            { "s": "TVC:UKOIL", "d": "BRENT" },
-            { "s": "HSI:HSI", "d": "HANGSENG" },
-            { "s": "INDEX:NKY", "d": "NIKKEI" },
+            { "s": "OANDA:XAUUSD", "d": "Gold Spot" },
+            { "s": "OANDA:XAGUSD", "d": "Silver Spot" },
+            { "s": "TVC:UKOIL", "d": "Brent Crude" },
+            { "s": "TVC:USOIL", "d": "WTI Oil" },
+            { "s": "HSI:HSI", "d": "Hang Seng" },
+            { "s": "INDEX:NKY", "d": "Nikkei 225" },
             { "s": "FOREXCOM:DJI", "d": "DJIA" },
-            { "s": "NASDAQ:NDAQ", "d": "NASDAQ" },
-            { "s": "FX_IDC:XAUIDRG", "d": "XAUIDRG" }
+            { "s": "NASDAQ:NDAQ", "d": "Nasdaq" },
+            { "s": "TVC:SPX", "d": "S&P 500" },
+            { "s": "FOREXCOM:DAX", "d": "DAX 40" },
+            { "s": "FX_IDC:XAUIDRG", "d": "Gold IDR" },
+            { "s": "TVC:DXY", "d": "US Dollar Index" }
           ]
         },
         {
           "title": "Forex",
           "symbols": [
-            { "s": "OANDA:AUDUSD" },
             { "s": "OANDA:EURUSD" },
             { "s": "OANDA:GBPUSD" },
-            { "s": "OANDA:USDCHF" },
             { "s": "OANDA:USDJPY" },
-            { "s": "FX_IDC:USDIDR", "d": "USDIDR" }
+            { "s": "OANDA:AUDUSD" },
+            { "s": "OANDA:USDCHF" },
+            { "s": "OANDA:USDCAD" },
+            { "s": "OANDA:NZDUSD" },
+            { "s": "OANDA:EURGBP" },
+            { "s": "OANDA:EURJPY" },
+            { "s": "FX_IDC:USDIDR", "d": "USD/IDR" }
           ]
         }
       ]
@@ -60,9 +68,9 @@ export function LiveQuotesWidget() {
       <div className="bg-blue-800 px-4 py-2 self-start rounded-br-md">
         <h3 className="text-white text-sm font-bold">Live Quotes</h3>
       </div>
-      <div className="flex-grow p-2">
+      <div className="flex-1 min-h-0 p-2">
         <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}>
-          <div className="tradingview-widget-container__widget"></div>
+          <div className="tradingview-widget-container__widget" style={{ height: "100%", width: "100%" }}></div>
         </div>
       </div>
     </div>

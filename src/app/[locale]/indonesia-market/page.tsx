@@ -38,15 +38,16 @@ export default async function IndonesiaMarketHome({
       <MarketPageTemplate locale={locale} messages={messages}>
 
          {/* 1. TOP ROW: 2 MAIN COLUMNS */}
-         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_3.7fr] gap-6 items-start">
+         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_3.7fr] gap-6 items-stretch">
 
-            {/* Left Column: Live Quotes & Mini Calendar */}
-            <div className="flex flex-col gap-6">
-               <div className="h-[450px]">
-                  {/* TradingView Market Quotes Widget */}
+            {/* Left Column: Live Quotes & Mini Calendar — stretch to match right column */}
+            <div className="flex flex-col gap-6 h-full">
+               {/* CalenderEkonomiHome sits at bottom; LiveQuotesWidget grows to fill remaining space */}
+               <div className="flex-1 min-h-[420px]">
+                  {/* TradingView Market Quotes Widget — no internal scroll, full height */}
                   <LiveQuotesWidget />
                </div>
-               <div className="min-h-[400px]">
+               <div>
                   <CalenderEkonomiHome locale={locale} messages={messages} />
                </div>
             </div>
