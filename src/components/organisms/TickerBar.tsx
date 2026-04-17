@@ -77,6 +77,7 @@ const MARKET_SYMBOL_LABELS = new Map<string, string>([
   ["XAUUSD", "Gold"],
   ["XAGUSD", "Silver"],
   ["BCO10_BBJ", "Brent"],
+  ["DX10F_BBJ", "DXY"],
   ["UKOIL", "Brent"],
   ["HKK50_BBJ", "Hang Seng"],
   ["HSI", "Hang Seng"],
@@ -215,7 +216,7 @@ export function TickerBar({
               : item.valueChange < 0
                 ? "down"
                 : "flat"
-          : "flat";
+            : "flat";
       return {
         key: `${item.symbol}-${item.price}-${item.valueChange ?? 0}`,
         symbol: resolveTickerSymbol(item.symbol),
