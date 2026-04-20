@@ -27,7 +27,7 @@ type RegulatoryWatchPayload = {
 };
 
 const DEFAULT_REGULATORY_WATCH_URL =
-  "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/regulasi-institusi";
+  "https://portalnews.newsmaker.id/api/v1/newsmaker/pasar-indonesia/regulasi-institusi";
 
 const REGULATORY_WATCH_URL = (
   process.env.PORTALNEWS_REGULATORY_WATCH_URL ?? DEFAULT_REGULATORY_WATCH_URL
@@ -35,7 +35,8 @@ const REGULATORY_WATCH_URL = (
 
 const REGULATORY_WATCH_TOKEN =
   process.env.PORTALNEWS_REGULATORY_WATCH_TOKEN ??
-  "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
+  process.env.PORTALNEWS_TOKEN ??
+  "";
 
 const MAX_REGULATORY_WATCH_PAGES = 25;
 
@@ -112,7 +113,11 @@ const resolveNextPageUrl = (payload: RegulatoryWatchPayload | null) => {
   return next ? next : null;
 };
 
-const fetchPayload = async (url: string): Promise<RegulatoryWatchPayload | null> => {
+const fetchPayload = async (
+  url: string,
+): Promise<RegulatoryWatchPayload | null> => {
+  if (!REGULATORY_WATCH_URL || !REGULATORY_WATCH_TOKEN) return null;
+
   try {
     const response = await fetchWithTimeout(
       url,
@@ -121,6 +126,7 @@ const fetchPayload = async (url: string): Promise<RegulatoryWatchPayload | null>
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${REGULATORY_WATCH_TOKEN}`,
+          "X-API-TOKEN": REGULATORY_WATCH_TOKEN,
         },
         next: { revalidate: 60 },
       },
@@ -129,8 +135,9 @@ const fetchPayload = async (url: string): Promise<RegulatoryWatchPayload | null>
 
     if (!response.ok) return null;
 
-    const payload =
-      (await response.json().catch(() => null)) as RegulatoryWatchPayload | null;
+    const payload = (await response
+      .json()
+      .catch(() => null)) as RegulatoryWatchPayload | null;
 
     if (payload?.status !== "success") return null;
 
@@ -153,7 +160,8 @@ export async function fetchRegulatoryWatchList() {
     if (!payload) break;
 
     for (const item of normalizePayloadItems(payload)) {
-      const key = item.slug?.trim() || (item.id !== undefined ? String(item.id) : "");
+      const key =
+        item.slug?.trim() || (item.id !== undefined ? String(item.id) : "");
       if (!key) continue;
       if (seenKeys.has(key)) continue;
       seenKeys.add(key);

@@ -196,27 +196,7 @@
   "regulatoryWatch": {
     "title": "Regulatory & Institutional",
     "ctaLabel": "Read More",
-    "actionLabel": "Read More",
-    "items": [
-      {
-        "key": "ojk-margin",
-        "title": "OJK Tightens Margin Rules for Derivatives",
-        "date": "Apr 21, 2024",
-        "tag": "Regulation"
-      },
-      {
-        "key": "bi-rate",
-        "title": "BI Maintains Rate at 6.00%",
-        "date": "Apr 24, 2024",
-        "tag": "Monetary"
-      },
-      {
-        "key": "bappebti",
-        "title": "Bappebti Revises Broker Compliance Framework",
-        "date": "Apr 23, 2024",
-        "tag": "Governance"
-      }
-    ]
+    "actionLabel": "Read More"
   },
   "exchangeActivity": {
     "title": "Indonesia Exchange & Derivatives Activity",

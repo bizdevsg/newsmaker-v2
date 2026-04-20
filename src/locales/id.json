@@ -192,27 +192,7 @@
   "regulatoryWatch": {
     "title": "Regulasi & Institusi",
     "ctaLabel": "Baca Lainnya",
-    "actionLabel": "Baca Lainnya",
-    "items": [
-      {
-        "key": "ojk-margin",
-        "title": "OJK perketat aturan margin derivatif",
-        "date": "21 Apr 2024",
-        "tag": "Regulasi"
-      },
-      {
-        "key": "bi-rate",
-        "title": "BI pertahankan suku bunga di 6.00%",
-        "date": "24 Apr 2024",
-        "tag": "Moneter"
-      },
-      {
-        "key": "bappebti",
-        "title": "Bappebti revisi kerangka kepatuhan broker",
-        "date": "23 Apr 2024",
-        "tag": "Tata Kelola"
-      }
-    ]
+    "actionLabel": "Baca Lainnya"
   },
   "exchangeActivity": {
     "title": "Aktivitas Bursa & Derivatif Indonesia",

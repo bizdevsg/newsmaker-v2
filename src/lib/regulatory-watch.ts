@@ -23,10 +23,11 @@ export type RegulatoryWatchItem = {
   updated_at?: string;
 };
 
-const DEFAULT_REGULATORY_WATCH_ORIGIN = "http://portalnews.newsmaker.test";
+const DEFAULT_REGULATORY_WATCH_ORIGIN = "https://portalnews.newsmaker.id";
 
 const REGULATORY_WATCH_ORIGIN = (
   process.env.NEXT_PUBLIC_PORTALNEWS_REGULATORY_WATCH_ORIGIN ??
+  process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE ??
   DEFAULT_REGULATORY_WATCH_ORIGIN
 ).replace(/\/$/, "");
 
@@ -35,16 +36,16 @@ export const resolveRegulatoryWatchTitle = (
   locale: Locale,
 ) =>
   locale === "en"
-    ? item.title_en ?? item.title_id ?? "Regulatory Update"
-    : item.title_id ?? item.title_en ?? "Pembaruan Regulasi";
+    ? (item.title_en ?? item.title_id ?? "Regulatory Update")
+    : (item.title_id ?? item.title_en ?? "Pembaruan Regulasi");
 
 export const resolveRegulatoryWatchContent = (
   item: RegulatoryWatchItem,
   locale: Locale,
 ) =>
   locale === "en"
-    ? item.content_en ?? item.content_id ?? ""
-    : item.content_id ?? item.content_en ?? "";
+    ? (item.content_en ?? item.content_id ?? "")
+    : (item.content_id ?? item.content_en ?? "");
 
 export const resolveRegulatoryWatchTag = (
   item: RegulatoryWatchItem,
