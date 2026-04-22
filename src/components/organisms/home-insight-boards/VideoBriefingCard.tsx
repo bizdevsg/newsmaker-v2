@@ -260,7 +260,7 @@ export function VideoBriefingCard({
         >
           <div className="flex min-h-full items-center justify-center overflow-y-auto">
             <div
-              className="w-full max-w-4xl overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10"
+              className="w-full max-w-7xl overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-3 bg-gradient-to-b from-white/10 to-transparent px-4 py-3 sm:px-6">

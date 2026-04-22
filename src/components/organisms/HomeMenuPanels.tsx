@@ -15,7 +15,7 @@ export function HomeMenuPanels({ locale, messages }: HomeMenuPanelsProps) {
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr_1.25fr]">
-      <div className="grid gap-4">
+      <div className="flex flex-col gap-4">
         <TechnicalAnalysisIndicatorCard symbol="XAUUSD" />
         <EconomicCalendarCard locale={locale} messages={messages} />
       </div>

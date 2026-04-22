@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { buildPublicCacheControl, getCachedValue } from "@/lib/server-cache";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+const TICKER_NEWS_CACHE_TTL_SECONDS = 60;
+const TICKER_NEWS_CACHE_CONTROL = buildPublicCacheControl(
+  TICKER_NEWS_CACHE_TTL_SECONDS,
+  120,
+);
 
 type ApiItemBase = {
   id?: number;
@@ -150,22 +156,28 @@ const fetchApiList = async <T,>(url: string): Promise<ApiPayload<T> | null> => {
 
 export async function GET() {
   try {
-    const newsPayload = await fetchApiList<unknown[]>(NEWS_URL);
-    const newsItems = Array.isArray(newsPayload?.data) ? newsPayload?.data : [];
+    const unique = await getCachedValue(
+      "ticker-news",
+      TICKER_NEWS_CACHE_TTL_SECONDS,
+      async () => {
+        const newsPayload = await fetchApiList<unknown[]>(NEWS_URL);
+        const newsItems = Array.isArray(newsPayload?.data) ? newsPayload?.data : [];
 
-    const merged: TickerNewsItem[] = newsItems
-      .map((item) => toTickerItem(item))
-      .filter((item): item is TickerNewsItem => item !== null)
-      .sort((a, b) => getTimestamp(b) - getTimestamp(a));
+        const merged: TickerNewsItem[] = newsItems
+          .map((item) => toTickerItem(item))
+          .filter((item): item is TickerNewsItem => item !== null)
+          .sort((a, b) => getTimestamp(b) - getTimestamp(a));
 
-    const seen = new Set<string>();
-    const unique = merged.filter((item) => {
-      const key = item.slug || (item.id !== undefined ? String(item.id) : "");
-      if (!key) return false;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+        const seen = new Set<string>();
+        return merged.filter((item) => {
+          const key = item.slug || (item.id !== undefined ? String(item.id) : "");
+          if (!key) return false;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      },
+    );
 
     return NextResponse.json(
       {
@@ -174,7 +186,7 @@ export async function GET() {
       },
       {
         headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          "Cache-Control": TICKER_NEWS_CACHE_CONTROL,
         },
       },
     );

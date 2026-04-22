@@ -1,5 +1,5 @@
 import type { Locale, Messages } from "@/locales";
-import { itemMatchesTerms } from "@/lib/news-filter";
+import { categoryKeyMatchesTerm, itemMatchesTerms } from "@/lib/news-filter";
 import {
   getPortalNewsCategoryKeys,
   normalizePortalNewsCategory,
@@ -179,7 +179,7 @@ const categoryKeysMatchTerms = (
     if (!term) return false;
     if (categoryKeys.has(term)) return true;
     for (const key of categoryKeys) {
-      if (key.includes(term) || term.includes(key)) return true;
+      if (categoryKeyMatchesTerm(key, term)) return true;
     }
     return false;
   });
@@ -419,7 +419,7 @@ const scoreItemTerms = (item: PortalNewsItem, terms: string[]) => {
     if (categoryKeySet.has(term)) return score + 3;
 
     for (const key of categoryKeys) {
-      if (key.includes(term) || term.includes(key)) {
+      if (categoryKeyMatchesTerm(key, term)) {
         return score + 2;
       }
     }
@@ -445,10 +445,16 @@ export const buildEconomicNewsDetailHref = (
 
 export const isGlobalEconomyGroupSlug = (value: string) => {
   const normalized = normalizeRouteSlug(value);
-  return normalized === "global" || normalized === "economy" || normalized === "global-economy";
+  return (
+    normalized === "global" ||
+    normalized === "economy" ||
+    normalized === "global-economy"
+  );
 };
 
-export const normalizeEconomicNewsRouteSub = (sub: EconomicNewsSlug): EconomicNewsSlug =>
+export const normalizeEconomicNewsRouteSub = (
+  sub: EconomicNewsSlug,
+): EconomicNewsSlug =>
   sub === "global" || sub === "economy" || sub === "global-economy"
     ? "global-economy"
     : sub;

@@ -7,7 +7,6 @@ import { itemMatchesTerms } from "@/lib/news-filter";
 import {
   buildPortalNewsImageUrl,
   fetchPortalNewsList,
-  sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import type { PortalNewsItem } from "@/lib/portalnews";
 import {
@@ -60,11 +59,29 @@ const formatDate = (value: string | undefined, locale: Locale) => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "";
 
-  return parsed.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+  const resolvedLocale = locale === "en" ? "en-US" : "id-ID";
+  const datePart = parsed.toLocaleDateString(resolvedLocale, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+  const timePart = parsed
+    .toLocaleTimeString(resolvedLocale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(":", ".");
+
+  return `${datePart} - ${timePart}`;
+};
+
+const getHeroPublishTimestamp = (article: PortalNewsItem) => {
+  const value = article.created_at ?? article.updated_at;
+  if (!value) return 0;
+
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
 const normalizeAssetUrl = (value: string) => value.replace(/ /g, "%20");
@@ -208,7 +225,7 @@ const toHeroArticle = (
           resolveEconomicNewsLabel(messages, economicSub!) ||
           "ECONOMIC"
         ).toUpperCase(),
-    date: formatDate(article.updated_at ?? article.created_at, locale),
+    date: formatDate(article.created_at ?? article.updated_at, locale),
     href,
   };
 };
@@ -216,11 +233,24 @@ const toHeroArticle = (
 async function getHeroArticles(locale: Locale, messages: Messages) {
   try {
     const { items } = await fetchPortalNewsList();
-    const sorted = sortPortalNewsItemsByDate(items as PortalNewsItem[]);
+    const eligible = (items as PortalNewsItem[])
+      .map((article, index) => {
+        const heroArticle = toHeroArticle(article, locale, messages, index);
+        if (!heroArticle) return null;
 
-    const eligible = sorted
-      .map((article, index) => toHeroArticle(article, locale, messages, index))
-      .filter((value): value is HeroArticle => value !== null);
+        return {
+          heroArticle,
+          publishedAt: getHeroPublishTimestamp(article),
+        };
+      })
+      .filter(
+        (
+          value,
+        ): value is { heroArticle: HeroArticle; publishedAt: number } =>
+          value !== null,
+      )
+      .sort((left, right) => right.publishedAt - left.publishedAt)
+      .map((value) => value.heroArticle);
 
     if (!eligible.length) return null;
 

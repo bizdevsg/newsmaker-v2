@@ -147,7 +147,7 @@ export function NewsArticleDetail({
     >
       <Card className="min-w-0 rounded-2xl bg-white shadow-sm">
         <div className="p-5 sm:p-7">
-          <nav className="text-[11px] font-semibold text-slate-500">
+          <nav className="text-[11px] font-semibold text-slate-500 line-clamp-2">
             {breadcrumb.map((item, index) => {
               const content = item.href ? (
                 <Link href={item.href} className="hover:text-blue-700">
@@ -233,7 +233,7 @@ export function NewsArticleDetail({
 
               {resolvedBadge ? (
                 <div className="absolute top-3 left-4">
-                  <p className="inline-flex items-center rounded-full bg-blue-700/70 px-3 py-1 text-[11px] font-bold uppercase text-white backdrop-blur group-hover:bg-blue-700 transition">
+                  <p className="inline-flex items-center rounded-full bg-blue-700/40 px-3 py-1 text-[11px] font-bold uppercase text-white backdrop-blur group-hover:bg-blue-700 transition">
                     {resolvedBadge}
                   </p>
                 </div>

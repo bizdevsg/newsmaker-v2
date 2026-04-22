@@ -4,8 +4,14 @@ import { Card } from "@/components/atoms/Card";
 import { Container } from "@/components/layout/Container";
 import { NewsListView } from "@/components/organisms/news/NewsListView";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
-import { toMarketNewsCardItemsAuto } from "@/lib/news-cards";
-import { inferMarketNewsCategoryFromItem } from "@/lib/news-routing";
+import {
+  toEconomicNewsCardItemsAuto,
+  toMarketNewsCardItemsAuto,
+} from "@/lib/news-cards";
+import {
+  inferEconomicNewsCategoryFromItem,
+  inferMarketNewsCategoryFromItem,
+} from "@/lib/news-routing";
 import { fetchPortalNewsList } from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
@@ -25,19 +31,26 @@ export default async function NewsIndexPage({
   const title = locale === "en" ? "Latest News" : "Berita Terbaru";
 
   const { items } = await fetchPortalNewsList();
-  const filtered = items.filter((item) => {
+  const nonAnalysisItems = items.filter((item) => {
     if (item.type?.toLowerCase() === "analisis") return false;
-
-    const category = inferMarketNewsCategoryFromItem(item);
-    return (
-      category === "crypto" ||
-      category === "index" ||
-      category === "commodity" ||
-      category === "currencies"
-    );
+    return true;
   });
 
-  const cards = toMarketNewsCardItemsAuto(filtered, { locale, limit: 80 });
+  const marketItems = nonAnalysisItems.filter((item) => {
+    const category = inferMarketNewsCategoryFromItem(item);
+    return category !== null;
+  });
+
+  const economicItems = nonAnalysisItems.filter((item) => {
+    return inferEconomicNewsCategoryFromItem(item) !== null;
+  });
+
+  const cards = [
+    ...toMarketNewsCardItemsAuto(marketItems, { locale, limit: 120 }),
+    ...toEconomicNewsCardItemsAuto(economicItems, { locale, limit: 120 }),
+  ]
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 120);
 
   return (
     <MarketPageTemplate locale={locale} messages={messages}>

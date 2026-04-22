@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/atoms/Card";
 import { Button } from "@/components/atoms/Button";
 import { SectionHeader } from "@/components/molecules/SectionHeader";
@@ -39,13 +39,13 @@ const CATEGORY_OPTIONS = [
 ] as const;
 
 const DEFAULT_CATEGORY: (typeof CATEGORY_OPTIONS)[number] = "LGD Daily";
-const FIXED_LIMIT = 20;
+const ROWS_PER_PAGE = 10;
 
 const formatIsoLike = (value: Date) => {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(value.getDate())}-${pad(
-    value.getHours(),
-  )}${pad(value.getMinutes())}`;
+  return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(
+    value.getDate(),
+  )}-${pad(value.getHours())}${pad(value.getMinutes())}`;
 };
 
 const sanitizeFilenamePart = (value: string) =>
@@ -60,6 +60,24 @@ const escapeCsvCell = (value: string) => {
   if (!normalized) return "";
   if (/[",\n]/.test(normalized)) return `"${normalized.replace(/"/g, '""')}"`;
   return normalized;
+};
+
+const parseItemTimestamp = (value: string) => {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getPaginationItems = (currentPage: number, totalPages: number) => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) return [1, 2, 3, "...", totalPages] as const;
+  if (currentPage >= totalPages - 2) {
+    return [1, "...", totalPages - 2, totalPages - 1, totalPages] as const;
+  }
+
+  return [1, "...", currentPage, "...", totalPages] as const;
 };
 
 export function HistoricalDataClient({
@@ -78,6 +96,7 @@ export function HistoricalDataClient({
     useState<(typeof CATEGORY_OPTIONS)[number]>(DEFAULT_CATEGORY);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
   const downloadLabels = useMemo(() => {
@@ -87,13 +106,18 @@ export function HistoricalDataClient({
     };
   }, [locale]);
 
-  const shownItems = useMemo(() => {
-    const normalizedCategory = category.trim().toLowerCase();
-    const toTime = (value: string) => {
-      const parsed = Date.parse(value);
-      return Number.isFinite(parsed) ? parsed : 0;
+  const paginationLabels = useMemo(() => {
+    return {
+      page: locale === "en" ? "Page" : "Halaman",
+      of: locale === "en" ? "of" : "dari",
+      previous: locale === "en" ? "Previous" : "Sebelumnya",
+      next: locale === "en" ? "Next" : "Berikutnya",
+      showing: locale === "en" ? "Showing" : "Menampilkan",
     };
+  }, [locale]);
 
+  const filteredItems = useMemo(() => {
+    const normalizedCategory = category.trim().toLowerCase();
     const rangeStartRaw = startDate.trim();
     const rangeEndRaw = endDate.trim();
     const startTs = rangeStartRaw ? Date.parse(rangeStartRaw) : NaN;
@@ -106,27 +130,45 @@ export function HistoricalDataClient({
       hasStart && hasEnd ? Math.max(startTs, endTs) : hasEnd ? endTs : null;
 
     const filtered = items.filter((item) => {
-      if ((item.category ?? "").trim().toLowerCase() !== normalizedCategory)
+      if ((item.category ?? "").trim().toLowerCase() !== normalizedCategory) {
         return false;
+      }
 
       if (rangeStart === null && rangeEnd === null) return true;
 
-      const ts = toTime(item.tanggal);
+      const ts = parseItemTimestamp(item.tanggal);
       if (!ts) return false;
       if (rangeStart !== null && ts < rangeStart) return false;
       if (rangeEnd !== null && ts > rangeEnd) return false;
       return true;
     });
 
-    return filtered
-      .slice()
-      .sort((a, b) => {
-        const byDate = toTime(b.tanggal) - toTime(a.tanggal);
-        if (byDate !== 0) return byDate;
-        return b.id - a.id;
-      })
-      .slice(0, FIXED_LIMIT);
+    return filtered.slice().sort((a, b) => {
+      const byDate =
+        parseItemTimestamp(b.tanggal) - parseItemTimestamp(a.tanggal);
+      if (byDate !== 0) return byDate;
+      return b.id - a.id;
+    });
   }, [category, endDate, items, startDate]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, endDate, items, startDate]);
+
+  const totalRows = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pageStart = totalRows ? (safeCurrentPage - 1) * ROWS_PER_PAGE : 0;
+  const pageEnd = Math.min(pageStart + ROWS_PER_PAGE, totalRows);
+
+  const shownItems = useMemo(() => {
+    return filteredItems.slice(pageStart, pageEnd);
+  }, [filteredItems, pageEnd, pageStart]);
+
+  const visibleRangeLabel =
+    totalRows > 0
+      ? `${paginationLabels.showing} ${pageStart + 1}-${pageEnd} ${paginationLabels.of} ${totalRows}`
+      : t.subtitle;
 
   const buildFilename = (ext: "csv" | "pdf") => {
     const parts = [
@@ -141,17 +183,18 @@ export function HistoricalDataClient({
   };
 
   const downloadCsv = () => {
-    const headers = Array.isArray(t.columns) && t.columns.length >= 5
-      ? (t.columns.slice(0, 5) as string[])
-      : [
-          locale === "en" ? "Date" : "Tanggal",
-          "Open",
-          "High",
-          "Low",
-          "Close",
-        ];
+    const headers =
+      Array.isArray(t.columns) && t.columns.length >= 5
+        ? (t.columns.slice(0, 5) as string[])
+        : [
+            locale === "en" ? "Date" : "Tanggal",
+            "Open",
+            "High",
+            "Low",
+            "Close",
+          ];
 
-    const rows = shownItems.map((row) => {
+    const rows = filteredItems.map((row) => {
       if (row.isBankHoliday) {
         return [
           row.tanggal,
@@ -179,7 +222,9 @@ export function HistoricalDataClient({
       ...rows.map((cells) => cells.map(escapeCsvCell).join(",")),
     ].join("\n");
 
-    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([`\uFEFF${csv}`], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
@@ -213,7 +258,7 @@ export function HistoricalDataClient({
       locale === "en" ? "Note" : "Keterangan",
     ];
 
-    const bodyRows = shownItems
+    const bodyRows = filteredItems
       .map((row) => {
         const cells = row.isBankHoliday
           ? [
@@ -274,32 +319,28 @@ export function HistoricalDataClient({
     win.document.close();
   };
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (isLoading) return;
     setIsLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("limit", String(FIXED_LIMIT));
-      params.set("category", category.trim());
-      if (startDate.trim()) params.set("start", startDate.trim());
-      if (endDate.trim()) params.set("end", endDate.trim());
 
-      const response = await fetch(
-        `/api/historical-data${params.toString() ? `?${params.toString()}` : ""}`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          cache: "no-store",
-        },
-      );
+    try {
+      const response = await fetch("/api/historical-data", {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+
       const payload = (await response.json().catch(() => null)) as {
         data?: HistoricalDataItem[];
       } | null;
-      setItems(Array.isArray(payload?.data) ? payload!.data : []);
+
+      setItems(Array.isArray(payload?.data) ? payload.data : []);
+      setCurrentPage(1);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading]);
+
+  const paginationItems = getPaginationItems(safeCurrentPage, totalPages);
 
   return (
     <Card className="overflow-hidden">
@@ -307,8 +348,8 @@ export function HistoricalDataClient({
         title={t.title}
         optional={
           <span className="text-xs font-semibold text-slate-500">
-            {shownItems.length
-              ? `${shownItems.length} ${t.rowsLabel}`
+            {totalRows
+              ? `${totalRows} ${t.rowsLabel} | ${visibleRangeLabel}`
               : t.subtitle}
           </span>
         }
@@ -398,19 +439,19 @@ export function HistoricalDataClient({
             <table className="min-w-[980px] w-full border-separate border-spacing-0 text-sm">
               <thead className="bg-slate-50">
                 <tr className="text-left text-xs font-semibold text-slate-700">
-                  <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 border-b border-slate-200">
+                  <th className="sticky left-0 z-10 border-b border-slate-200 bg-slate-50 px-4 py-3">
                     {t.table.date}
                   </th>
-                  <th className="px-4 py-3 border-b border-slate-200">
+                  <th className="border-b border-slate-200 px-4 py-3">
                     {t.table.open}
                   </th>
-                  <th className="px-4 py-3 border-b border-slate-200">
+                  <th className="border-b border-slate-200 px-4 py-3">
                     {t.table.high}
                   </th>
-                  <th className="px-4 py-3 border-b border-slate-200">
+                  <th className="border-b border-slate-200 px-4 py-3">
                     {t.table.low}
                   </th>
-                  <th className="px-4 py-3 border-b border-slate-200">
+                  <th className="border-b border-slate-200 px-4 py-3">
                     {t.table.close}
                   </th>
                 </tr>
@@ -421,17 +462,19 @@ export function HistoricalDataClient({
                     return (
                       <tr
                         key={row.id}
-                        className={`border-b border-slate-100 ${row.isBankHoliday ? "bg-red-100" : ""}`}
+                        className={`border-b border-slate-100 ${
+                          row.isBankHoliday ? "bg-red-100" : ""
+                        }`}
                       >
-                        <td className="sticky left-0 px-4 py-3 font-semibold border-b border-slate-100 text-slate-900">
+                        <td className="sticky left-0 border-b border-slate-100 px-4 py-3 font-semibold text-slate-900">
                           {row.tanggal}
                         </td>
                         {row.isBankHoliday ? (
                           <td
                             colSpan={4}
-                            className="px-4 py-3 border-b border-slate-100 text-sm"
+                            className="border-b border-slate-100 px-4 py-3 text-sm"
                           >
-                            <div className="bg-red-200 py-0.5 px-3 rounded-full w-fit text-center mx-auto">
+                            <div className="mx-auto w-fit rounded-full bg-red-200 px-3 py-0.5 text-center">
                               <span className="font-semibold">
                                 {row.description || t.table.bankHoliday}
                               </span>
@@ -439,16 +482,16 @@ export function HistoricalDataClient({
                           </td>
                         ) : (
                           <>
-                            <td className="px-4 py-3 border-b border-slate-100 text-slate-700">
+                            <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
                               {formatNumber(row.open, locale)}
                             </td>
-                            <td className="px-4 py-3 border-b border-slate-100 text-slate-700">
+                            <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
                               {formatNumber(row.high, locale)}
                             </td>
-                            <td className="px-4 py-3 border-b border-slate-100 text-slate-700">
+                            <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
                               {formatNumber(row.low, locale)}
                             </td>
-                            <td className="px-4 py-3 border-b border-slate-100 text-slate-700">
+                            <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
                               {formatNumber(row.close, locale)}
                             </td>
                           </>
@@ -470,6 +513,61 @@ export function HistoricalDataClient({
             </table>
           </div>
         </div>
+
+        {totalRows ? (
+          <div className="mt-4 flex flex-col gap-3 items-center justify-center">
+            <div className="flex flex-nowrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={safeCurrentPage <= 1}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-slate-200 px-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={paginationLabels.previous}
+              >
+                &lt;
+              </button>
+
+              {paginationItems.map((item, index) =>
+                item === "..." ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="inline-flex h-8 min-w-8 items-center justify-center px-1 text-xs font-semibold text-slate-400"
+                    aria-hidden="true"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setCurrentPage(item)}
+                    aria-current={item === safeCurrentPage ? "page" : undefined}
+                    className={classNames(
+                      "inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-3 text-xs font-semibold transition",
+                      item === safeCurrentPage
+                        ? "border-blue-700 bg-blue-700 text-white"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50",
+                    )}
+                  >
+                    {item}
+                  </button>
+                ),
+              )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((page) => Math.min(totalPages, page + 1))
+                }
+                disabled={safeCurrentPage >= totalPages}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-slate-200 px-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={paginationLabels.next}
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </Card>
   );

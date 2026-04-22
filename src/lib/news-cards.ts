@@ -85,11 +85,21 @@ const formatDateShort = (value: string | undefined, locale: Locale) => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "";
 
-  return parsed.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+  const resolvedLocale = locale === "en" ? "en-US" : "id-ID";
+  const datePart = parsed.toLocaleDateString(resolvedLocale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+  const timePart = parsed
+    .toLocaleTimeString(resolvedLocale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(":", ".");
+
+  return `${datePart} - ${timePart}`;
 };
 
 const normalizeAssetUrl = (value: string) => value.replace(/ /g, "%20");

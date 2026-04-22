@@ -14,6 +14,16 @@ const cleanText = (value?: string | null) =>
     .trim()
     .toLowerCase();
 
+const compactCategoryText = (value?: string | null) =>
+  normalizePortalNewsCategory(value).replace(/\s+/g, "");
+
+export const categoryKeyMatchesTerm = (key: string, term: string) => {
+  if (!key || !term) return false;
+  if (key === term) return true;
+
+  return compactCategoryText(key) === compactCategoryText(term);
+};
+
 const resolveHaystack = (item: PortalNewsItem) => {
   const title =
     item.title_id?.trim() ||
@@ -64,7 +74,7 @@ export const itemMatchesTerms = (item: PortalNewsItem, terms: string[]) => {
     if (!term) return false;
     if (categoryKeys.has(term)) return true;
     for (const key of categoryKeys) {
-      if (key.includes(term) || term.includes(key)) return true;
+      if (categoryKeyMatchesTerm(key, term)) return true;
     }
     return haystack.includes(term);
   });
@@ -87,7 +97,7 @@ export const itemMatchesTermsStrict = (
     if (!term) return false;
     if (categoryKeys.has(term)) return true;
     for (const key of categoryKeys) {
-      if (key.includes(term) || term.includes(key)) return true;
+      if (categoryKeyMatchesTerm(key, term)) return true;
     }
     // Match in title only, with padding to reduce substring false-positives.
     return titleHaystack.includes(` ${term} `) || titleHaystack.includes(term);

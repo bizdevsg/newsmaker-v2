@@ -21,6 +21,7 @@ export function FocusReport({ locale, messages }: FocusReportProps) {
       />
       <div className="px-4 py-5">
         <LiveQuotesBoard
+          locale={locale}
           messages={messages}
           title={messages.focusReport.title}
           subtitle={messages.focusReport.subtitle}

@@ -180,7 +180,6 @@ export function EconomicCalendarClient({
       const response = await fetch(`/api/economic-calendar/${next}`, {
         method: "GET",
         headers: { Accept: "application/json" },
-        cache: "no-store",
       });
       if (!response.ok) {
         setCurrentItems([]);
@@ -457,7 +456,7 @@ export function EconomicCalendarClient({
         </div>
 
         {/* Data body (desktop): table + date separators + dropdown */}
-        <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-slate-200">
+        <div className="hidden md:block w-full overflow-x-auto rounded-lg border border-slate-200">
           <table className="w-full min-w-[860px] border-collapse">
             <thead className="bg-slate-50">
               {/* Header row */}

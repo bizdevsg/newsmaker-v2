@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/Container";
-import { HistoricalDataClient } from "@/components/organisms/historical-data/HistoricalDataClient";
-import { MoneyExchangeCard } from "@/components/organisms/money-exchange/MoneyExchangeCard";
+import { LiveTvClient } from "@/components/organisms/live-tv/LiveTvClient";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
-import { fetchHistoricalData } from "@/lib/historical-data";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
-  title: "Historical Data",
+  title: "Live TV",
 };
 
-export default async function HistoricalDataPage({
+export default async function LiveTvPage({
   params,
 }: {
   params: Promise<{ locale?: string }>;
@@ -20,14 +18,10 @@ export default async function HistoricalDataPage({
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const messages = getMessages(locale);
 
-  const items = await fetchHistoricalData();
-
   return (
     <MarketPageTemplate locale={locale} messages={messages}>
-      <Container as="section" className="py-8 space-y-6">
-        <HistoricalDataClient locale={locale} initialItems={items} messages={messages} />
-
-        <MoneyExchangeCard locale={locale} />
+      <Container as="section" className="px-4 py-8">
+        <LiveTvClient locale={locale} />
       </Container>
     </MarketPageTemplate>
   );

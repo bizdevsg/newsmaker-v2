@@ -28,9 +28,7 @@ export function PanelArticleCard({
       ) : null}
       <div className="space-y-2 p-3">
         {eyebrow ? (
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-blue-700">
-            {eyebrow}
-          </p>
+          <p className="text-xs font-bold uppercase text-blue-700">{eyebrow}</p>
         ) : null}
         <p className="line-clamp-1 text-sm font-semibold text-slate-800">
           {title}

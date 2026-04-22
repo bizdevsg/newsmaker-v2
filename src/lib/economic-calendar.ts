@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { getCachedValue } from "@/lib/server-cache";
 
 type CalendarImpact = 1 | 2 | 3;
 
@@ -89,6 +90,7 @@ const resolveToken = () => {
 };
 
 const TOKEN = resolveToken();
+const ECONOMIC_CALENDAR_CACHE_TTL_SECONDS = 300;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -348,34 +350,40 @@ export const fetchEconomicCalendar = async (
   maxItems: number,
 ): Promise<EconomicCalendarItem[] | null> => {
   try {
-    const response = await fetchWithTimeout(
-      resolveEconomicCalendarUrl(timeFrame),
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          ...(TOKEN
-            ? {
-                Authorization: `Bearer ${TOKEN}`,
-                "X-API-TOKEN": TOKEN,
-              }
-            : {}),
-        },
-        cache: "no-store",
-        next: { revalidate: 0 },
+    const mapped = await getCachedValue(
+      `economic-calendar:${timeFrame}`,
+      ECONOMIC_CALENDAR_CACHE_TTL_SECONDS,
+      async () => {
+        const response = await fetchWithTimeout(
+          resolveEconomicCalendarUrl(timeFrame),
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              ...(TOKEN
+                ? {
+                    Authorization: `Bearer ${TOKEN}`,
+                    "X-API-TOKEN": TOKEN,
+                  }
+                : {}),
+            },
+          },
+          10_000,
+        );
+
+        if (!response.ok) {
+          throw new Error(`economic_calendar_upstream_${response.status}`);
+        }
+
+        const payload = (await response.json().catch(() => null)) as unknown;
+        const list = getFirstArray(payload);
+        if (!list) return [];
+
+        return list
+          .map((item, index) => toCalendarItem(item, index))
+          .filter((item): item is EconomicCalendarItem => item !== null);
       },
-      10_000,
     );
-
-    if (!response.ok) return null;
-
-    const payload = (await response.json().catch(() => null)) as unknown;
-    const list = getFirstArray(payload);
-    if (!list) return null;
-
-    const mapped = list
-      .map((item, index) => toCalendarItem(item, index))
-      .filter((item): item is EconomicCalendarItem => item !== null);
 
     return mapped.slice(0, Math.max(1, maxItems));
   } catch {

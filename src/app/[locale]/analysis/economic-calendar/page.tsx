@@ -30,6 +30,7 @@ export default async function EconomicCalendarPage({
           locale={locale}
           messages={messages}
         />
+
         <Card className="mt-8 overflow-hidden">
           <div className="p-4 flex items-center gap-2 text-yellow-700 bg-yellow-100 rounded">
             <i className="fa-solid fa-circle-exclamation text-sm"></i>

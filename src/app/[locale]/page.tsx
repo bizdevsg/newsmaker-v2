@@ -41,7 +41,6 @@ export default async function Home({
                 limit={9}
               />
               <HomeMenuPanels locale={locale} messages={messages} />
-              <InsightHub locale={locale} />
             </div>
           </Container>
         </div>
@@ -52,8 +51,9 @@ export default async function Home({
           </Container>
         </section>
 
-        <Container as="section" className="mt-4 px-4">
+        <Container as="section" className="px-4">
           <div className="flex flex-col gap-4">
+            <InsightHub locale={locale} />
             <DisclaimerCard />
             <NmAi />
             <Tagline />

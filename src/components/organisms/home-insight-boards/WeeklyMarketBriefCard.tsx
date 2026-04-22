@@ -174,7 +174,7 @@ export async function WeeklyMarketBriefCard({
   return (
     <Card>
       <SectionHeader
-        title="Gold Corner"
+        title="Weekly Market Brief"
         actions={
           <Link
             href={listHref}

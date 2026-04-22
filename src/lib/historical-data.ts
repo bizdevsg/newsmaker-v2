@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { getCachedValue } from "@/lib/server-cache";
 
 export type HistoricalDataItem = {
   id: number;
@@ -22,6 +23,8 @@ type ApiPayload = {
 };
 
 const DEFAULT_HISTORICAL_DATA_URL =
+  "https://portalnews.newsmaker.id/api/v1/newsmaker/historical-data";
+const LOCAL_HISTORICAL_DATA_URL =
   "http://portalnews.newsmaker.test/api/v1/newsmaker/historical-data";
 
 const TOKEN =
@@ -31,6 +34,8 @@ const TOKEN =
   process.env.PORTALNEWS_REGULATORY_WATCH_TOKEN ??
   process.env.PORTALNEWS_ECONOMIC_CALENDAR_TOKEN ??
   "";
+
+const HISTORICAL_DATA_CACHE_TTL_SECONDS = 300;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -79,10 +84,6 @@ export async function fetchHistoricalData(params?: {
   start?: string;
   end?: string;
 }) {
-  const url = new URL(
-    process.env.PORTALNEWS_HISTORICAL_DATA_URL ?? DEFAULT_HISTORICAL_DATA_URL,
-  );
-
   const limit =
     typeof params?.limit === "number" && Number.isFinite(params.limit)
       ? Math.max(1, Math.min(500, Math.floor(params.limit)))
@@ -91,39 +92,87 @@ export async function fetchHistoricalData(params?: {
   const tanggal = params?.tanggal?.trim();
   const start = params?.start?.trim();
   const end = params?.end?.trim();
+  const configuredUrl = process.env.PORTALNEWS_HISTORICAL_DATA_URL?.trim() || "";
 
-  if (limit) url.searchParams.set("limit", String(limit));
-  if (category) url.searchParams.set("category", category);
-  if (tanggal) url.searchParams.set("tanggal", tanggal);
+  const cacheKey = JSON.stringify({
+    category: category || "",
+    limit: limit ?? "",
+    tanggal: tanggal || "",
+  });
 
-  const response = await fetchWithTimeout(
-    url.toString(),
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        ...(TOKEN
-          ? {
-              Authorization: `Bearer ${TOKEN}`,
-              "X-API-TOKEN": TOKEN,
-            }
-          : {}),
-      },
-      cache: "no-store",
-      next: { revalidate: 0 },
+  const mapped = await getCachedValue(
+    `historical-data:${cacheKey}`,
+    HISTORICAL_DATA_CACHE_TTL_SECONDS,
+    async () => {
+      const requestUrls = Array.from(
+        new Set(
+          configuredUrl
+            ? [configuredUrl, DEFAULT_HISTORICAL_DATA_URL]
+            : [DEFAULT_HISTORICAL_DATA_URL],
+        ),
+      );
+
+      const failures: Array<{ requestUrl: string; error: unknown }> = [];
+
+      for (const requestUrl of requestUrls) {
+        try {
+          const url = new URL(requestUrl);
+
+          if (limit) url.searchParams.set("limit", String(limit));
+          if (category) url.searchParams.set("category", category);
+          if (tanggal) url.searchParams.set("tanggal", tanggal);
+
+          const response = await fetchWithTimeout(
+            url.toString(),
+            {
+              method: "GET",
+              headers: {
+                Accept: "application/json",
+                ...(TOKEN
+                  ? {
+                      Authorization: `Bearer ${TOKEN}`,
+                      "X-API-TOKEN": TOKEN,
+                    }
+                  : {}),
+              },
+            },
+            10_000,
+          );
+
+          if (!response.ok) continue;
+
+          const payload = (await response.json().catch(() => null)) as
+            | ApiPayload
+            | null;
+          const rawList = payload && isRecord(payload) ? payload.data : null;
+          if (!Array.isArray(rawList)) continue;
+
+          return rawList
+            .map(toItem)
+            .filter((item): item is HistoricalDataItem => item !== null);
+        } catch (error) {
+          failures.push({ requestUrl, error });
+        }
+      }
+
+      if (failures.length) {
+        console.error("[historical-data] all fetch attempts failed", {
+          requestUrls,
+          failures,
+          localDevHint:
+            configuredUrl || requestUrls.includes(LOCAL_HISTORICAL_DATA_URL)
+              ? undefined
+              : `Set PORTALNEWS_HISTORICAL_DATA_URL=${LOCAL_HISTORICAL_DATA_URL} to use the local Portalnews host.`,
+        });
+      }
+
+      return [];
     },
-    10_000,
   );
 
-  if (!response.ok) return [];
-
-  const payload = (await response.json().catch(() => null)) as ApiPayload | null;
-  const rawList = payload && isRecord(payload) ? payload.data : null;
-  if (!Array.isArray(rawList)) return [];
-
-  const mapped = rawList
-    .map(toItem)
-    .filter((item): item is HistoricalDataItem => item !== null);
+  if (!mapped.length) {
+    return [];
+  }
 
   const normalizedCategory = category ? category.toLowerCase() : "";
   const filteredByCategory = normalizedCategory

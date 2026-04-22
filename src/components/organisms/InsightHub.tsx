@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/atoms/Card";
 import { SectionHeader } from "@/components/molecules/SectionHeader";
-import { InsightHubYoutubeModalCard } from "@/components/organisms/InsightHubYoutubeModalCard";
 import type { Locale } from "@/locales";
 
 type InsightHubItem = {
@@ -11,9 +10,6 @@ type InsightHubItem = {
   imageSrc: string;
   imageAlt: string;
   bgCover: string;
-  youtubeEmbedUrl?: string;
-  youtubeTitle?: string;
-  channels?: { label: string; youtubeEmbedUrl: string }[];
 };
 
 type InsightHubProps = {
@@ -22,7 +18,7 @@ type InsightHubProps = {
   items?: InsightHubItem[];
 };
 
-const DEFAULT_ITEMS: InsightHubItem[] = [
+const DEFAULT_ITEMS = (locale: Locale): InsightHubItem[] => [
   {
     href: "https://gwenstacy.newsmaker.id/",
     imageSrc: "/assets/nmai-logo.png",
@@ -42,29 +38,10 @@ const DEFAULT_ITEMS: InsightHubItem[] = [
     bgCover: "/assets/bg-bias23.png",
   },
   {
-    href: "",
+    href: `/${locale}/live-tv`,
     imageSrc: "/assets/logo-livetv.png",
     imageAlt: "Live TV",
     bgCover: "/assets/bg-livetv2.jpg",
-    youtubeEmbedUrl: process.env.NEXT_PUBLIC_LIVETV_YOUTUBE_EMBED_URL ?? "",
-    youtubeTitle: "Live TV",
-    channels: [
-      {
-        label: process.env.NEXT_PUBLIC_LIVETV_CHANNEL_1_LABEL ?? "Channel 1",
-        youtubeEmbedUrl:
-          process.env.NEXT_PUBLIC_LIVETV_CHANNEL_1_URL ??
-          process.env.NEXT_PUBLIC_LIVETV_YOUTUBE_EMBED_URL ??
-          "",
-      },
-      {
-        label: process.env.NEXT_PUBLIC_LIVETV_CHANNEL_2_LABEL ?? "Channel 2",
-        youtubeEmbedUrl: process.env.NEXT_PUBLIC_LIVETV_CHANNEL_2_URL ?? "",
-      },
-      {
-        label: process.env.NEXT_PUBLIC_LIVETV_CHANNEL_3_LABEL ?? "Channel 3",
-        youtubeEmbedUrl: process.env.NEXT_PUBLIC_LIVETV_CHANNEL_3_URL ?? "",
-      },
-    ].filter((channel) => Boolean(String(channel.youtubeEmbedUrl ?? "").trim())),
   },
 ];
 
@@ -75,7 +52,13 @@ export function InsightHub({
   title = "Insight Hub",
   items,
 }: InsightHubProps) {
-  const resolvedItems = (items?.length ? items : DEFAULT_ITEMS).slice(0, 4);
+  const resolvedItems = (items?.length ? items : DEFAULT_ITEMS(locale)).slice(
+    0,
+    4,
+  );
+
+  const isExternalHref = (href: string) =>
+    /^(https?:|mailto:|tel:)/i.test(href);
 
   return (
     <Card>
@@ -90,12 +73,6 @@ export function InsightHub({
               bgCover && bgCover !== "undefined" && bgCover !== "null"
                 ? { backgroundImage: `url('${bgCover}')` }
                 : undefined;
-            const youtubeEmbedUrl = String(item.youtubeEmbedUrl ?? "").trim();
-            const hasYoutubeModal = Object.prototype.hasOwnProperty.call(
-              item,
-              "youtubeEmbedUrl",
-            );
-            const channels = Array.isArray(item.channels) ? item.channels : undefined;
 
             const content = (
               <div className="relative mx-auto h-[110px] w-full max-w-[340px] sm:h-[120px] md:h-[130px]">
@@ -111,22 +88,6 @@ export function InsightHub({
 
             const classes =
               "group flex items-center justify-center rounded border border-slate-200 bg-cover bg-center shadow-sm transition-all hover:border-blue-300";
-
-            if (hasYoutubeModal) {
-              return (
-                <InsightHubYoutubeModalCard
-                  key={`${item.href}-${index}`}
-                  locale={locale}
-                  className={classes}
-                  bgCover={bgCover}
-                  imageSrc={imageSrc}
-                  imageAlt={item.imageAlt}
-                  youtubeEmbedUrl={youtubeEmbedUrl}
-                  youtubeTitle={item.youtubeTitle}
-                  channels={channels}
-                />
-              );
-            }
 
             if (!href) {
               return (
@@ -146,8 +107,8 @@ export function InsightHub({
               <Link
                 key={`${item.href}-${index}`}
                 href={href}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={isExternalHref(href) ? "_blank" : undefined}
+                rel={isExternalHref(href) ? "noopener noreferrer" : undefined}
                 className={classes}
                 style={cardStyle}
                 aria-label={item.imageAlt}

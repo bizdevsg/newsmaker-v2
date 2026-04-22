@@ -86,7 +86,7 @@ const DEFAULT_STRATEGIC_ITEMS = (locale: Locale): StrategicItem[] => {
   return [
     {
       key: "strategic-1",
-      eyebrow,
+      eyebrow: "Analisis & Opini",
       title:
         locale === "en"
           ? "Energy Crisis Mode On: Oil Soars, Other Commodities Follow"
@@ -97,7 +97,7 @@ const DEFAULT_STRATEGIC_ITEMS = (locale: Locale): StrategicItem[] => {
     },
     {
       key: "strategic-2",
-      eyebrow: "",
+      eyebrow: "Analisis & Opini",
       title:
         locale === "en"
           ? "Gold Tries To Recover, But Dollar Remains Dominant"
