@@ -248,15 +248,6 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
               <p className="text-base text-white/80 line-clamp-4">
                 {heroArticle?.summary ?? messages.hero.bannerSubtitle}
               </p>
-
-              <Button
-                as="span"
-                variant="outline"
-                size="sm"
-                className="border-white/60 text-white"
-              >
-                {messages.hero.bannerCta}
-              </Button>
             </div>
           </div>
         </Link>
