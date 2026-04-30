@@ -191,8 +191,12 @@ async function getHeroArticles(locale: Locale, messages: Messages) {
     const sideItems = selectedItems.slice(1, 4);
 
     return {
-      hero: heroItem ? mapPortalNewsToHeroArticle(heroItem, locale, messages) : null,
-      side: sideItems.map((item) => mapPortalNewsToHeroArticle(item, locale, messages)),
+      hero: heroItem
+        ? mapPortalNewsToHeroArticle(heroItem, locale, messages)
+        : null,
+      side: sideItems.map((item) =>
+        mapPortalNewsToHeroArticle(item, locale, messages),
+      ),
     };
   } catch {
     return { hero: null, side: [] as HeroArticle[] };
@@ -221,9 +225,7 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch">
         <Link
-          href={
-            heroArticle?.href ?? `/${locale}`
-          }
+          href={heroArticle?.href ?? `/${locale}`}
           className="block relative group overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
         >
           <div
@@ -292,15 +294,6 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
                       ) : (
                         <span />
                       )}
-
-                      <Button
-                        as="span"
-                        variant="outline"
-                        size="sm"
-                        className="w-fit border-white/60 bg-white text-slate-900 hover:bg-white/95"
-                      >
-                        {readMoreLabel}
-                      </Button>
                     </div>
                   </div>
                 </Link>
@@ -337,15 +330,6 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
                     ) : (
                       <span />
                     )}
-
-                    <Button
-                      as="span"
-                      variant="outline"
-                      size="sm"
-                      className="w-fit border-white/60 bg-white text-slate-900 hover:bg-white/95"
-                    >
-                      {readMoreLabel}
-                    </Button>
                   </div>
                 </div>
               </Link>
