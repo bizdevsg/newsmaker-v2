@@ -313,7 +313,7 @@ export function SiteHeader() {
             <div className="group relative">
               <button
                 type="button"
-                className={`relative flex items-center gap-2 py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
+                className={`relative flex items-center gap-2 py-3 transition-colors cursor-pointer after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
                   isActivePath(navLinks.stockMarket) ||
                   isActivePath(navLinks.commodities)
                     ? "text-white after:scale-x-100"
