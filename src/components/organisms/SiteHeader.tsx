@@ -379,7 +379,14 @@ export function SiteHeader() {
                   : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
               }`}
             >
-              {navLabels.globalMarket}
+              <div className="flex items-center gap-2">
+                <img
+                  src="/assets/favicon.png"
+                  alt="Logo Newsmaker"
+                  className="w-4 h-4"
+                />
+                <span>{navLabels.globalMarket}</span>
+              </div>
             </Link>
           </nav>
         </div>
