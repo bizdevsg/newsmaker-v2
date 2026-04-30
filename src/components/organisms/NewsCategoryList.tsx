@@ -11,6 +11,10 @@ import {
 } from "@/lib/portalnews-shared";
 import { normalizePortalNewsCategory } from "@/lib/portalnews";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
+import {
+  resolveIndonesiaMarketNewsCategoryLabelFromItem,
+  resolveIndonesiaMarketNewsCategorySlugFromItem,
+} from "@/lib/indonesia-market-news-category";
 
 import type { Messages } from "@/locales";
 
@@ -20,6 +24,7 @@ type NewsCategoryListProps = {
   emptyLabel?: string;
   labelOverride?: string;
   detailBasePath?: string;
+  includeCategoryValues?: string[];
   excludeCategoryValues?: string[];
   requiredMainCategorySlug?: string;
   messages?: Messages;
@@ -98,6 +103,13 @@ const SLUG_TO_IDS: Record<string, number[]> = {
   "global-economics": [],
   "fiscal-monetary": [],
   "pasar-indonesia": [], // Special: uses dedicated API endpoint
+  "makro-ekonomi": [],
+  "pasar-saham": [],
+  "obligasi-sbn": [],
+  "rupiah-dan-valas": [],
+  komoditas: [],
+  "korporasi-emiten": [],
+  "investasi-strategi": [],
 };
 
 // Keywords used to fuzzy-match articles when no direct ID mapping exists
@@ -107,6 +119,17 @@ const SLUG_KEYWORDS: Record<string, string[]> = {
   "fiscal-moneter": ["fiscal", "moneter", "monetary", "fiskal"],
   "fiscal-monetary": ["fiscal", "moneter", "monetary"],
   "pasar-indonesia": ["pasar", "indonesia", "market", "saham", "ihsg"],
+  "makro-ekonomi": [
+    "makro ekonomi",
+    "macro economy",
+    "global economy",
+    "global economics",
+    "ekonomi global",
+    "fiscal",
+    "fiskal",
+    "moneter",
+    "monetary",
+  ],
   "pasar-saham": [
     "pasar saham",
     "saham",
@@ -122,6 +145,38 @@ const SLUG_KEYWORDS: Record<string, string[]> = {
     "index",
     "indices",
   ],
+  "obligasi-sbn": [
+    "obligasi",
+    "obligasi sbn",
+    "sbn",
+    "bond",
+    "bonds",
+    "yield",
+    "imbal hasil",
+  ],
+  "rupiah-dan-valas": [
+    "rupiah",
+    "valas",
+    "rupiah dan valas",
+    "forex",
+    "currency",
+    "currencies",
+    "fx",
+    "us dollar",
+    "dollar as",
+    "dolar as",
+    "usd index",
+    "eur usd",
+    "eurusd",
+    "usd jpy",
+    "usdjpy",
+    "usd chf",
+    "usdchf",
+    "aud usd",
+    "audusd",
+    "gbp usd",
+    "gbpusd",
+  ],
   komoditas: [
     "komoditas",
     "commodity",
@@ -135,6 +190,29 @@ const SLUG_KEYWORDS: Record<string, string[]> = {
     "cpo",
     "nickel",
     "nikel",
+  ],
+  "korporasi-emiten": [
+    "korporasi",
+    "emiten",
+    "korporasi emiten",
+    "corporate",
+    "issuer",
+    "issuers",
+    "dividen",
+    "ipo",
+    "laba",
+    "earnings",
+  ],
+  "investasi-strategi": [
+    "investasi",
+    "strategi",
+    "investasi strategi",
+    "investment",
+    "strategy",
+    "analisis market",
+    "market analysis",
+    "market outlook",
+    "outlook",
   ],
 };
 
@@ -161,8 +239,13 @@ const SLUG_TO_LABEL: Record<string, string> = {
   "fiscal-monetary": "Fiscal & Monetary",
   "analisis-market": "Analisis Market",
   "pasar-indonesia": "Pasar Indonesia",
+  "makro-ekonomi": "Makro Ekonomi",
   "pasar-saham": "Pasar Saham",
+  "obligasi-sbn": "Obligasi & SBN",
+  "rupiah-dan-valas": "Rupiah & Valas",
   komoditas: "Komoditas",
+  "korporasi-emiten": "Korporasi & Emiten",
+  "investasi-strategi": "Investasi & Strategi",
 };
 
 // Economic news slugs - these link back to /economic-news
@@ -212,6 +295,7 @@ export function NewsCategoryList({
   emptyLabel,
   labelOverride,
   detailBasePath,
+  includeCategoryValues,
   excludeCategoryValues,
   requiredMainCategorySlug,
   messages,
@@ -252,6 +336,9 @@ export function NewsCategoryList({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [imageBase, setImageBase] = useState("");
   const perPage = 16;
+  const resolvedLocale = locale === "en" ? "en" : "id";
+  const resolvedIncludeCategoryValues =
+    includeCategoryValues ?? EMPTY_CATEGORY_VALUES;
   const resolvedExcludeCategoryValues =
     excludeCategoryValues ?? EMPTY_CATEGORY_VALUES;
 
@@ -275,6 +362,17 @@ export function NewsCategoryList({
   const keywords = useMemo(
     () => SLUG_KEYWORDS[categorySlug] ?? [],
     [categorySlug],
+  );
+  const includedCategorySignature = resolvedIncludeCategoryValues.join("|");
+  const includedCategoryKeys = useMemo(
+    () =>
+      (includedCategorySignature
+        ? includedCategorySignature.split("|")
+        : EMPTY_CATEGORY_VALUES
+      )
+        .map((value) => normalizePortalNewsCategory(value))
+        .filter(Boolean),
+    [includedCategorySignature],
   );
   const excludedCategorySignature = resolvedExcludeCategoryValues.join("|");
   const excludedCategoryKeys = useMemo(
@@ -302,8 +400,13 @@ export function NewsCategoryList({
       try {
         const shouldUsePasarIndonesiaFeed = [
           "pasar-indonesia",
+          "makro-ekonomi",
           "pasar-saham",
+          "obligasi-sbn",
+          "rupiah-dan-valas",
           "komoditas",
+          "korporasi-emiten",
+          "investasi-strategi",
         ].includes(categorySlug);
 
         // Special handling for analysis-market category (dedicated API endpoint)
@@ -333,26 +436,49 @@ export function NewsCategoryList({
             cache: "no-store",
           });
 
-          const json = (await articlesRes
-            .json()
-            .catch(() => null)) as NewsListPayload | null;
+            const json = (await articlesRes
+              .json()
+              .catch(() => null)) as NewsListPayload | null;
 
-          if (isActive && json?.data) {
-            if (categorySlug === "pasar-indonesia") {
-              setArticles(json.data);
-            } else {
-              const filtered = json.data.filter((item) => {
-                const keys = getCategoryKeys(item);
-                return keywords.length
-                  ? keywords.some((kw) => keys.some((key) => key.includes(kw)))
-                  : keys.includes(categorySlug);
-              });
+            if (isActive && json?.data) {
+              let filtered = json.data;
+
+              if (categorySlug !== "pasar-indonesia") {
+                filtered = json.data.filter((item) => {
+                  const keys = getCategoryKeys(item);
+                  return keywords.length
+                    ? keywords.some((kw) => keys.some((key) => key.includes(kw)))
+                    : keys.includes(categorySlug);
+                });
+              }
+
+              if (includedCategoryKeys.length > 0) {
+                filtered = filtered.filter((item) => {
+                  const itemCategoryKeys = getCategoryKeys(item);
+                  return includedCategoryKeys.some((key) =>
+                    itemCategoryKeys.some(
+                      (itemKey) => itemKey === key || itemKey.includes(key),
+                    ),
+                  );
+                });
+              }
+
+              if (excludedCategoryKeys.length > 0) {
+                filtered = filtered.filter((item) => {
+                  const itemCategoryKeys = getCategoryKeys(item);
+                  return !excludedCategoryKeys.some((key) =>
+                    itemCategoryKeys.some(
+                      (itemKey) => itemKey === key || itemKey.includes(key),
+                    ),
+                  );
+                });
+              }
+
               setArticles(filtered);
+              setImageBase(
+                typeof json.imageBase === "string" ? json.imageBase : "",
+              );
             }
-            setImageBase(
-              typeof json.imageBase === "string" ? json.imageBase : "",
-            );
-          }
           return;
         }
 
@@ -410,6 +536,17 @@ export function NewsCategoryList({
             );
           }
 
+          if (includedCategoryKeys.length > 0) {
+            filtered = filtered.filter((item) => {
+              const itemCategoryKeys = getCategoryKeys(item);
+              return includedCategoryKeys.some((key) =>
+                itemCategoryKeys.some(
+                  (itemKey) => itemKey === key || itemKey.includes(key),
+                ),
+              );
+            });
+          }
+
           if (excludedCategoryKeys.length > 0) {
             filtered = filtered.filter((item) => {
               const itemCategoryKeys = getCategoryKeys(item);
@@ -458,6 +595,7 @@ export function NewsCategoryList({
     };
   }, [
     categorySlug,
+    includedCategoryKeys,
     excludedCategoryKeys,
     isAll,
     keywords,
@@ -897,11 +1035,16 @@ export function NewsCategoryList({
                 item.main_category?.name ??
                 item.sub_category?.name ??
                 item.category ??
+                resolveIndonesiaMarketNewsCategoryLabelFromItem(
+                  item,
+                  resolvedLocale,
+                ) ??
                 label,
             ),
           );
 
-          const itemCategorySlug = item.kategori?.slug ?? categorySlug;
+          const itemCategorySlug =
+            resolveIndonesiaMarketNewsCategorySlugFromItem(item);
           const isItemEconomic = ECONOMIC_SLUGS.has(itemCategorySlug);
           const detailHref = buildDetailHref(
             item.slug,

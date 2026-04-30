@@ -17,6 +17,26 @@ const PORTAL_BASE_URL = (() => {
   }
 })();
 
+const withSearchParams = (
+  url: string,
+  params: Record<string, string | number | null | undefined>,
+) => {
+  try {
+    const parsed = new URL(url);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value == null) return;
+      const normalized = String(value).trim();
+      if (!normalized) return;
+      parsed.searchParams.set(key, normalized);
+    });
+
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+};
+
 type ApiAuthor = {
   id?: number;
   name?: string;
@@ -354,8 +374,8 @@ const getRelatedArticles = (
   return source.slice(0, limit).map((entry) => entry.item);
 };
 
-async function fetchPasarIndonesiaNews(): Promise<PortalNewsItem[]> {
-  const res = await fetch(API_URL, {
+async function fetchPasarIndonesiaPage(url: string): Promise<ApiNewsResponse> {
+  const res = await fetch(url, {
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${API_TOKEN}`,
@@ -371,10 +391,40 @@ async function fetchPasarIndonesiaNews(): Promise<PortalNewsItem[]> {
     throw error;
   }
 
-  const json = (await res.json()) as ApiNewsResponse;
-  const items = Array.isArray(json.data) ? json.data : [];
+  return (await res.json()) as ApiNewsResponse;
+}
 
-  return items.map(normalizeItem);
+async function fetchPasarIndonesiaNews(): Promise<PortalNewsItem[]> {
+  const initialUrl = withSearchParams(API_URL, {
+    per_page: 100,
+    limit: 100,
+  });
+  const items: PortalNewsItem[] = [];
+  const seenSlugs = new Set<string>();
+  let nextUrl: string | null = initialUrl;
+
+  while (nextUrl) {
+    const json = await fetchPasarIndonesiaPage(nextUrl);
+    const pageItems = Array.isArray(json.data) ? json.data : [];
+
+    for (const item of pageItems.map(normalizeItem)) {
+      const key = item.slug?.trim() || String(item.id ?? "").trim();
+      if (!key || seenSlugs.has(key)) continue;
+      seenSlugs.add(key);
+      items.push(item);
+    }
+
+    const pagination = json.meta?.pagination;
+    nextUrl =
+      pagination?.has_more_pages && pagination.next_page_url
+        ? withSearchParams(pagination.next_page_url, {
+            per_page: 100,
+            limit: 100,
+          })
+        : null;
+  }
+
+  return items;
 }
 
 export async function GET(request: Request) {

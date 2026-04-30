@@ -6,6 +6,10 @@ import Image from "next/image";
 import { useLoading } from "../providers/LoadingProvider";
 import type { Messages } from "@/locales";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
+import {
+  resolveIndonesiaMarketNewsCategoryLabelFromItem,
+  resolveIndonesiaMarketNewsCategorySlugFromItem,
+} from "@/lib/indonesia-market-news-category";
 import { RotatingAdSlot } from "@/components/molecules/RotatingAdSlot";
 import { SectionHeader } from "../molecules/SectionHeader";
 import { Card } from "../atoms/Card";
@@ -305,6 +309,7 @@ export function NewsArticleDetail({
   const [imageBase, setImageBase] = useState(initialData?.imageBase ?? "");
   const [linkCopied, setLinkCopied] = useState(false);
   const copyScopeRef = useRef<HTMLDivElement | null>(null);
+  const resolvedLocale = locale === "en" ? "en" : "id";
 
   const normalizedDetailBasePath = detailBasePath
     ?.replace(/^\/+/, "")
@@ -395,17 +400,28 @@ export function NewsArticleDetail({
   const resolvedListingLabel =
     listingLabel ?? (isEconomic ? nc.economicNewsTitle : nc.marketNewsTitle);
 
-  const buildArticleHref = (articleSlug?: string) => {
+  const buildArticleHref = (
+    articleSlug?: string,
+    item?: NewsArticleItem | null,
+  ) => {
     const normalizedSlug = articleSlug?.trim();
+    const resolvedCategorySlug = item
+      ? resolveIndonesiaMarketNewsCategorySlugFromItem(item)
+      : categorySlug;
+    const resolvedDetailPath = item
+      ? `${normalizedDetailBasePath?.split("/").slice(0, -1).join("/") ?? ""}/${resolvedCategorySlug}`
+          .replace(/^\/+/, "")
+          .replace(/\/+$/, "")
+      : normalizedDetailBasePath;
 
-    if (normalizedDetailBasePath) {
+    if (resolvedDetailPath) {
       return normalizedSlug
-        ? `/${locale}/${normalizedDetailBasePath}/${normalizedSlug}`
+        ? `/${locale}/${resolvedDetailPath}/${normalizedSlug}`
         : resolvedListingHref;
     }
 
     return normalizedSlug
-      ? `/${locale}/${isEconomic ? "economic-news" : "news"}/${categorySlug ?? "pasar-indonesia"}/${normalizedSlug}`
+      ? `/${locale}/${isEconomic ? "economic-news" : "news"}/${resolvedCategorySlug ?? "pasar-indonesia"}/${normalizedSlug}`
       : resolvedListingHref;
   };
 
@@ -694,10 +710,10 @@ export function NewsArticleDetail({
             {latest.map((item, i) => {
               const t = resolveTitle(item, locale, "Judul berita");
               const th = resolveImage(item);
-              const cat =
-                item.category_label?.toUpperCase() ??
-                item.category?.replace(/-/g, " ").toUpperCase() ??
-                "";
+              const cat = resolveIndonesiaMarketNewsCategoryLabelFromItem(
+                item,
+                resolvedLocale,
+              ).toUpperCase();
               const formattedDate = formatArticleDateTime(
                 item.updated_at ?? item.created_at,
                 locale,
@@ -706,7 +722,7 @@ export function NewsArticleDetail({
               return (
                 <Link
                   key={item.id ?? item.slug ?? i}
-                  href={buildArticleHref(item.slug)}
+                  href={buildArticleHref(item.slug, item)}
                   className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                 >
                   <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">
@@ -749,10 +765,10 @@ export function NewsArticleDetail({
               {related.map((item, i) => {
                 const t = resolveTitle(item, locale, "Judul berita");
                 const th = resolveImage(item);
-                const cat =
-                  item.category_label?.toUpperCase() ??
-                  item.category?.replace(/-/g, " ").toUpperCase() ??
-                  "";
+                const cat = resolveIndonesiaMarketNewsCategoryLabelFromItem(
+                  item,
+                  resolvedLocale,
+                ).toUpperCase();
                 const formattedDate = formatArticleDateTime(
                   item.updated_at ?? item.created_at,
                   locale,
@@ -761,7 +777,7 @@ export function NewsArticleDetail({
                 return (
                   <Link
                     key={item.id ?? item.slug ?? i}
-                    href={buildArticleHref(item.slug)}
+                    href={buildArticleHref(item.slug, item)}
                     className="flex gap-3 group hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
                   >
                     <div className="w-16 h-14 shrink-0 rounded-md overflow-hidden bg-slate-100">

@@ -16,6 +16,28 @@ type FetchJsonResult = {
   payload: unknown;
 };
 
+const withSearchParams = (
+  url: string,
+  params: Record<string, string | number | null | undefined>,
+) => {
+  if (!url) return url;
+
+  try {
+    const parsed = new URL(url);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value == null) return;
+      const normalized = String(value).trim();
+      if (!normalized) return;
+      parsed.searchParams.set(key, normalized);
+    });
+
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+};
+
 const PRIMARY_NEWS_LIST_URL =
   process.env.PORTALNEWS_NEWS_LIST_URL ??
   process.env.PORTALNEWS_API_URL ??
@@ -67,6 +89,15 @@ const PASAR_INDONESIA_ANALYSIS_URL =
 
 const PASAR_INDONESIA_TOKEN =
   process.env.PORTALNEWS_PASAR_INDONESIA_TOKEN ?? "";
+
+const HERO_SECTION_NEWS_URL =
+  process.env.PORTALNEWS_HERO_SECTION_URL ??
+  "https://portalnews.newsmaker.id/api/v1/newsmaker/berita";
+
+const HERO_SECTION_TOKEN =
+  process.env.PORTALNEWS_HERO_SECTION_TOKEN ??
+  NEWS_TOKEN ??
+  "NM23-8f0f24b4d56af1c3";
 
 export const PORTALNEWS_IMAGE_BASE = (
   process.env.PORTALNEWS_IMAGE_BASE ??
@@ -642,13 +673,28 @@ export async function fetchPasarIndonesiaNews(): Promise<{
   items: PortalNewsItem[];
   source: PortalNewsSource;
 }> {
-  const url =
+  const urlBase =
     PASAR_INDONESIA_NEWS_URL ||
     "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita";
   const token = PASAR_INDONESIA_TOKEN || "NPLD3SC2N06VVZYKUY5CRHJUQE3HSJ";
 
-  const result = await fetchJson(url, token);
-  const items = extractItemArray(result.payload);
+  const result = await fetchJson(urlBase, token);
+  let items = extractItemArray(result.payload);
+
+  if (items.length < 4) {
+    const urlWithLimit = withSearchParams(urlBase, {
+      limit: 8,
+      per_page: 8,
+    });
+
+    if (urlWithLimit !== urlBase) {
+      const limitedResult = await fetchJson(urlWithLimit, token);
+      const limitedItems = extractItemArray(limitedResult.payload);
+      if (limitedItems.length > items.length) {
+        items = limitedItems;
+      }
+    }
+  }
 
   // Always return items from pasar-indonesia endpoint, even if empty
   // Don't fallback to generic news list for related/popular/latest sections
@@ -673,6 +719,22 @@ export async function fetchPasarIndonesiaAnalysis(): Promise<{
   // Always return items from pasar-indonesia endpoint, even if empty
   return {
     items,
+    source: "newsmaker",
+  };
+}
+
+export async function fetchHeroSectionNews(): Promise<{
+  items: PortalNewsItem[];
+  source: PortalNewsSource;
+}> {
+  const urlWithLimit = withSearchParams(HERO_SECTION_NEWS_URL, {
+    limit: 8,
+    per_page: 8,
+  });
+  const result = await fetchJson(urlWithLimit, HERO_SECTION_TOKEN);
+
+  return {
+    items: extractItemArray(result.payload),
     source: "newsmaker",
   };
 }

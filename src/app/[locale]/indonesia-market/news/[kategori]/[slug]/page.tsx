@@ -13,8 +13,16 @@ import { Container } from "@/components/layout/Container";
 
 const CATEGORY_LABELS = {
   all: { en: "Latest News", id: "Berita Terbaru" },
+  "makro-ekonomi": { en: "Macro Economy", id: "Makro Ekonomi" },
   "pasar-saham": { en: "Stock Market", id: "Pasar Saham" },
+  "obligasi-sbn": { en: "Bonds & SBN", id: "Obligasi & SBN" },
+  "rupiah-dan-valas": { en: "Rupiah & Forex", id: "Rupiah & Valas" },
   komoditas: { en: "Commodities", id: "Komoditas" },
+  "korporasi-emiten": { en: "Corporate & Issuers", id: "Korporasi & Emiten" },
+  "investasi-strategi": {
+    en: "Investment & Strategy",
+    id: "Investasi & Strategi",
+  },
 } as const;
 
 type CategorySlug = keyof typeof CATEGORY_LABELS;
