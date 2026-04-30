@@ -30,6 +30,8 @@ export type PortalNewsItem = {
 
   category?: string;
   category_label?: string;
+  subcategory?: string;
+  subcategory_label?: string;
   category_id?: number;
 
   kategori?: PortalNewsCategory;

@@ -120,6 +120,8 @@ type NewsArticleItem = {
   content_en?: string;
   category?: string;
   category_label?: string;
+  subcategory?: string;
+  subcategory_label?: string;
   source?: string;
   author?: NewsArticleAuthor;
   created_at?: string;
@@ -710,9 +712,15 @@ export function NewsArticleDetail({
             {latest.map((item, i) => {
               const t = resolveTitle(item, locale, "Judul berita");
               const th = resolveImage(item);
-              const cat = resolveIndonesiaMarketNewsCategoryLabelFromItem(
-                item,
-                resolvedLocale,
+              const cat = String(
+                item.subcategory_label ??
+                  item.category_label ??
+                  item.subcategory ??
+                  item.category ??
+                  resolveIndonesiaMarketNewsCategoryLabelFromItem(
+                    item,
+                    resolvedLocale,
+                  ),
               ).toUpperCase();
               const formattedDate = formatArticleDateTime(
                 item.updated_at ?? item.created_at,
@@ -765,9 +773,15 @@ export function NewsArticleDetail({
               {related.map((item, i) => {
                 const t = resolveTitle(item, locale, "Judul berita");
                 const th = resolveImage(item);
-                const cat = resolveIndonesiaMarketNewsCategoryLabelFromItem(
-                  item,
-                  resolvedLocale,
+                const cat = String(
+                  item.subcategory_label ??
+                    item.category_label ??
+                    item.subcategory ??
+                    item.category ??
+                    resolveIndonesiaMarketNewsCategoryLabelFromItem(
+                      item,
+                      resolvedLocale,
+                    ),
                 ).toUpperCase();
                 const formattedDate = formatArticleDateTime(
                   item.updated_at ?? item.created_at,

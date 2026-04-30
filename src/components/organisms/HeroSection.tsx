@@ -134,7 +134,9 @@ const mapPortalNewsToHeroArticle = (
       ) ?? FALLBACK_HERO_IMAGE,
     href,
     tag: (
+      article.subcategory_label?.trim() ||
       article.category_label?.trim() ||
+      article.subcategory?.trim() ||
       article.category?.trim() ||
       resolvedTopicLabel ||
       article.kategori?.name?.trim() ||

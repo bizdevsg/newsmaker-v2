@@ -42,6 +42,8 @@ type NewsListItem = {
   content?: string;
   category?: string;
   category_label?: string;
+  subcategory?: string;
+  subcategory_label?: string;
   category_id?: number;
   created_at?: string;
   updated_at?: string;
@@ -268,6 +270,8 @@ const getCategoryKeys = (item: NewsListItem) =>
   [
     item.category,
     item.category_label,
+    item.subcategory,
+    item.subcategory_label,
     item.kategori?.slug,
     item.kategori?.name,
     item.sub_category?.slug,
@@ -1030,10 +1034,12 @@ export function NewsCategoryList({
 
           const badgeLabel = formatBadgeLabel(
             String(
-              item.category_label ??
+              item.subcategory_label ??
+                item.category_label ??
                 item.kategori?.name ??
                 item.main_category?.name ??
                 item.sub_category?.name ??
+                item.subcategory ??
                 item.category ??
                 resolveIndonesiaMarketNewsCategoryLabelFromItem(
                   item,

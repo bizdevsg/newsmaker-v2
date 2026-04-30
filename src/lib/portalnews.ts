@@ -92,7 +92,7 @@ const PASAR_INDONESIA_TOKEN =
 
 const HERO_SECTION_NEWS_URL =
   process.env.PORTALNEWS_HERO_SECTION_URL ??
-  "https://portalnews.newsmaker.id/api/v1/newsmaker/berita";
+  "https://portalnews.newsmaker.id/api/v1/pasar-indonesia/berita";
 
 const HERO_SECTION_TOKEN =
   process.env.PORTALNEWS_HERO_SECTION_TOKEN ??
@@ -344,6 +344,12 @@ const normalizeItemRecord = (value: unknown): PortalNewsItem | null => {
     category_label:
       typeof value.category_label === "string"
         ? value.category_label
+        : undefined,
+    subcategory:
+      typeof value.subcategory === "string" ? value.subcategory : undefined,
+    subcategory_label:
+      typeof value.subcategory_label === "string"
+        ? value.subcategory_label
         : undefined,
 
     category_id:

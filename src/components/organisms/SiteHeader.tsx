@@ -83,6 +83,7 @@ export function SiteHeader() {
         commodities: "Commodities",
         analysis: "Analysis",
         regulation: "Regulation & Institutions",
+        globalMarket: "Global Market",
       };
     }
 
@@ -93,6 +94,7 @@ export function SiteHeader() {
       commodities: "Komoditas",
       analysis: "Analisis",
       regulation: "Regulasi & Institusi",
+      globalMarket: "Global Market",
     };
   }, [currentLocale]);
 
@@ -103,6 +105,7 @@ export function SiteHeader() {
       regulation: `/${currentLocale}/regulasi-institusi`,
       stockMarket: `/${currentLocale}/indonesia-market/news/pasar-saham`,
       commodities: `/${currentLocale}/indonesia-market/news/komoditas`,
+      globalMarket: `https://newsmaker.id/index.php/${currentLocale}/`,
     };
   }, [currentLocale, homeHref]);
 
@@ -367,6 +370,17 @@ export function SiteHeader() {
             >
               {navLabels.regulation}
             </Link>
+
+            <Link
+              href={navLinks.globalMarket}
+              className={`relative py-3 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-white/85 after:transition-transform after:duration-200 ${
+                isActivePath(navLinks.globalMarket)
+                  ? "text-white after:scale-x-100"
+                  : "text-white/80 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+              }`}
+            >
+              {navLabels.globalMarket}
+            </Link>
           </nav>
         </div>
       </div>
@@ -573,6 +587,18 @@ export function SiteHeader() {
               }`}
             >
               {navLabels.regulation}
+            </Link>
+
+            <Link
+              href={navLinks.globalMarket}
+              onClick={() => setIsMobileOpen(false)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                isActivePath(navLinks.globalMarket)
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-slate-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
+              }`}
+            >
+              {navLabels.globalMarket}
             </Link>
           </nav>
         </aside>

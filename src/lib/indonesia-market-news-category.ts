@@ -186,6 +186,8 @@ type CategoryLike = {
 type IndonesiaMarketNewsCategorySource = {
   category?: string | null;
   category_label?: string | null;
+  subcategory?: string | null;
+  subcategory_label?: string | null;
   title?: string | null;
   title_id?: string | null;
   title_en?: string | null;
@@ -201,6 +203,18 @@ export const resolveIndonesiaMarketNewsCategorySlugFromItem = (
   item: IndonesiaMarketNewsCategorySource | null | undefined,
 ): IndonesiaMarketNewsCategorySlug => {
   if (!item) return "pasar-saham";
+
+  const subcategorySlug = resolveIndonesiaMarketNewsCategorySlug([
+    item.subcategory,
+    item.subcategory_label,
+  ]);
+
+  if (
+    item.subcategory?.trim() ||
+    item.subcategory_label?.trim()
+  ) {
+    return subcategorySlug;
+  }
 
   return resolveIndonesiaMarketNewsCategorySlug([
     item.category,

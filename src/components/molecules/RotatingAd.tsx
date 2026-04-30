@@ -416,10 +416,7 @@ export function RotatingAd({
               <i className="fa-regular fa-rectangle-ad" />
             </div>
             <p className="text-xs font-semibold text-slate-500">
-              {active?.title ??
-                (locale === "en"
-                  ? "Ad space"
-                  : "Slot iklan (pasang banner di sini)")}
+              {active?.title ?? (locale === "en" ? "Ad space" : "Slot iklan")}
             </p>
             {active?.subtitle ? (
               <p className="text-[10px] text-slate-400">{active.subtitle}</p>
