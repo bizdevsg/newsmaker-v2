@@ -8,7 +8,6 @@ import React, {
   useState,
 } from "react";
 import { Card } from "../../atoms/Card";
-import { SectionHeader } from "../../molecules/SectionHeader";
 
 type TechnicalAnalysisIndicatorCardProps = {
   title?: string;
@@ -39,6 +38,17 @@ type TechnicalAnalysisSignalResponse = {
 const DEFAULT_INTERVAL = "1min";
 const REFRESH_INTERVAL_MS = 60_000;
 const NEEDLE_ANIMATION_DURATION_MS = 900;
+const defaultSymbols = [
+  { label: "XAU/USD", value: "XAUUSD" },
+  { label: "XAG/USD", value: "XAGUSD" },
+  { label: "XBR/USD", value: "XBRUSD" },
+  { label: "XTI/USD", value: "XTIUSD" },
+  { label: "AUD/USD", value: "AUDUSD" },
+  { label: "EUR/USD", value: "EURUSD" },
+  { label: "GBP/USD", value: "GBPUSD" },
+  { label: "USD/CHF", value: "USDCHF" },
+  { label: "USD/JPY", value: "USDJPY" },
+] as const;
 const timeframes = [
   { label: "1M", value: "1min" },
   { label: "5M", value: "5min" },
@@ -47,27 +57,20 @@ const timeframes = [
   { label: "60M", value: "60min" },
 ] as const;
 
-const totalLines = 5; // atau 8 kalau mau
-const GAUGE_START_ANGLE = 160;
-const GAUGE_END_ANGLE = 20;
-const GAUGE_NEUTRAL_ANGLE = (GAUGE_START_ANGLE + GAUGE_END_ANGLE) / 2;
 const GAUGE_CENTER_X = 120;
 const GAUGE_CENTER_Y = 120;
-const NEEDLE_LENGTH = 58;
+const NEEDLE_LENGTH = 80;
 const NEEDLE_HUB_RADIUS = 6;
-const NEEDLE_HUB_STROKE_WIDTH = 2;
-const NEEDLE_BASE_RADIUS =
-  NEEDLE_HUB_RADIUS + NEEDLE_HUB_STROKE_WIDTH / 2 - 0.5;
-
-const gaugeSeparatorAngles = Array.from({ length: totalLines }, (_, i) => {
-  return (
-    GAUGE_START_ANGLE -
-    (i * (GAUGE_START_ANGLE - GAUGE_END_ANGLE)) / (totalLines - 1)
-  );
-});
+const NEEDLE_STOP_ANGLES = [163, 130, 90, 50, 17] as const;
+const GAUGE_NEUTRAL_ANGLE = NEEDLE_STOP_ANGLES[2];
+const gaugeSeparatorAngles = [...NEEDLE_STOP_ANGLES];
 
 const normalizeSignal = (value: string | undefined) =>
   value?.replace(/\s+/g, " ").trim().toUpperCase() ?? "NEUTRAL";
+
+const normalizeSymbol = (value: string | undefined) =>
+  value?.replace(/\//g, "").replace(/\s+/g, "").trim().toUpperCase() ||
+  defaultSymbols[0].value;
 
 const formatSignal = (value: string | undefined, fallback = "No Data") => {
   if (!value?.trim()) return fallback;
@@ -140,10 +143,18 @@ const getSignalToneClass = (value: string | undefined) => {
 };
 
 const detailValue = (value: number | undefined) => String(value ?? 0);
-const getGaugeAngle = (score: number) =>
-  GAUGE_START_ANGLE -
-  (Math.max(0, Math.min(100, score)) / 100) *
-    (GAUGE_START_ANGLE - GAUGE_END_ANGLE);
+const getGaugeAngle = (summaryValue: string | undefined, score: number) => {
+  const normalized = normalizeSignal(summaryValue);
+
+  if (normalized === "STRONG SELL") return NEEDLE_STOP_ANGLES[0];
+  if (normalized === "SELL") return NEEDLE_STOP_ANGLES[1];
+  if (normalized === "BUY") return NEEDLE_STOP_ANGLES[3];
+  if (normalized === "STRONG BUY") return NEEDLE_STOP_ANGLES[4];
+  if (normalized === "NEUTRAL") return NEEDLE_STOP_ANGLES[2];
+
+  const stopIndex = Math.round(Math.max(0, Math.min(100, score)) / 25);
+  return NEEDLE_STOP_ANGLES[stopIndex];
+};
 
 const easeOutBack = (progress: number) => {
   const overshoot = 1.70158;
@@ -199,7 +210,9 @@ export function TechnicalAnalysisIndicatorCard({
   title = "Technical Analysis Indicator",
   symbol = "XAU/USD",
 }: TechnicalAnalysisIndicatorCardProps) {
+  const initialSymbol = normalizeSymbol(symbol);
   const [selectedInterval, setSelectedInterval] = useState(DEFAULT_INTERVAL);
+  const [selectedSymbol, setSelectedSymbol] = useState(initialSymbol);
   const [signalData, setSignalData] =
     useState<TechnicalAnalysisSignalResponse | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -207,11 +220,20 @@ export function TechnicalAnalysisIndicatorCard({
   const [animatedNeedleAngle, setAnimatedNeedleAngle] =
     useState(GAUGE_NEUTRAL_ANGLE);
   const needleAngleRef = useRef(GAUGE_NEUTRAL_ANGLE);
+  const symbolOptions = defaultSymbols.some(
+    (option) => option.value === selectedSymbol,
+  )
+    ? defaultSymbols
+    : [{ label: selectedSymbol, value: selectedSymbol }, ...defaultSymbols];
+
+  useEffect(() => {
+    setSelectedSymbol(initialSymbol);
+  }, [initialSymbol]);
 
   const refreshSignal = useEffectEvent(async (signal?: AbortSignal) => {
     setIsRefreshing(true);
     const nextSignalData = await fetchTechnicalAnalysisSignal(
-      symbol,
+      selectedSymbol,
       selectedInterval,
       signal,
     );
@@ -243,7 +265,7 @@ export function TechnicalAnalysisIndicatorCard({
       window.clearInterval(intervalId);
       activeRequest?.abort();
     };
-  }, [selectedInterval, symbol]);
+  }, [selectedInterval, selectedSymbol]);
 
   const summary = signalData?.summary;
   const summaryTotal = Number(summary?.total ?? 0);
@@ -252,7 +274,7 @@ export function TechnicalAnalysisIndicatorCard({
     summary?.detail,
     summaryTotal,
   );
-  const needleAngle = getGaugeAngle(signalScore);
+  const needleAngle = getGaugeAngle(summary?.summary, signalScore);
   const needleTip = polarToCartesian(
     GAUGE_CENTER_X,
     GAUGE_CENTER_Y,
@@ -262,7 +284,7 @@ export function TechnicalAnalysisIndicatorCard({
   const needleBase = polarToCartesian(
     GAUGE_CENTER_X,
     GAUGE_CENTER_Y,
-    NEEDLE_BASE_RADIUS,
+    NEEDLE_HUB_RADIUS - 1,
     animatedNeedleAngle,
   );
   const signalLabel = formatSignal(
@@ -325,11 +347,28 @@ export function TechnicalAnalysisIndicatorCard({
 
   return (
     <Card className="h-fit">
-      <SectionHeader
-        title={title}
-        linkLabel="More..."
-        link="https://newsmaker.id/index.php/en/"
-      />
+      <div className="space-y-3 px-4 pt-4">
+        <label className="flex w-full items-center gap-2 text-xs font-semibold text-slate-900">
+          <select
+            value={selectedSymbol}
+            onChange={(event) => setSelectedSymbol(event.target.value)}
+            className="w-full rounded-md border-0 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none ring-1 ring-slate-400 transition focus:ring-2 focus:ring-blue-500"
+            aria-label={`${title} symbol selector`}
+          >
+            {symbolOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="relative h-0.75 rounded-full overflow-hidden">
+          <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-slate-200" />
+          <div className="absolute left-0 top-1/2 h-0.5 w-20 -translate-y-1/2 bg-blue-700 rounded-full" />
+        </div>
+      </div>
+
       <div className="p-4">
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="flex justify-center gap-2">
@@ -370,8 +409,9 @@ export function TechnicalAnalysisIndicatorCard({
                         y2="0%"
                       >
                         <stop offset="0%" stopColor="#f50a21" />
-                        <stop offset="25%" stopColor="#ffabb3" />
-                        <stop offset="75%" stopColor="#455bff" />
+                        <stop offset="25%" stopColor="#FFC4C9" />
+                        <stop offset="50%" stopColor="#999999" />
+                        <stop offset="75%" stopColor="#9EA7FF" />
                         <stop offset="100%" stopColor="#0d61fc" />
                       </linearGradient>
                     </defs>
@@ -443,7 +483,7 @@ export function TechnicalAnalysisIndicatorCard({
                       r={NEEDLE_HUB_RADIUS}
                       fill="#0f172a"
                       stroke="#ffffff"
-                      strokeWidth={NEEDLE_HUB_STROKE_WIDTH}
+                      strokeWidth="2"
                     />
                   </svg>
 
@@ -474,7 +514,7 @@ export function TechnicalAnalysisIndicatorCard({
                       </p>
                       <span>-</span>
                       <p className="text-[10px] font-medium">
-                        {symbol}
+                        {selectedSymbol}
                         {isRefreshing ? " • Updating..." : ""}
                       </p>
                     </div>
