@@ -12,7 +12,6 @@ import {
 import type { PortalNewsItem } from "@/lib/portalnews";
 import {
   filterHeroSectionNews,
-  resolveHeroSectionTopic,
   resolveHeroSectionTopicLabel,
 } from "@/lib/news-filter";
 import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
@@ -187,15 +186,7 @@ async function getHeroArticles(locale: Locale, messages: Messages) {
     );
     const filteredItems = filterHeroSectionNews(mergedItems);
     const sorted = sortPortalNewsItemsByDate(filteredItems);
-    const seenTopics = new Set<string>();
-    const prioritized = sorted.filter((item) => {
-      const topic = resolveHeroSectionTopic(item);
-      if (!topic) return false;
-      if (seenTopics.has(topic)) return false;
-      seenTopics.add(topic);
-      return true;
-    });
-    const selectedItems = mergeUniqueHeroItems(prioritized, sorted).slice(0, 4);
+    const selectedItems = sorted.slice(0, 4);
 
     const heroItem = selectedItems[0];
     const sideItems = selectedItems.slice(1, 4);

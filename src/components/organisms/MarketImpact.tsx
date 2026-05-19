@@ -42,7 +42,7 @@ type MarketImpactNewsItem = {
 };
 
 const DISPLAY_LIMIT = 2;
-const SKIP_LATEST_COUNT = 1;
+const SKIP_LATEST_COUNT = 4;
 
 const formatNewsDate = (value: string | undefined, locale: string) => {
   if (!value) return "-";
