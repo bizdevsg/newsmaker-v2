@@ -219,7 +219,7 @@ const formatArticleDateTime = (value: string | undefined, locale: string) => {
 
   if (!weekday || !day || !month || !year || !hour || !minute) return "";
 
-  return `${weekday}, ${day} ${month} ${year} ${hour}.${minute}`;
+  return `${weekday}, ${day} ${month} ${year} - ${hour}.${minute}`;
 };
 
 const htmlToPlainText = (html: string) => {
