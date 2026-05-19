@@ -56,12 +56,23 @@ const toSummary = (value?: string, messages?: Messages) => {
 const formatDate = (value: string | undefined, locale: string) => {
   if (!value) return "";
   const parsed = new Date(value);
+  const localeCode = locale === "en" ? "en-US" : "id-ID";
+
   if (Number.isNaN(parsed.getTime())) return "";
-  return parsed.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+
+  const formattedDate = parsed.toLocaleDateString(localeCode, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
+  const formattedTime = parsed.toLocaleTimeString(localeCode, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${formattedDate} - ${formattedTime}`;
 };
 
 const expandCategoryAliases = (values: string[]) => {

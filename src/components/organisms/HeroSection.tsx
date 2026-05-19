@@ -53,13 +53,23 @@ const toSummary = (value?: string | null, fallback?: string) => {
 const formatDate = (value: string | undefined, locale: Locale) => {
   if (!value) return "";
   const parsed = new Date(value);
+  const localeCode = locale === "en" ? "en-US" : "id-ID";
+
   if (Number.isNaN(parsed.getTime())) return "";
 
-  return parsed.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+  const formattedDate = parsed.toLocaleDateString(localeCode, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
+  const formattedTime = parsed.toLocaleTimeString(localeCode, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${formattedDate} - ${formattedTime}`;
 };
 
 const resolvePortalNewsTitle = (
@@ -248,6 +258,10 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
               <p className="text-base text-white/80 line-clamp-4">
                 {heroArticle?.summary ?? messages.hero.bannerSubtitle}
               </p>
+
+              <p className="text-sm font-medium text-white/75">
+                {heroArticle?.date || messages.hero.date}
+              </p>
             </div>
           </div>
         </Link>
@@ -268,11 +282,9 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f63] via-[#0b2f63]/50 to-[#0b2f63]/20" />
                   <div className="relative flex min-h-[160px] flex-col justify-between gap-4 p-4">
                     <div className="space-y-2">
-                      <div className="w-fit rounded-full bg-blue-500/50 px-3 py-0.5">
-                        <p className="text-[11px] font-bold tracking-wide text-white/90">
-                          {item.tag}
-                        </p>
-                      </div>
+                      <Tag tone="blue" className="bg-blue-500/50 text-white">
+                        {item.tag}
+                      </Tag>
                       <p className="line-clamp-2 text-sm font-semibold leading-snug">
                         {item.title}
                       </p>
@@ -304,11 +316,9 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f63] via-[#0b2f63]/40 to-transparent" />
                 <div className="relative flex min-h-[170px] flex-col justify-between gap-4 p-5">
                   <div className="space-y-2">
-                    <div className="w-fit rounded-full bg-blue-500/50 px-3 py-0.5">
-                      <p className="text-[11px] font-bold tracking-wide text-white/90">
-                        {secondary[2].tag}
-                      </p>
-                    </div>
+                    <Tag tone="blue" className="bg-blue-500/50 text-white">
+                      {secondary[2].tag}
+                    </Tag>
                     <p className="line-clamp-2 text-base font-semibold leading-snug">
                       {secondary[2].title}
                     </p>

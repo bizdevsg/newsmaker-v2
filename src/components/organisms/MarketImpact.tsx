@@ -48,14 +48,23 @@ const formatNewsDate = (value: string | undefined, locale: string) => {
   if (!value) return "-";
 
   const date = new Date(value);
+  const localeCode = locale === "en" ? "en-US" : "id-ID";
 
   if (Number.isNaN(date.getTime())) return "-";
 
-  return date.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+  const formattedDate = date.toLocaleDateString(localeCode, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
+  const formattedTime = date.toLocaleTimeString(localeCode, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${formattedDate} - ${formattedTime}`;
 };
 
 export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
