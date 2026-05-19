@@ -5,6 +5,7 @@ import type {
   OjkRegulationRow,
 } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 type OjkRegulationTableProps = {
   locale: Locale;
@@ -52,22 +53,13 @@ const resolveYear = (row: OjkRegulationRow) => {
 
 const formatFullDate = (value: string | undefined, locale: Locale) => {
   if (!value) return "-";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  const dateLocale = locale === "en" ? "en-US" : "id-ID";
-  const date = new Intl.DateTimeFormat(dateLocale, {
+  return formatJakartaDateTime(value, locale, {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  }).format(parsed);
-  const time = new Intl.DateTimeFormat(dateLocale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(parsed);
-
-  return `${date} - ${time}`;
+    separator: ".",
+    fallback: value,
+  });
 };
 
 const getLabels = (locale: Locale) => {

@@ -7,6 +7,7 @@ import type {
   BappebtiRegulationResponse,
 } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { formatJakartaDate, formatJakartaDateTime } from "@/lib/date-time";
 
 type BappebtiRegulationTableProps = {
   locale: Locale;
@@ -69,22 +70,13 @@ const getCategoryKey = (
 
 const formatFullDate = (value: string | undefined, locale: Locale) => {
   if (!value) return "-";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  const dateLocale = locale === "en" ? "en-US" : "id-ID";
-  const date = new Intl.DateTimeFormat(dateLocale, {
+  return formatJakartaDateTime(value, locale, {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  }).format(parsed);
-  const time = new Intl.DateTimeFormat(dateLocale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(parsed);
-
-  return `${date} - ${time}`;
+    separator: ".",
+    fallback: value,
+  });
 };
 
 const formatItemDate = (item: BappebtiRegulationItem, locale: Locale) => {
@@ -92,15 +84,12 @@ const formatItemDate = (item: BappebtiRegulationItem, locale: Locale) => {
   if (rawDate !== "-") return rawDate;
 
   if (typeof item.tanggal_iso === "string" && item.tanggal_iso.trim()) {
-    const parsed = new Date(item.tanggal_iso);
-    if (!Number.isNaN(parsed.getTime())) {
-      return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }).format(parsed);
-    }
-    return item.tanggal_iso;
+    return formatJakartaDate(item.tanggal_iso, locale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      fallback: item.tanggal_iso,
+    });
   }
 
   return "-";

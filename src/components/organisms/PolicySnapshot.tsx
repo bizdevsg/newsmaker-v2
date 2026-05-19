@@ -11,6 +11,7 @@ import type {
 } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { formatJakartaDate, formatJakartaMonthYear } from "@/lib/date-time";
 
 type PolicySnapshotProps = {
   messages: Messages;
@@ -66,16 +67,12 @@ const truncateText = (value: string | undefined, limit = 140) => {
 
 const formatDateForSnapshot = (value: string | undefined, locale: Locale) => {
   if (!value) return undefined;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
+  return formatJakartaDate(value, locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(parsed);
+    fallback: value,
+  });
 };
 
 const formatVolume = (value: number | undefined, locale: Locale) => {
@@ -89,15 +86,7 @@ const formatMonthYear = (
   month: number | undefined,
   year: number | undefined,
   locale: Locale,
-) => {
-  if (!month || !year) return undefined;
-  const date = new Date(Date.UTC(year, month - 1, 1));
-  if (Number.isNaN(date.getTime())) return undefined;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
-    month: "short",
-    year: "numeric",
-  }).format(date);
-};
+) => formatJakartaMonthYear(month, year, locale, "short");
 
 const getJfxVolumeSummary = (
   response: JfxVolumeResponse | null | undefined,

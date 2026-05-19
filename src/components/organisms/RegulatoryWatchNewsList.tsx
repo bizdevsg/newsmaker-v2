@@ -12,6 +12,7 @@ import {
   stripHtml,
   type RegulatoryWatchItem,
 } from "@/lib/regulatory-watch";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 type RegulatoryWatchNewsListProps = {
   locale: "id" | "en";
@@ -92,16 +93,13 @@ export function RegulatoryWatchNewsList({
           resolveRegulatoryWatchContent(item, locale),
         ).substring(0, 140);
         const rawDate = item.updated_at ?? item.created_at ?? "";
-        const parsedDate = new Date(rawDate);
-        const date = Number.isNaN(parsedDate.getTime())
-          ? rawDate || (locale === "en" ? "N/A" : "-")
-          : parsedDate.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            });
+        const date = formatJakartaDateTime(rawDate, locale, {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          separator: ".",
+          fallback: locale === "en" ? "N/A" : "-",
+        });
 
         const image = resolveRegulatoryWatchImage(item);
         const tag = (

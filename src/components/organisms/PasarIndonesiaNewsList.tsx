@@ -10,6 +10,7 @@ import {
   resolvePortalNewsTitle,
 } from "@/lib/portalnews-shared";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 import type { Messages } from "@/locales";
 
@@ -67,13 +68,12 @@ const stripHtml = (html: string) => {
 
 const formatDate = (value: string | undefined, locale: string) => {
   if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return date.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+  return formatJakartaDateTime(value, locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
+    separator: ".",
+    fallback: "",
   });
 };
 

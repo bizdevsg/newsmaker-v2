@@ -3,6 +3,7 @@ import React from "react";
 import type { Locale, Messages } from "@/locales";
 import type { BiRateResponse, BiRateRow } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { formatJakartaDate } from "@/lib/date-time";
 
 type BiRateTableProps = {
   messages: Messages;
@@ -64,32 +65,25 @@ const getTimestamp = (row: BiRateRow) => {
 const formatDate = (row: BiRateRow, locale: Locale) => {
   if (locale === "id" && row.raw_date) return row.raw_date;
   if (row.date) {
-    const parsed = new Date(row.date);
-    if (!Number.isNaN(parsed.getTime())) {
-      return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }).format(parsed);
-    }
+    return formatJakartaDate(row.date, locale, {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      fallback: row.date,
+    });
   }
   return row.raw_date ?? row.date ?? "-";
 };
 
 const formatFullDate = (isoDate: string | undefined, locale: Locale) => {
   if (!isoDate) return "-";
-  const parsed = new Date(isoDate);
-  if (Number.isNaN(parsed.getTime())) return isoDate;
-  const dateLocale = locale === "en" ? "en-US" : "id-ID";
-  const weekday = new Intl.DateTimeFormat(dateLocale, {
+  return formatJakartaDate(isoDate, locale, {
     weekday: "long",
-  }).format(parsed);
-  const date = new Intl.DateTimeFormat(dateLocale, {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  }).format(parsed);
-  return `${weekday}, ${date}`;
+    fallback: isoDate,
+  });
 };
 
 const formatDelta = (delta: number, locale: Locale) => {

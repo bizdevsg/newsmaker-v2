@@ -16,6 +16,7 @@ import {
 } from "@/lib/news-filter";
 import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 type HeroSectionProps = {
   messages: Messages;
@@ -34,7 +35,6 @@ type HeroArticle = {
 
 const FALLBACK_HERO_IMAGE =
   "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp";
-const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const stripHtml = (value: string) =>
   value
@@ -52,26 +52,13 @@ const toSummary = (value?: string | null, fallback?: string) => {
 
 const formatDate = (value: string | undefined, locale: Locale) => {
   if (!value) return "";
-  const parsed = new Date(value);
-  const localeCode = locale === "en" ? "en-US" : "id-ID";
-
-  if (Number.isNaN(parsed.getTime())) return "";
-
-  const formattedDate = parsed.toLocaleDateString(localeCode, {
+  return formatJakartaDateTime(value, locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone: NEWS_TIME_ZONE,
+    separator: ".",
+    fallback: "",
   });
-
-  const formattedTime = parsed.toLocaleTimeString(localeCode, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: NEWS_TIME_ZONE,
-  });
-
-  return `${formattedDate} - ${formattedTime}`;
 };
 
 const resolvePortalNewsTitle = (

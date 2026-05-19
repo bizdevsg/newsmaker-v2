@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { buildSearchPath } from "@/lib/portalnews-search";
 import { getMessages, type Locale } from "@/locales";
+import { formatJakartaDate } from "@/lib/date-time";
 import { lockScroll, unlockScroll } from "@/utils/scrollLock";
 
 const decodePathSegment = (value: string) => {
@@ -58,13 +59,13 @@ export function SiteHeader() {
     nextLocaleLabel,
   );
   const todayLabel = useMemo(() => {
-    const locale = currentLocale === "en" ? "en-GB" : "id-ID";
-    return new Intl.DateTimeFormat(locale, {
+    return formatJakartaDate(new Date(), currentLocale, {
       weekday: "short",
       day: "2-digit",
       month: "short",
       year: "numeric",
-    }).format(new Date());
+      fallback: "",
+    });
   }, [currentLocale]);
 
   const normalizedPath = pathname.replace(/\/$/, "") || `/${currentLocale}`;

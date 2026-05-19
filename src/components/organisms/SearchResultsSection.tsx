@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { PortalNewsSearchResult } from "@/lib/portalnews-search";
 import type { Locale, Messages } from "@/locales";
+import { formatJakartaDate } from "@/lib/date-time";
 
 type SearchResultsSectionProps = {
   locale: Locale;
@@ -74,14 +75,12 @@ export function SearchResultsSection({
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((item) => {
             const formattedDate = item.date
-              ? new Date(item.date).toLocaleDateString(
-                  locale === "en" ? "en-US" : "id-ID",
-                  {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  },
-                )
+              ? formatJakartaDate(item.date, locale, {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  fallback: "",
+                })
               : "";
 
             return (

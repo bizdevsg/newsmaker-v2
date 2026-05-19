@@ -13,6 +13,7 @@ import {
 import { RotatingAdSlot } from "@/components/molecules/RotatingAdSlot";
 import { SectionHeader } from "../molecules/SectionHeader";
 import { Card } from "../atoms/Card";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 const formatArticleHtml = (value: string) =>
   value
@@ -155,7 +156,6 @@ type NewsArticleDetailProps = {
   listingLabel?: string;
   messages?: Messages;
 };
-const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const resolveTitle = (
   article: NewsArticleItem | null | undefined,
@@ -187,42 +187,14 @@ const resolveContent = (
 
 const formatArticleDateTime = (value: string | undefined, locale: string) => {
   if (!value) return "";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "";
-
-  const dateLocale = locale === "id" ? "id-ID" : "en-US";
-
-  const dateParts = new Intl.DateTimeFormat(dateLocale, {
+  return formatJakartaDateTime(value, locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: NEWS_TIME_ZONE,
-  }).formatToParts(parsed);
-
-  const timeParts = new Intl.DateTimeFormat(dateLocale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: NEWS_TIME_ZONE,
-  }).formatToParts(parsed);
-
-  const getPart = (
-    parts: Intl.DateTimeFormatPart[],
-    type: Intl.DateTimeFormatPartTypes,
-  ) => parts.find((part) => part.type === type)?.value;
-
-  const weekday = getPart(dateParts, "weekday");
-  const day = getPart(dateParts, "day");
-  const month = getPart(dateParts, "month");
-  const year = getPart(dateParts, "year");
-
-  const hour = getPart(timeParts, "hour");
-  const minute = getPart(timeParts, "minute");
-
-  if (!weekday || !day || !month || !year || !hour || !minute) return "";
-
-  return `${weekday}, ${day} ${month} ${year} - ${hour}.${minute}`;
+    separator: ".",
+    fallback: "",
+  });
 };
 
 const htmlToPlainText = (html: string) => {

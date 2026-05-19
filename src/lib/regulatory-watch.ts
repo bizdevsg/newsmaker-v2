@@ -1,4 +1,5 @@
 import type { Locale } from "@/locales";
+import { formatJakartaDate } from "@/lib/date-time";
 
 export type RegulatoryWatchItem = {
   id?: number;
@@ -75,17 +76,12 @@ export const formatRegulatoryWatchDate = (
   locale: Locale,
 ) => {
   if (!value) return locale === "en" ? "N/A" : "-";
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
+  return formatJakartaDate(value, locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(parsed);
+    fallback: locale === "en" ? "N/A" : "-",
+  });
 };
 
 export const stripHtml = (value: string) =>

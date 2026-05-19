@@ -11,6 +11,7 @@ import {
 } from "@/lib/portalnews-shared";
 import { normalizePortalNewsCategory } from "@/lib/portalnews";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
+import { formatJakartaDateTime } from "@/lib/date-time";
 import {
   resolveIndonesiaMarketNewsCategoryLabelFromItem,
   resolveIndonesiaMarketNewsCategorySlugFromItem,
@@ -1023,15 +1024,17 @@ export function NewsCategoryList({
           const summary = stripHtml(
             resolvePortalNewsContent(item, locale),
           ).substring(0, 140);
-          const date = new Date(
+          const date = formatJakartaDateTime(
             item.updated_at ?? item.created_at ?? "",
-          ).toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+            locale,
+            {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              separator: ".",
+              fallback: "",
+            },
+          );
 
           const badgeLabel = formatBadgeLabel(
             String(

@@ -9,6 +9,7 @@ import { SectionHeader } from "../molecules/SectionHeader";
 import { INDONESIA_MARKET_NEWS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
 import { resolveIndonesiaMarketNewsCategorySlugFromItem } from "@/lib/indonesia-market-news-category";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 type MarketImpactProps = {
   messages: Messages;
@@ -43,31 +44,16 @@ type MarketImpactNewsItem = {
 
 const DISPLAY_LIMIT = 2;
 const SKIP_LATEST_COUNT = 4;
-const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const formatNewsDate = (value: string | undefined, locale: string) => {
   if (!value) return "-";
-
-  const date = new Date(value);
-  const localeCode = locale === "en" ? "en-US" : "id-ID";
-
-  if (Number.isNaN(date.getTime())) return "-";
-
-  const formattedDate = date.toLocaleDateString(localeCode, {
+  return formatJakartaDateTime(value, locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone: NEWS_TIME_ZONE,
+    separator: ".",
+    fallback: "-",
   });
-
-  const formattedTime = date.toLocaleTimeString(localeCode, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: NEWS_TIME_ZONE,
-  });
-
-  return `${formattedDate} - ${formattedTime}`;
 };
 
 export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {

@@ -15,6 +15,7 @@ import {
   normalizePortalNewsCategory,
 } from "@/lib/portalnews";
 import { Card } from "../atoms/Card";
+import { formatJakartaDateTime } from "@/lib/date-time";
 
 type RecentAnalysisProps = {
   messages: Messages;
@@ -36,7 +37,6 @@ type RecentAnalysisItem = {
   href?: string;
   date: string;
 };
-const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const stripHtml = (value: string) =>
   value
@@ -56,26 +56,13 @@ const toSummary = (value?: string, messages?: Messages) => {
 
 const formatDate = (value: string | undefined, locale: string) => {
   if (!value) return "";
-  const parsed = new Date(value);
-  const localeCode = locale === "en" ? "en-US" : "id-ID";
-
-  if (Number.isNaN(parsed.getTime())) return "";
-
-  const formattedDate = parsed.toLocaleDateString(localeCode, {
+  return formatJakartaDateTime(value, locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone: NEWS_TIME_ZONE,
+    separator: ".",
+    fallback: "",
   });
-
-  const formattedTime = parsed.toLocaleTimeString(localeCode, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: NEWS_TIME_ZONE,
-  });
-
-  return `${formattedDate} - ${formattedTime}`;
 };
 
 const expandCategoryAliases = (values: string[]) => {

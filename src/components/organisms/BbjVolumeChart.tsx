@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import type { Locale, Messages } from "@/locales";
 import type { JfxVolumeResponse, JfxVolumeRow } from "@/types/indonesiaMarket";
+import { formatJakartaDateTime, formatJakartaMonthYear } from "@/lib/date-time";
 import {
   Bar,
   BarChart,
@@ -36,27 +37,17 @@ const formatMonthYear = (
   month: number | undefined,
   year: number | undefined,
   locale: Locale,
-) => {
-  if (!month || !year) return undefined;
-  const date = new Date(Date.UTC(year, month - 1, 1));
-  if (Number.isNaN(date.getTime())) return undefined;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
-};
+) => formatJakartaMonthYear(month, year, locale, "long");
 
 const formatDateTime = (value: string | undefined, locale: Locale) => {
   if (!value) return undefined;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
+  return formatJakartaDateTime(value, locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(parsed);
+    separator: ".",
+    fallback: value,
+  });
 };
 
 const formatNumber = (value: number, locale: Locale) =>
