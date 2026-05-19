@@ -155,6 +155,7 @@ type NewsArticleDetailProps = {
   listingLabel?: string;
   messages?: Messages;
 };
+const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const resolveTitle = (
   article: NewsArticleItem | null | undefined,
@@ -196,12 +197,14 @@ const formatArticleDateTime = (value: string | undefined, locale: string) => {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: NEWS_TIME_ZONE,
   }).formatToParts(parsed);
 
   const timeParts = new Intl.DateTimeFormat(dateLocale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: NEWS_TIME_ZONE,
   }).formatToParts(parsed);
 
   const getPart = (

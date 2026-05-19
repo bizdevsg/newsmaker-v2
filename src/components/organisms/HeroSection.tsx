@@ -34,6 +34,7 @@ type HeroArticle = {
 
 const FALLBACK_HERO_IMAGE =
   "/assets/double-exposure-businessman-using-tablet-with-cityscape-financial-graph-blurred-buildi.webp";
+const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const stripHtml = (value: string) =>
   value
@@ -60,12 +61,14 @@ const formatDate = (value: string | undefined, locale: Locale) => {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: NEWS_TIME_ZONE,
   });
 
   const formattedTime = parsed.toLocaleTimeString(localeCode, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: NEWS_TIME_ZONE,
   });
 
   return `${formattedDate} - ${formattedTime}`;

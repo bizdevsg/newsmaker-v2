@@ -43,6 +43,7 @@ type MarketImpactNewsItem = {
 
 const DISPLAY_LIMIT = 2;
 const SKIP_LATEST_COUNT = 4;
+const NEWS_TIME_ZONE = "Asia/Jakarta";
 
 const formatNewsDate = (value: string | undefined, locale: string) => {
   if (!value) return "-";
@@ -56,12 +57,14 @@ const formatNewsDate = (value: string | undefined, locale: string) => {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: NEWS_TIME_ZONE,
   });
 
   const formattedTime = date.toLocaleTimeString(localeCode, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: NEWS_TIME_ZONE,
   });
 
   return `${formattedDate} - ${formattedTime}`;
