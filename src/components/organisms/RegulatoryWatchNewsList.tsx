@@ -144,10 +144,11 @@ export function RegulatoryWatchNewsList({
   );
 
   const getSiteOrigin = () => {
-    if (process.env.NEXT_PUBLIC_SITE_URL)
-      return process.env.NEXT_PUBLIC_SITE_URL;
-    if (typeof window !== "undefined") return window.location.origin;
-    return "";
+    if (typeof window !== "undefined") {
+      return window.location.origin.replace(/\/+$/, "");
+    }
+
+    return (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim().replace(/\/+$/, "");
   };
 
   const copyLink = (href: string, id: number | string) => {
