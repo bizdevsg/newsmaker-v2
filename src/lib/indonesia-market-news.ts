@@ -50,6 +50,12 @@ type ApiNewsResponse = {
   data?: IndonesiaMarketNewsItem[];
 };
 
+type ApiNewsDetailResponse = {
+  status?: string;
+  type?: string;
+  data?: IndonesiaMarketNewsItem | null;
+};
+
 const STOPWORDS = new Set([
   "yang",
   "dan",
@@ -319,7 +325,29 @@ export async function fetchIndonesiaMarketNewsDetail(
     }))
     .sort((a, b) => getTimestamp(b) - getTimestamp(a));
 
-  const article = sorted.find((item) => item.slug === slug) ?? null;
+  let article = sorted.find((item) => item.slug === slug) ?? null;
+
+  if (!article) {
+    const detailRes = await fetch(`${API_URL.replace(/\/+$/, "")}/${slug}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${API_TOKEN}`,
+        "X-API-TOKEN": API_TOKEN,
+      },
+      cache: "no-store",
+      next: { revalidate: 0 },
+    });
+
+    if (detailRes.ok) {
+      const detailJson = (await detailRes.json()) as ApiNewsDetailResponse;
+      if (detailJson.data?.slug) {
+        article = {
+          ...detailJson.data,
+          image_url: buildImageUrl(detailJson.data),
+        };
+      }
+    }
+  }
 
   if (!article) {
     return {
