@@ -16,6 +16,7 @@ const FOOTER_ROUTE_MAP: Record<string, string> = {
 };
 
 const isExternalHref = (href: string) => /^(https?:|mailto:|tel:)/i.test(href);
+const NEWSMAKER_MAIN_URL = "https://newsmaker.id/";
 
 export function SiteFooter({ locale, messages }: SiteFooterProps) {
   const currentYear = new Date().getFullYear();
@@ -118,13 +119,13 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
         <div className="flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
           {/* Brand Block */}
           <div className="flex flex-col gap-4 min-w-50">
-            <Link href={homeHref} className="w-fit">
+            <a href={NEWSMAKER_MAIN_URL} className="w-fit" aria-label="NewsMaker home">
               <img
                 src="/assets/NewsMaker-White 1.png"
                 alt={messages.footer.brand}
                 className="h-14 w-auto object-contain sm:h-16"
               />
-            </Link>
+            </a>
             <div className="space-y-1 text-sm text-white/80">
               {messages.footer.brandDescription.map((line) => (
                 <p key={line}>{line}</p>

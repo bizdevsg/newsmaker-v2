@@ -1,0 +1,15 @@
+
+> new-nm23@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 1607.2ms
+  Running TypeScript ...
+  Collecting page data using 27 workers ...
+  Generating static pages using 27 workers (0/41) ...
+  Generating static pages using 27 workers (10/41) 
+  Generating static pages using 27 workers (20/41) 
+⨯ Next.js build worker exited with code: 4294967295 and signal: null

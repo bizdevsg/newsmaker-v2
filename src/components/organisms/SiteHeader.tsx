@@ -17,6 +17,8 @@ const decodePathSegment = (value: string) => {
   }
 };
 
+const NEWSMAKER_MAIN_URL = "https://newsmaker.id/";
+
 export function SiteHeader() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLangOpenDesktop, setIsLangOpenDesktop] = useState(false);
@@ -180,13 +182,13 @@ export function SiteHeader() {
       <div className="px-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href={homeHref}>
+            <a href={NEWSMAKER_MAIN_URL} aria-label="NewsMaker home">
               <img
                 src="/assets/NewsMaker-White 1.png"
                 alt="NewsMaker 23"
                 className="h-10 w-auto sm:h-12 lg:h-14"
               />
-            </Link>
+            </a>
           </div>
           <div className="hidden w-full flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] text-white/70 md:flex md:w-auto md:justify-end md:tracking-[0.25em]">
             <div className="flex items-center gap-3">
