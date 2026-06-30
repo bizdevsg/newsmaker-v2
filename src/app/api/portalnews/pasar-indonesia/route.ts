@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchIndonesiaMarketNewsDetail } from "@/lib/indonesia-market-news";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,26 +17,6 @@ const PORTAL_BASE_URL = (() => {
     return "http://portalnews.newsmaker.test";
   }
 })();
-
-const withSearchParams = (
-  url: string,
-  params: Record<string, string | number | null | undefined>,
-) => {
-  try {
-    const parsed = new URL(url);
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value == null) return;
-      const normalized = String(value).trim();
-      if (!normalized) return;
-      parsed.searchParams.set(key, normalized);
-    });
-
-    return parsed.toString();
-  } catch {
-    return url;
-  }
-};
 
 type ApiAuthor = {
   id?: number;
@@ -99,57 +80,6 @@ type ApiNewsResponse = {
     };
   };
 };
-
-const STOPWORDS = new Set([
-  "yang",
-  "dan",
-  "di",
-  "ke",
-  "dari",
-  "untuk",
-  "pada",
-  "dalam",
-  "dengan",
-  "karena",
-  "setelah",
-  "akan",
-  "oleh",
-  "atau",
-  "ini",
-  "itu",
-  "para",
-  "sejumlah",
-  "lebih",
-  "masih",
-  "hingga",
-  "saat",
-  "juga",
-  "agar",
-  "namun",
-  "serta",
-  "the",
-  "and",
-  "for",
-  "with",
-  "from",
-  "that",
-  "this",
-  "into",
-  "amid",
-  "after",
-  "before",
-  "over",
-  "under",
-  "today",
-  "market",
-  "markets",
-  "news",
-  "stock",
-  "stocks",
-  "indonesia",
-  "indonesian",
-  "ihsg",
-]);
 
 const parsePositiveInt = (value: string | null) => {
   if (!value) return null;
@@ -235,145 +165,6 @@ const normalizeItem = (item: PortalNewsItem): PortalNewsItem => {
   };
 };
 
-const stripHtml = (value: string) =>
-  value
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&rsquo;/gi, "'")
-    .replace(/&ldquo;/gi, '"')
-    .replace(/&rdquo;/gi, '"')
-    .replace(/&[a-z0-9#]+;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const getItemText = (item: PortalNewsItem) =>
-  [
-    item.title_id,
-    item.title_en,
-    stripHtml(item.content_id ?? ""),
-    stripHtml(item.content_en ?? ""),
-    item.category,
-    item.category_label,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-const tokenize = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9\u00C0-\u024F\s-]/g, " ")
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(
-      (token) =>
-        token.length > 2 && !STOPWORDS.has(token) && !/^\d+$/.test(token),
-    );
-
-const toFrequencyMap = (tokens: string[]) => {
-  const map = new Map<string, number>();
-
-  for (const token of tokens) {
-    map.set(token, (map.get(token) ?? 0) + 1);
-  }
-
-  return map;
-};
-
-const getSimilarityScore = (
-  baseItem: PortalNewsItem,
-  candidate: PortalNewsItem,
-) => {
-  const baseTokens = tokenize(getItemText(baseItem));
-  const candidateTokens = tokenize(getItemText(candidate));
-
-  if (!baseTokens.length || !candidateTokens.length) {
-    return 0;
-  }
-
-  const baseFreq = toFrequencyMap(baseTokens);
-  const candidateFreq = toFrequencyMap(candidateTokens);
-
-  let overlapScore = 0;
-  for (const [token, count] of baseFreq.entries()) {
-    const candidateCount = candidateFreq.get(token) ?? 0;
-    overlapScore += Math.min(count, candidateCount);
-  }
-
-  const uniqueBase = new Set(baseTokens);
-  const uniqueCandidate = new Set(candidateTokens);
-
-  let unionCount = uniqueBase.size;
-  for (const token of uniqueCandidate) {
-    if (!uniqueBase.has(token)) {
-      unionCount += 1;
-    }
-  }
-
-  const jaccard = unionCount > 0 ? overlapScore / unionCount : 0;
-
-  const titleBase = tokenize(
-    `${baseItem.title_id ?? ""} ${baseItem.title_en ?? ""}`,
-  );
-  const titleCandidate = tokenize(
-    `${candidate.title_id ?? ""} ${candidate.title_en ?? ""}`,
-  );
-
-  const titleBaseSet = new Set(titleBase);
-  let titleOverlap = 0;
-  for (const token of titleCandidate) {
-    if (titleBaseSet.has(token)) {
-      titleOverlap += 1;
-    }
-  }
-
-  const titleBoost = Math.min(titleOverlap, 6) * 0.08;
-
-  const categoryBoost =
-    normalizeCategory(baseItem.category) ===
-    normalizeCategory(candidate.category)
-      ? 0.12
-      : 0;
-
-  const recencyBoost =
-    Math.max(
-      0,
-      1 -
-        Math.abs(getTimestamp(baseItem) - getTimestamp(candidate)) /
-          (1000 * 60 * 60 * 24 * 30),
-    ) * 0.04;
-
-  return jaccard + titleBoost + categoryBoost + recencyBoost;
-};
-
-const getRelatedArticles = (
-  current: PortalNewsItem,
-  items: PortalNewsItem[],
-  limit: number,
-) => {
-  const currentSlug = current.slug?.trim();
-
-  const scored = items
-    .filter((item) => item.slug?.trim() && item.slug?.trim() !== currentSlug)
-    .map((item) => ({
-      item,
-      score: getSimilarityScore(current, item),
-      timestamp: getTimestamp(item),
-    }))
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return b.timestamp - a.timestamp;
-    });
-
-  const strongMatches = scored.filter((entry) => entry.score > 0);
-  const source = strongMatches.length ? strongMatches : scored;
-
-  return source.slice(0, limit).map((entry) => entry.item);
-};
-
 async function fetchPasarIndonesiaPage(url: string): Promise<ApiNewsResponse> {
   const res = await fetch(url, {
     headers: {
@@ -394,16 +185,13 @@ async function fetchPasarIndonesiaPage(url: string): Promise<ApiNewsResponse> {
   return (await res.json()) as ApiNewsResponse;
 }
 
-async function fetchPasarIndonesiaNews(): Promise<PortalNewsItem[]> {
-  const initialUrl = withSearchParams(API_URL, {
-    per_page: 100,
-    limit: 100,
-  });
+async function fetchPasarIndonesiaNews(maxItems: number | null): Promise<PortalNewsItem[]> {
+  const initialUrl = API_URL;
   const items: PortalNewsItem[] = [];
   const seenSlugs = new Set<string>();
   let nextUrl: string | null = initialUrl;
 
-  while (nextUrl) {
+  while (nextUrl && (maxItems == null || items.length < maxItems)) {
     const json = await fetchPasarIndonesiaPage(nextUrl);
     const pageItems = Array.isArray(json.data) ? json.data : [];
 
@@ -416,11 +204,10 @@ async function fetchPasarIndonesiaNews(): Promise<PortalNewsItem[]> {
 
     const pagination = json.meta?.pagination;
     nextUrl =
-      pagination?.has_more_pages && pagination.next_page_url
-        ? withSearchParams(pagination.next_page_url, {
-            per_page: 100,
-            limit: 100,
-          })
+      pagination?.has_more_pages &&
+      pagination.next_page_url &&
+      (maxItems == null || items.length < maxItems)
+        ? pagination.next_page_url
         : null;
   }
 
@@ -441,54 +228,25 @@ export async function GET(request: Request) {
     const latestLimit = parsePositiveInt(searchParams.get("latestLimit")) ?? 5;
     const relatedLimit =
       parsePositiveInt(searchParams.get("relatedLimit")) ?? 5;
-
-    const allItems = await fetchPasarIndonesiaNews();
-
-    const sortedItems = [...allItems].sort((left, right) => {
-      const leftTime = getTimestamp(left);
-      const rightTime = getTimestamp(right);
-      return sortBy === "oldest" ? leftTime - rightTime : rightTime - leftTime;
-    });
+    const neededItems =
+      slugParam || limit || offset != null
+        ? Math.max((offset ?? 0) + (limit ?? 20), latestLimit + relatedLimit, 20)
+        : 20;
 
     if (slugParam) {
-      const article =
-        sortedItems.find((item) => item.slug?.trim() === slugParam) ?? null;
-
-      if (!article) {
-        return NextResponse.json(
-          {
-            status: "not_found",
-            imageBase: PORTAL_BASE_URL,
-            data: null,
-            latest: [],
-            related: [],
-          },
-          {
-            status: 404,
-            headers: {
-              "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-            },
-          },
-        );
-      }
-
-      const currentSlug = article.slug?.trim();
-
-      const withoutCurrent = sortedItems.filter(
-        (item) => item.slug?.trim() && item.slug?.trim() !== currentSlug,
-      );
-
-      const latest = withoutCurrent.slice(0, latestLimit);
-      const related = getRelatedArticles(article, withoutCurrent, relatedLimit);
+      const detail = await fetchIndonesiaMarketNewsDetail(slugParam, {
+        latestLimit,
+        relatedLimit,
+      });
 
       return NextResponse.json(
         {
           status: "success",
-          source: article.source ?? "Portal News API",
-          imageBase: PORTAL_BASE_URL,
-          data: article,
-          latest,
-          related,
+          source: "Portal News API",
+          imageBase: detail.imageBase,
+          data: detail.article,
+          latest: detail.latest,
+          related: detail.related,
         },
         {
           headers: {
@@ -497,6 +255,14 @@ export async function GET(request: Request) {
         },
       );
     }
+
+    const allItems = await fetchPasarIndonesiaNews(neededItems);
+
+    const sortedItems = [...allItems].sort((left, right) => {
+      const leftTime = getTimestamp(left);
+      const rightTime = getTimestamp(right);
+      return sortBy === "oldest" ? leftTime - rightTime : rightTime - leftTime;
+    });
 
     const filteredItems = sortedItems.filter((item) => {
       const matchesIncluded = category ? matchesCategory(item, category) : true;
