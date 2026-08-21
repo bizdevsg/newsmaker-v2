@@ -62,7 +62,7 @@ const GAUGE_CENTER_Y = 120;
 const NEEDLE_LENGTH = 80;
 const NEEDLE_HUB_RADIUS = 6;
 const NEEDLE_STOP_ANGLES = [163, 130, 90, 50, 17] as const;
-const GAUGE_NEUTRAL_ANGLE = NEEDLE_STOP_ANGLES[2];
+const GAUGE_NEUTRAL_ANGLE: number = NEEDLE_STOP_ANGLES[2];
 const gaugeSeparatorAngles = [...NEEDLE_STOP_ANGLES];
 
 const normalizeSignal = (value: string | undefined) =>
