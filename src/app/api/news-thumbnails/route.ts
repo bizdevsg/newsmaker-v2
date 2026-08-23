@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import {
   buildPortalNewsImageUrl,
-  fetchPortalNewsList,
+  fetchPortalNewsListPaged,
 } from "@/lib/portalnews";
 
 export const revalidate = 300;
 
 export async function GET() {
   try {
-    const { items } = await fetchPortalNewsList();
+    const { items } = await fetchPortalNewsListPaged();
 
     const thumbMapById: Record<number, string> = {};
     const thumbMapBySlug: Record<string, string> = {};

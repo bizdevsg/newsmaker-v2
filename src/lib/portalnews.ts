@@ -533,34 +533,100 @@ export async function fetchPortalNewsList(): Promise<{
   items: PortalNewsItem[];
   source: PortalNewsSource;
 }> {
+  try {
+    return await getCachedValue(
+      "portalnews:list",
+      PORTALNEWS_LIST_CACHE_TTL_SECONDS,
+      async () => {
+        const primaryResult = await fetchJson(PRIMARY_NEWS_LIST_URL);
+        const primaryItems = extractItemArray(primaryResult.payload);
+
+        if (primaryResult.ok && primaryItems.length > 0) {
+          return {
+            items: primaryItems,
+            source: "legacy" as const,
+          };
+        }
+
+        const fallbackResult = await fetchJson(FALLBACK_NEWS_LIST_URL);
+        const fallbackItems = extractItemArray(fallbackResult.payload);
+
+        if (fallbackResult.ok && fallbackItems.length > 0) {
+          return {
+            items: fallbackItems,
+            source: "newsmaker" as const,
+          };
+        }
+
+        // Neither source returned usable data — treat as a failed fetch so
+        // getCachedValue doesn't freeze an empty result in place for the
+        // full TTL; a genuinely empty upstream will simply retry next call.
+        throw new Error("fetchPortalNewsList: no items from primary or fallback source");
+      },
+    );
+  } catch {
+    return { items: [], source: "newsmaker" as const };
+  }
+}
+
+const readListNextPageUrl = (payload: unknown): string | null => {
+  if (!isRecord(payload)) return null;
+  const meta = payload.meta;
+  if (!isRecord(meta)) return null;
+  const pagination = meta.pagination;
+  if (!isRecord(pagination)) return null;
+  if (pagination.has_more_pages !== true) return null;
+
+  const next = pagination.next_page_url;
+  if (typeof next !== "string") return null;
+  const normalized = next.trim();
+  return normalized ? normalized : null;
+};
+
+const MAX_GENERAL_NEWS_PAGES = 25;
+
+/**
+ * Like fetchPortalNewsList(), but follows pagination across multiple pages
+ * instead of returning only the first ~20 site-wide items. Used by features
+ * that need broad coverage across many/low-frequency categories (site
+ * search, the "Latest News" hub) rather than a single narrow category.
+ */
+export async function fetchPortalNewsListPaged(
+  maxPages: number = MAX_GENERAL_NEWS_PAGES,
+): Promise<{
+  items: PortalNewsItem[];
+  source: PortalNewsSource;
+}> {
   return getCachedValue(
-    "portalnews:list",
+    `portalnews:list-paged:${maxPages}`,
     PORTALNEWS_LIST_CACHE_TTL_SECONDS,
     async () => {
-      const primaryResult = await fetchJson(PRIMARY_NEWS_LIST_URL);
-      const primaryItems = extractItemArray(primaryResult.payload);
+      const items: PortalNewsItem[] = [];
+      const seen = new Set<string>();
 
-      if (primaryResult.ok && primaryItems.length > 0) {
-        return {
-          items: primaryItems,
-          source: "legacy" as const,
-        };
+      let nextUrl: string | null = PRIMARY_NEWS_LIST_URL;
+      let pages = 0;
+
+      while (nextUrl && pages < maxPages) {
+        pages += 1;
+        const result = await fetchJson(nextUrl);
+        if (!result.ok) break;
+
+        for (const item of extractItemArray(result.payload)) {
+          const key = item.slug?.trim() || (item.id !== undefined ? String(item.id) : "");
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          items.push(item);
+        }
+
+        nextUrl = readListNextPageUrl(result.payload);
       }
 
-      const fallbackResult = await fetchJson(FALLBACK_NEWS_LIST_URL);
-      const fallbackItems = extractItemArray(fallbackResult.payload);
-
-      if (fallbackResult.ok && fallbackItems.length > 0) {
-        return {
-          items: fallbackItems,
-          source: "newsmaker" as const,
-        };
+      if (items.length > 0) {
+        return { items, source: "legacy" as const };
       }
 
-      return {
-        items: primaryItems.length > 0 ? primaryItems : fallbackItems,
-        source: primaryItems.length > 0 ? ("legacy" as const) : ("newsmaker" as const),
-      };
+      return fetchPortalNewsList();
     },
   );
 }
@@ -587,36 +653,58 @@ export async function fetchPortalNewsListByCategory(
     };
   }
 
-  return getCachedValue(
-    `portalnews:list-by-category:${normalizedSlug}`,
-    PORTALNEWS_LIST_CACHE_TTL_SECONDS,
-    async () => {
-      const url = `${NEWSMAKER_BERITA_BASE_URL}/${encodeURIComponent(
-        normalizedSlug,
-      )}`;
-      const result = await fetchJson(url);
-      const items = extractItemArray(result.payload);
+  try {
+    return await getCachedValue(
+      `portalnews:list-by-category:${normalizedSlug}`,
+      PORTALNEWS_LIST_CACHE_TTL_SECONDS,
+      async () => {
+        const url = `${NEWSMAKER_BERITA_BASE_URL}/${encodeURIComponent(
+          normalizedSlug,
+        )}`;
+        const result = await fetchJson(url);
 
-      const category =
-        isRecord(result.payload) && "category" in result.payload
-          ? normalizeCategoryRecord(result.payload.category)
-          : null;
+        if (!result.ok) {
+          // Don't let a transient failure (network blip, timeout, rate
+          // limit) get frozen into the cache as an empty result for the
+          // full TTL — throw so getCachedValue serves a stale good value
+          // if one exists, or retries fresh on the next call.
+          throw new Error(
+            `fetchPortalNewsListByCategory: request failed for "${normalizedSlug}" (status ${result.status})`,
+          );
+        }
 
-      const meta =
-        isRecord(result.payload) && "meta" in result.payload
-          ? result.payload.meta
-          : null;
+        const items = extractItemArray(result.payload);
 
-      return {
-        ok: result.ok,
-        status: result.status,
-        items,
-        category,
-        meta,
-        source: "newsmaker" as const,
-      };
-    },
-  );
+        const category =
+          isRecord(result.payload) && "category" in result.payload
+            ? normalizeCategoryRecord(result.payload.category)
+            : null;
+
+        const meta =
+          isRecord(result.payload) && "meta" in result.payload
+            ? result.payload.meta
+            : null;
+
+        return {
+          ok: true,
+          status: result.status,
+          items,
+          category,
+          meta,
+          source: "newsmaker" as const,
+        };
+      },
+    );
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      items: [],
+      category: null,
+      meta: null,
+      source: "newsmaker" as const,
+    };
+  }
 }
 
 export async function fetchPortalNewsCategories(): Promise<{

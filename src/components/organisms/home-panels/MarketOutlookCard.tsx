@@ -7,6 +7,7 @@ import type { PortalNewsItem } from "@/lib/portalnews";
 import {
   buildPortalNewsImageUrl,
   fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
   sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
@@ -107,8 +108,11 @@ async function getMarketAnalysisItems(
   locale: Locale,
 ): Promise<MarketOutlookItem[] | null> {
   try {
-    const { items } = await fetchPortalNewsList();
-    const sorted = sortPortalNewsItemsByDate(items as PortalNewsItem[]);
+    const categoryResult = await fetchPortalNewsListByCategory("market-analysis");
+    const rawItems = categoryResult.ok && categoryResult.items.length
+      ? categoryResult.items
+      : (await fetchPortalNewsList()).items;
+    const sorted = sortPortalNewsItemsByDate(rawItems as PortalNewsItem[]);
 
     const matched = sorted.filter(
       (item) => inferAnalysisCategoryFromItem(item) === "market-analysis",

@@ -12,7 +12,7 @@ import {
   inferEconomicNewsCategoryFromItem,
   inferMarketNewsCategoryFromItem,
 } from "@/lib/news-routing";
-import { fetchPortalNewsList } from "@/lib/portalnews";
+import { fetchPortalNewsListPaged } from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default async function NewsIndexPage({
 
   const title = locale === "en" ? "Latest News" : "Berita Terbaru";
 
-  const { items } = await fetchPortalNewsList();
+  const { items } = await fetchPortalNewsListPaged();
   const nonAnalysisItems = items.filter((item) => {
     if (item.type?.toLowerCase() === "analisis") return false;
     return true;

@@ -5,7 +5,9 @@ import { Container } from "@/components/layout/Container";
 import { NewsArticleDetail } from "@/components/organisms/news/NewsArticleDetail";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import {
+  ALL_ECONOMIC_NEWS_API_SLUGS,
   buildEconomicNewsListHref,
+  ECONOMIC_NEWS_API_SLUGS,
   getEconomicNewsConfig,
   inferEconomicNewsCategoryFromItem,
   isGlobalEconomyGroupSlug,
@@ -15,8 +17,43 @@ import {
   toEconomicNewsCardItems,
   toEconomicNewsCardItemsAuto,
 } from "@/lib/news-cards";
-import { fetchPortalNewsArticle, fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  fetchPortalNewsArticle,
+  fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
+  getPortalNewsItemTimestamp,
+  type PortalNewsItem,
+} from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
+
+const dedupeBySlug = (items: PortalNewsItem[]) => {
+  const seen = new Set<string>();
+  const result: PortalNewsItem[] = [];
+
+  for (const item of items) {
+    const key = item.slug ?? String(item.id ?? "");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+
+  return result;
+};
+
+async function fetchEconomicNewsItemsForSlugs(
+  apiSlugs: string[],
+): Promise<PortalNewsItem[]> {
+  const results = await Promise.all(
+    apiSlugs.map((slug) => fetchPortalNewsListByCategory(slug)),
+  );
+
+  return dedupeBySlug(
+    results.flatMap((result) => (result.ok ? result.items : [])),
+  ).sort(
+    (left, right) =>
+      getPortalNewsItemTimestamp(right) - getPortalNewsItemTimestamp(left),
+  );
+}
 
 export const metadata: Metadata = {
   title: "Economic News",
@@ -138,17 +175,24 @@ export default async function EconomicNewsDetailPage({
     typeof item.author === "string" ? item.author : item.author?.name || "";
   const sourceLabel = item.source || "";
 
+  const relatedApiItems = await fetchEconomicNewsItemsForSlugs(
+    ECONOMIC_NEWS_API_SLUGS[config.slug],
+  );
   const { items: allItems } = await fetchPortalNewsList();
-  const relatedCandidates = allItems
-    .filter((candidate) => candidate.slug !== slug)
-    .filter((candidate) => {
-      const candidateInferred = inferEconomicNewsCategoryFromItem(candidate);
-      if (!candidateInferred) return false;
-      if (config.slug === "global-economy") {
-        return isGlobalEconomyGroupSlug(candidateInferred);
-      }
-      return candidateInferred === config.slug;
-    });
+
+  const relatedCandidates =
+    relatedApiItems.length > 0
+      ? relatedApiItems.filter((candidate) => candidate.slug !== slug)
+      : allItems
+          .filter((candidate) => candidate.slug !== slug)
+          .filter((candidate) => {
+            const candidateInferred = inferEconomicNewsCategoryFromItem(candidate);
+            if (!candidateInferred) return false;
+            if (config.slug === "global-economy") {
+              return isGlobalEconomyGroupSlug(candidateInferred);
+            }
+            return candidateInferred === config.slug;
+          });
 
   const relatedItems = toEconomicNewsCardItems(relatedCandidates, {
     locale,
@@ -156,15 +200,21 @@ export default async function EconomicNewsDetailPage({
     limit: 6,
   });
 
+  const allEconomicApiItems = await fetchEconomicNewsItemsForSlugs(
+    ALL_ECONOMIC_NEWS_API_SLUGS,
+  );
+  const economicPool =
+    allEconomicApiItems.length > 0 ? allEconomicApiItems : allItems;
+
   const latestItems = toEconomicNewsCardItemsAuto(
-    allItems.filter((candidate) => candidate.slug !== slug),
+    economicPool.filter((candidate) => candidate.slug !== slug),
     { locale, limit: 5 },
   );
 
   const popularItems = (() => {
     const latestKeys = new Set(latestItems.map((entry) => entry.key));
     const candidates = toEconomicNewsCardItemsAuto(
-      allItems.filter((candidate) => candidate.slug !== slug),
+      economicPool.filter((candidate) => candidate.slug !== slug),
       { locale, limit: 80 },
     ).filter((entry) => !latestKeys.has(entry.key));
 

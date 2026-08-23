@@ -4,6 +4,7 @@ import {
   getPortalNewsCategorySlug,
   getPortalNewsItemTimestamp,
   fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
   fetchPasarIndonesiaNews,
   fetchPasarIndonesiaAnalysis,
   normalizePortalNewsCategory,
@@ -214,11 +215,23 @@ export async function fetchPortalNewsDetail(
       matchesCategory(item, INDONESIA_MARKET_ANALYSIS_CATEGORY_SLUG)
     : false;
 
+  const articleCategorySlug = item ? getPortalNewsCategorySlug(item) : "";
+
   const listResult = isPasarIndonesia
     ? await fetchPasarIndonesiaNews()
     : isAnalysis
       ? await fetchPasarIndonesiaAnalysis()
-    : await fetchPortalNewsList();
+      : await (async () => {
+          if (articleCategorySlug) {
+            const categoryResult = await fetchPortalNewsListByCategory(
+              articleCategorySlug,
+            );
+            if (categoryResult.ok && categoryResult.items.length) {
+              return { items: categoryResult.items, source: "newsmaker" as const };
+            }
+          }
+          return fetchPortalNewsList();
+        })();
 
   const { items, source: listSource } = listResult;
   const sortedItems = sortPortalNewsItemsByDate(items);

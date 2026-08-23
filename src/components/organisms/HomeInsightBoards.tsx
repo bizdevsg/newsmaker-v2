@@ -13,6 +13,7 @@ import {
   buildPortalNewsImageUrl,
   fetchPasarIndonesiaAnalysis,
   fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
   sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
@@ -120,8 +121,15 @@ async function getStrategicInsightItems(
   const candidates: PortalNewsItem[] = [];
 
   try {
-    const { items } = await fetchPortalNewsList();
-    candidates.push(...(items as PortalNewsItem[]));
+    const categoryResult = await fetchPortalNewsListByCategory(
+      analysisOpinionConfig.apiSlug ?? analysisOpinionConfig.slug,
+    );
+    if (categoryResult.ok && categoryResult.items.length) {
+      candidates.push(...(categoryResult.items as PortalNewsItem[]));
+    } else {
+      const { items } = await fetchPortalNewsList();
+      candidates.push(...(items as PortalNewsItem[]));
+    }
   } catch {
     // ignore
   }

@@ -430,6 +430,22 @@ const scoreItemTerms = (item: PortalNewsItem, terms: string[]) => {
   }, 0);
 };
 
+/**
+ * Real upstream category slugs each economic-news route slug should pull
+ * from. "global-economy" is a UI-level grouping of three real upstream
+ * categories; the rest map 1:1 to their own upstream slug.
+ */
+export const ECONOMIC_NEWS_API_SLUGS: Record<EconomicNewsSlug, string[]> = {
+  global: ["global"],
+  economy: ["economy"],
+  "global-economy": ["global", "economy", "global-economy"],
+  "fiscal-monetary": ["fiscal-monetary"],
+};
+
+export const ALL_ECONOMIC_NEWS_API_SLUGS = Array.from(
+  new Set(Object.values(ECONOMIC_NEWS_API_SLUGS).flat()),
+);
+
 export const getEconomicNewsConfig = (slug: string) =>
   ECONOMIC_NEWS_CONFIG.find((item) => item.slug === slug) ?? null;
 

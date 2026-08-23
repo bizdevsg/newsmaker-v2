@@ -7,13 +7,33 @@ import { NewsListView } from "@/components/organisms/news/NewsListView";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { toEconomicNewsCardItems } from "@/lib/news-cards";
 import {
+  ECONOMIC_NEWS_API_SLUGS,
   getEconomicNewsConfig,
   inferEconomicNewsCategoryFromItem,
   isGlobalEconomyGroupSlug,
   resolveEconomicNewsLabel,
 } from "@/lib/news-routing";
-import { fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
+  getPortalNewsItemTimestamp,
+  type PortalNewsItem,
+} from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
+
+const dedupeBySlug = (items: PortalNewsItem[]) => {
+  const seen = new Set<string>();
+  const result: PortalNewsItem[] = [];
+
+  for (const item of items) {
+    const key = item.slug ?? String(item.id ?? "");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+
+  return result;
+};
 
 export const metadata: Metadata = {
   title: "Economic News",
@@ -34,15 +54,28 @@ export default async function EconomicNewsSubPage({
 
   const sectionLabel = resolveEconomicNewsLabel(messages, sub);
 
-  const { items } = await fetchPortalNewsList();
-  const filtered = items.filter((item) => {
-    const inferred = inferEconomicNewsCategoryFromItem(item);
-    if (!inferred) return false;
-    if (config.slug === "global-economy") {
-      return isGlobalEconomyGroupSlug(inferred);
-    }
-    return inferred === config.slug;
-  });
+  const apiSlugs = ECONOMIC_NEWS_API_SLUGS[config.slug];
+  const results = await Promise.all(
+    apiSlugs.map((slug) => fetchPortalNewsListByCategory(slug)),
+  );
+  const apiItems = dedupeBySlug(
+    results.flatMap((result) => (result.ok ? result.items : [])),
+  ).sort(
+    (left, right) =>
+      getPortalNewsItemTimestamp(right) - getPortalNewsItemTimestamp(left),
+  );
+
+  const filtered =
+    apiItems.length > 0
+      ? apiItems
+      : (await fetchPortalNewsList()).items.filter((item) => {
+          const inferred = inferEconomicNewsCategoryFromItem(item);
+          if (!inferred) return false;
+          if (config.slug === "global-economy") {
+            return isGlobalEconomyGroupSlug(inferred);
+          }
+          return inferred === config.slug;
+        });
   const cards = toEconomicNewsCardItems(filtered, { locale, sub, limit: 80 });
 
   return (

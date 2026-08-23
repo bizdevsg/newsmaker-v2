@@ -6,7 +6,10 @@ import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 import {
   type PortalNewsItem,
 } from "@/lib/portalnews-shared";
-import { buildPortalNewsImageUrl, fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  buildPortalNewsImageUrl,
+  fetchPortalNewsListPaged,
+} from "@/lib/portalnews";
 import {
   buildAnalysisDetailHref,
   buildEconomicNewsDetailHref,
@@ -319,7 +322,7 @@ export const searchPortalNews = async (
     fetchPortalAll(NEWS_URL),
     fetchPortalAll(ANALYSIS_URL),
     fetchRegulatoryWatchList(),
-    fetchPortalNewsList().catch(() => ({ items: [], source: "newsmaker" as const })),
+    fetchPortalNewsListPaged().catch(() => ({ items: [], source: "newsmaker" as const })),
   ]);
 
   const portalItems: PortalNewsItem[] = [...newsItems, ...analysisItems];
