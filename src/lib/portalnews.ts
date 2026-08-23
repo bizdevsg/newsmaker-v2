@@ -631,8 +631,11 @@ export async function fetchPortalNewsListPaged(
   );
 }
 
+const DEFAULT_CATEGORY_MAX_PAGES = 5;
+
 export async function fetchPortalNewsListByCategory(
   slug: string,
+  maxPages: number = DEFAULT_CATEGORY_MAX_PAGES,
 ): Promise<{
   ok: boolean;
   status: number;
@@ -655,39 +658,68 @@ export async function fetchPortalNewsListByCategory(
 
   try {
     return await getCachedValue(
-      `portalnews:list-by-category:${normalizedSlug}`,
+      `portalnews:list-by-category:${normalizedSlug}:${maxPages}`,
       PORTALNEWS_LIST_CACHE_TTL_SECONDS,
       async () => {
-        const url = `${NEWSMAKER_BERITA_BASE_URL}/${encodeURIComponent(
+        const items: PortalNewsItem[] = [];
+        const seen = new Set<string>();
+        let category: PortalNewsCategory | null = null;
+        let meta: unknown = null;
+        let firstStatus = 0;
+        let sawSuccess = false;
+
+        let nextUrl: string | null = `${NEWSMAKER_BERITA_BASE_URL}/${encodeURIComponent(
           normalizedSlug,
         )}`;
-        const result = await fetchJson(url);
+        let pages = 0;
 
-        if (!result.ok) {
-          // Don't let a transient failure (network blip, timeout, rate
-          // limit) get frozen into the cache as an empty result for the
-          // full TTL — throw so getCachedValue serves a stale good value
-          // if one exists, or retries fresh on the next call.
-          throw new Error(
-            `fetchPortalNewsListByCategory: request failed for "${normalizedSlug}" (status ${result.status})`,
-          );
+        while (nextUrl && pages < maxPages) {
+          pages += 1;
+          const result = await fetchJson(nextUrl);
+          if (pages === 1) firstStatus = result.status;
+
+          if (!result.ok) {
+            if (!sawSuccess) {
+              // Don't let a transient failure (network blip, timeout,
+              // rate limit) on the very first page get frozen into the
+              // cache as an empty result for the full TTL — throw so
+              // getCachedValue serves a stale good value if one exists,
+              // or retries fresh on the next call.
+              throw new Error(
+                `fetchPortalNewsListByCategory: request failed for "${normalizedSlug}" (status ${result.status})`,
+              );
+            }
+            // A later page failed after we already got some pages —
+            // just stop paginating and return what we have.
+            break;
+          }
+          sawSuccess = true;
+
+          if (pages === 1) {
+            category =
+              isRecord(result.payload) && "category" in result.payload
+                ? normalizeCategoryRecord(result.payload.category)
+                : null;
+            meta =
+              isRecord(result.payload) && "meta" in result.payload
+                ? result.payload.meta
+                : null;
+          }
+
+          for (const item of extractItemArray(result.payload)) {
+            const key =
+              item.slug?.trim() || (item.id !== undefined ? String(item.id) : "");
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            items.push(item);
+          }
+
+          nextUrl = readListNextPageUrl(result.payload);
         }
-
-        const items = extractItemArray(result.payload);
-
-        const category =
-          isRecord(result.payload) && "category" in result.payload
-            ? normalizeCategoryRecord(result.payload.category)
-            : null;
-
-        const meta =
-          isRecord(result.payload) && "meta" in result.payload
-            ? result.payload.meta
-            : null;
 
         return {
           ok: true,
-          status: result.status,
+          status: firstStatus,
           items,
           category,
           meta,

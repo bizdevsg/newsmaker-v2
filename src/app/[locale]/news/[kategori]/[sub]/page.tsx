@@ -224,6 +224,7 @@ export default async function NewsSubPage({
       kategori,
       fixedSub: sub,
       inferSubs: null,
+      limit: 100,
     });
 
     const categoryLabel = resolveNewsCategoryLabel(messages, kategori);
