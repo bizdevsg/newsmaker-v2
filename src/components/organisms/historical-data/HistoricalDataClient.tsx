@@ -10,20 +10,13 @@ import type { Locale, Messages } from "@/locales";
 const classNames = (...values: Array<string | false | null | undefined>) =>
   values.filter(Boolean).join(" ");
 
-const safeNumber = (value: unknown) => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+// Show the value exactly as the API sent it — no Number() conversion or
+// Intl.NumberFormat rounding/regrouping, so precision and trailing zeros
+// from upstream are preserved verbatim (same as the CSV export).
+const formatNumber = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
   const text = typeof value === "string" ? value.trim() : "";
-  if (!text) return null;
-  const parsed = Number(text);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const formatNumber = (value: unknown, locale: Locale) => {
-  const n = safeNumber(value);
-  if (n === null) return "-";
-  return new Intl.NumberFormat(locale === "en" ? "en-US" : "id-ID", {
-    maximumFractionDigits: 6,
-  }).format(n);
+  return text || "-";
 };
 
 const CATEGORY_OPTIONS = [
@@ -271,10 +264,10 @@ export function HistoricalDataClient({
             ]
           : [
               row.tanggal,
-              formatNumber(row.open, locale),
-              formatNumber(row.high, locale),
-              formatNumber(row.low, locale),
-              formatNumber(row.close, locale),
+              formatNumber(row.open),
+              formatNumber(row.high),
+              formatNumber(row.low),
+              formatNumber(row.close),
               "",
             ];
 
@@ -483,16 +476,16 @@ export function HistoricalDataClient({
                         ) : (
                           <>
                             <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
-                              {formatNumber(row.open, locale)}
+                              {formatNumber(row.open)}
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
-                              {formatNumber(row.high, locale)}
+                              {formatNumber(row.high)}
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
-                              {formatNumber(row.low, locale)}
+                              {formatNumber(row.low)}
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3 text-slate-700">
-                              {formatNumber(row.close, locale)}
+                              {formatNumber(row.close)}
                             </td>
                           </>
                         )}
