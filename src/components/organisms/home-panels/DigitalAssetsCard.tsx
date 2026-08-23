@@ -7,6 +7,7 @@ import type { PortalNewsItem } from "@/lib/portalnews";
 import {
   buildPortalNewsImageUrl,
   fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
   sortPortalNewsItemsByDate,
 } from "@/lib/portalnews";
 import { resolvePortalNewsImageSrc } from "@/lib/portalnews-image-proxy";
@@ -109,8 +110,11 @@ async function getCryptoItems(
   locale: Locale,
 ): Promise<DigitalAssetsItem[] | null> {
   try {
-    const { items } = await fetchPortalNewsList();
-    const sorted = sortPortalNewsItemsByDate(items as PortalNewsItem[]);
+    const categoryResult = await fetchPortalNewsListByCategory("crypto");
+    const rawItems = categoryResult.ok && categoryResult.items.length
+      ? categoryResult.items
+      : (await fetchPortalNewsList()).items;
+    const sorted = sortPortalNewsItemsByDate(rawItems as PortalNewsItem[]);
 
     const cryptoOnly = sorted.filter(
       (item) => inferMarketNewsCategoryFromItem(item) === "crypto",

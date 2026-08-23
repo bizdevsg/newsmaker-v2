@@ -9,7 +9,11 @@ import {
   inferMarketNewsCategoryFromItem,
   resolveNewsCategoryLabel,
 } from "@/lib/news-routing";
-import { fetchPortalNewsArticle, fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  fetchPortalNewsArticle,
+  fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
+} from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
@@ -123,7 +127,13 @@ export default async function CryptoNewsDetailPage({
   const sourceLabel = item.source || "";
 
   const { items: allItems } = await fetchPortalNewsList();
-  const relatedCandidates = allItems.filter(
+
+  const cryptoCategoryResult = await fetchPortalNewsListByCategory("crypto");
+  const relatedCandidates = (
+    cryptoCategoryResult.ok && cryptoCategoryResult.items.length
+      ? cryptoCategoryResult.items
+      : allItems
+  ).filter(
     (candidate) =>
       candidate.slug !== slug &&
       inferMarketNewsCategoryFromItem(candidate) === "crypto",

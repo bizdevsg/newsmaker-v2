@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { fetchPortalNewsDetail } from "@/lib/portalnews-detail";
 import {
   fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
   getPortalNewsCategoryKeys,
   getPortalNewsItemTimestamp,
   normalizePortalNewsCategory,
@@ -70,14 +71,25 @@ export async function GET(request: Request) {
     const category = searchParams.get("category")?.trim() ?? "";
     const excludeCategory = searchParams.get("excludeCategory")?.trim() ?? "";
 
-    const { items, source } = await fetchPortalNewsList();
+    const categoryResult = category
+      ? await fetchPortalNewsListByCategory(category)
+      : null;
+    const useCategoryEndpoint = Boolean(
+      categoryResult?.ok && categoryResult.items.length > 0,
+    );
+
+    const { items, source } = useCategoryEndpoint
+      ? { items: categoryResult!.items, source: "newsmaker" as const }
+      : await fetchPortalNewsList();
+
     const sortedItems = [...items].sort(
       (left, right) =>
         getPortalNewsItemTimestamp(right) - getPortalNewsItemTimestamp(left),
     );
 
     const filteredItems = sortedItems.filter((item) => {
-      const matchesIncluded = category ? matchesCategory(item, category) : true;
+      const matchesIncluded =
+        category && !useCategoryEndpoint ? matchesCategory(item, category) : true;
       const matchesExcluded = excludeCategory
         ? matchesCategory(item, excludeCategory)
         : false;

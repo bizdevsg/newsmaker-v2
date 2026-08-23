@@ -10,9 +10,60 @@ import {
   getNewsCategoryConfig,
   inferMarketNewsCategoryFromItem,
   resolveNewsCategoryLabel,
+  type NewsCategoryConfig,
 } from "@/lib/news-routing";
-import { fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
+  getPortalNewsItemTimestamp,
+  type PortalNewsItem,
+} from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
+
+const dedupeBySlug = (items: PortalNewsItem[]) => {
+  const seen = new Set<string>();
+  const result: PortalNewsItem[] = [];
+
+  for (const item of items) {
+    const key = item.slug ?? String(item.id ?? "");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+
+  return result;
+};
+
+async function fetchCategoryItems(
+  categoryConfig: NewsCategoryConfig,
+): Promise<PortalNewsItem[]> {
+  const categorySlugs = categoryConfig.subs.length
+    ? categoryConfig.subs.map((sub) => sub.slug)
+    : [categoryConfig.slug];
+
+  const results = await Promise.all(
+    categorySlugs.map((slug) => fetchPortalNewsListByCategory(slug)),
+  );
+
+  const apiItems = dedupeBySlug(
+    results.flatMap((result) => (result.ok ? result.items : [])),
+  ).sort(
+    (left, right) =>
+      getPortalNewsItemTimestamp(right) - getPortalNewsItemTimestamp(left),
+  );
+
+  if (apiItems.length > 0) {
+    return apiItems.filter(
+      (item) => item.type?.toLowerCase() !== "analisis",
+    );
+  }
+
+  const { items } = await fetchPortalNewsList();
+  return items.filter((item) => {
+    if (item.type?.toLowerCase() === "analisis") return false;
+    return inferMarketNewsCategoryFromItem(item) === categoryConfig.slug;
+  });
+}
 
 export async function generateMetadata({
   params,
@@ -54,11 +105,7 @@ export default async function NewsCategoryPage({
 
   const title = resolveNewsCategoryLabel(messages, kategori);
 
-  const { items } = await fetchPortalNewsList();
-  const filtered = items.filter((item) => {
-    if (item.type?.toLowerCase() === "analisis") return false;
-    return inferMarketNewsCategoryFromItem(item) === categoryConfig.slug;
-  });
+  const filtered = await fetchCategoryItems(categoryConfig);
 
   const cards = toMarketNewsCardItemsAuto(filtered, { locale, limit: 80 });
 
