@@ -110,6 +110,32 @@ const DEFAULT_STRATEGIC_ITEMS = (locale: Locale): StrategicItem[] => {
   ];
 };
 
+const toStrategicItems = (
+  articles: PortalNewsItem[],
+  locale: Locale,
+): StrategicItem[] => {
+  const eyebrow = locale === "en" ? "Analysis & Opinion" : "Analisis & Opini";
+
+  return articles.slice(0, 2).map((article, index) => {
+    const slug = article.slug?.trim() || "";
+    const href = slug
+      ? buildAnalysisDetailHref(locale, "analisis-opinion", slug)
+      : undefined;
+
+    return {
+      key: String(article.id ?? slug ?? `strategic-${index}`),
+      eyebrow,
+      title: resolveTitle(article, locale),
+      date: formatDateTimeShort(
+        article.updated_at ?? article.created_at,
+        locale,
+      ),
+      image: resolveImage(article),
+      href,
+    };
+  });
+};
+
 async function getStrategicInsightItems(
   locale: Locale,
 ): Promise<StrategicItem[] | null> {
@@ -118,18 +144,29 @@ async function getStrategicInsightItems(
     null;
   if (!analysisOpinionConfig) return null;
 
-  const candidates: PortalNewsItem[] = [];
-
+  // Prefer the dedicated upstream category directly — its items are
+  // already correctly scoped, so re-filtering them by matchTerms (a weak
+  // exact-category-key-or-literal-text-substring check) would only risk
+  // silently dropping genuinely fresh, correctly-categorized articles.
   try {
     const categoryResult = await fetchPortalNewsListByCategory(
       analysisOpinionConfig.apiSlug ?? analysisOpinionConfig.slug,
     );
     if (categoryResult.ok && categoryResult.items.length) {
-      candidates.push(...(categoryResult.items as PortalNewsItem[]));
-    } else {
-      const { items } = await fetchPortalNewsList();
-      candidates.push(...(items as PortalNewsItem[]));
+      const sorted = sortPortalNewsItemsByDate(
+        categoryResult.items as PortalNewsItem[],
+      );
+      return toStrategicItems(sorted, locale);
     }
+  } catch {
+    // fall through to the broader fallback below
+  }
+
+  const candidates: PortalNewsItem[] = [];
+
+  try {
+    const { items } = await fetchPortalNewsList();
+    candidates.push(...(items as PortalNewsItem[]));
   } catch {
     // ignore
   }
@@ -158,26 +195,7 @@ async function getStrategicInsightItems(
   );
   if (!matched.length) return null;
 
-  const eyebrow = locale === "en" ? "Analysis & Opinion" : "Analisis & Opini";
-
-  return matched.slice(0, 2).map((article, index) => {
-    const slug = article.slug?.trim() || "";
-    const href = slug
-      ? buildAnalysisDetailHref(locale, "analisis-opinion", slug)
-      : undefined;
-
-    return {
-      key: String(article.id ?? slug ?? `strategic-${index}`),
-      eyebrow,
-      title: resolveTitle(article, locale),
-      date: formatDateTimeShort(
-        article.updated_at ?? article.created_at,
-        locale,
-      ),
-      image: resolveImage(article),
-      href,
-    };
-  });
+  return toStrategicItems(matched, locale);
 }
 
 export async function HomeInsightBoards({
