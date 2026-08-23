@@ -7,6 +7,7 @@ import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import {
   buildNewsCategoryHref,
   buildNewsSubHref,
+  getNewsSubConfig,
   resolveNewsCategoryLabel,
   resolveNewsSubLabel,
 } from "@/lib/news-routing";
@@ -146,7 +147,10 @@ export default async function NewsDetailPage({
     typeof item.author === "string" ? item.author : item.author?.name || "";
   const sourceLabel = item.source || "";
 
-  const relatedResult = await fetchPortalNewsListByCategory(sub);
+  const subConfig = getNewsSubConfig(kategori, sub);
+  const relatedResult = await fetchPortalNewsListByCategory(
+    subConfig?.apiSlug ?? sub,
+  );
   const relatedItems =
     relatedResult.ok && relatedResult.items.length
       ? toNewsCardItems(

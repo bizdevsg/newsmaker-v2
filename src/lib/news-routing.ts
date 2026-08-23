@@ -26,6 +26,8 @@ type SiteNavLabelKey = keyof SiteNavLabels;
 
 export type NewsSubConfig = {
   slug: NewsSubSlug;
+  /** Upstream category slug, when it differs from the app-facing `slug`. */
+  apiSlug?: string;
   labelKey: SiteNavLabelKey;
   matchTerms: string[];
 };
@@ -67,6 +69,7 @@ export const NEWS_NAV_CONFIG: NewsCategoryConfig[] = [
       },
       {
         slug: "hangseng",
+        apiSlug: "hang-seng",
         labelKey: "hangseng",
         matchTerms: ["hangseng", "hang seng", "hong kong", "hk"],
       },
@@ -125,26 +128,31 @@ export const NEWS_NAV_CONFIG: NewsCategoryConfig[] = [
     subs: [
       {
         slug: "eur-usd",
+        apiSlug: "eurusd",
         labelKey: "eurUsd",
         matchTerms: ["eur-usd", "eurusd", "eur/usd"],
       },
       {
         slug: "usd-jpy",
+        apiSlug: "usdjpy",
         labelKey: "usdJpy",
         matchTerms: ["usd-jpy", "usdjpy", "usd/jpy"],
       },
       {
         slug: "usd-chf",
+        apiSlug: "usdchf",
         labelKey: "usdChf",
         matchTerms: ["usd-chf", "usdchf", "usd/chf"],
       },
       {
         slug: "aud-usd",
+        apiSlug: "audusd",
         labelKey: "audUsd",
         matchTerms: ["aud-usd", "audusd", "aud/usd"],
       },
       {
         slug: "gbp-usd",
+        apiSlug: "gbpusd",
         labelKey: "gbpUsd",
         matchTerms: ["gbp-usd", "gbpusd", "gbp/usd"],
       },

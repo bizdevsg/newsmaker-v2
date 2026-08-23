@@ -38,7 +38,7 @@ async function fetchCategoryItems(
   categoryConfig: NewsCategoryConfig,
 ): Promise<PortalNewsItem[]> {
   const categorySlugs = categoryConfig.subs.length
-    ? categoryConfig.subs.map((sub) => sub.slug)
+    ? categoryConfig.subs.map((sub) => sub.apiSlug ?? sub.slug)
     : [categoryConfig.slug];
 
   const results = await Promise.all(

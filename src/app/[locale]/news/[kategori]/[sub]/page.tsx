@@ -202,9 +202,11 @@ export default async function NewsSubPage({
     );
   }
 
-  const apiResult = await fetchPortalNewsListByCategory(sub);
-  const canUseApi = apiResult.ok && apiResult.items.length > 0;
   const subConfigForValidation = getNewsSubConfig(kategori, sub);
+  const apiResult = await fetchPortalNewsListByCategory(
+    subConfigForValidation?.apiSlug ?? sub,
+  );
+  const canUseApi = apiResult.ok && apiResult.items.length > 0;
   const validatedApiItems = subConfigForValidation
     ? filterItemsByTermsStrict(
         apiResult.items,
