@@ -255,6 +255,11 @@ export function SiteHeader() {
             href: routeTo("analysis/analisis-opinion"),
           },
           {
+            key: "analysis:market-academy",
+            label: siteNavLabels.marketAcademy,
+            href: routeTo("market-academy"),
+          },
+          {
             key: "analysis:live-chart",
             label: siteNavLabels.liveChart,
             href: routeTo("analysis/live-chart"),

@@ -8,6 +8,7 @@ import {
   buildMarketNewsDetailHrefForItem,
   buildNewsDetailHref,
   buildGoldCornerDetailHref,
+  buildMarketAcademyDetailHref,
   inferAnalysisCategoryFromItem,
   inferEconomicNewsCategoryFromItem,
   normalizeEconomicNewsRouteSub,
@@ -447,5 +448,22 @@ export function toGoldCornerCardItems(
     locale,
     limit,
     hrefForSlug: (slug) => buildGoldCornerDetailHref(locale, slug),
+  });
+}
+
+export function toMarketAcademyCardItems(
+  items: PortalNewsItem[],
+  {
+    locale,
+    limit = 40,
+  }: {
+    locale: Locale;
+    limit?: number;
+  },
+): NewsCardItem[] {
+  return toSimpleCardItems(items, {
+    locale,
+    limit,
+    hrefForSlug: (slug) => buildMarketAcademyDetailHref(locale, slug),
   });
 }

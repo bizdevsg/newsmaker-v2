@@ -11,7 +11,10 @@ import {
   inferAnalysisCategoryFromItem,
   resolveAnalysisLabel,
 } from "@/lib/news-routing";
-import { fetchPortalNewsList } from "@/lib/portalnews";
+import {
+  fetchPortalNewsList,
+  fetchPortalNewsListByCategory,
+} from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
@@ -33,10 +36,15 @@ export default async function AnalysisSubPage({
 
   const sectionLabel = resolveAnalysisLabel(messages, sub);
 
-  const { items } = await fetchPortalNewsList();
-  const filtered = items.filter(
-    (item) => inferAnalysisCategoryFromItem(item) === config.slug,
+  const categoryResult = await fetchPortalNewsListByCategory(
+    config.apiSlug ?? config.slug,
   );
+  const filtered =
+    categoryResult.ok && categoryResult.items.length
+      ? categoryResult.items
+      : (await fetchPortalNewsList()).items.filter(
+          (item) => inferAnalysisCategoryFromItem(item) === config.slug,
+        );
   const cards = toAnalysisCardItems(filtered, { locale, sub, limit: 80 });
 
   return (

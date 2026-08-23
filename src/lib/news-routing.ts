@@ -211,7 +211,9 @@ export const inferMarketNewsCategoryFromItem = (
   if (
     explicitSlugs.includes("market-analysis") ||
     explicitSlugs.includes("analisis-opinion") ||
-    explicitSlugs.includes("gold-corner")
+    explicitSlugs.includes("analysis-opinion") ||
+    explicitSlugs.includes("gold-corner") ||
+    explicitSlugs.includes("market-academy")
   ) {
     return null;
   }
@@ -462,10 +464,13 @@ export const normalizeEconomicNewsRouteSub = (
 export type AnalysisSlug =
   | "market-analysis"
   | "analisis-opinion"
-  | "gold-corner";
+  | "gold-corner"
+  | "market-academy";
 
 export type AnalysisConfig = {
   slug: AnalysisSlug;
+  /** Upstream category slug, when it differs from the app-facing `slug`. */
+  apiSlug?: string;
   labelKey: SiteNavLabelKey;
   matchTerms: string[];
 };
@@ -484,6 +489,7 @@ export const ANALYSIS_CONFIG: AnalysisConfig[] = [
   },
   {
     slug: "analisis-opinion",
+    apiSlug: "analysis-opinion",
     labelKey: "analysisOpinion",
     matchTerms: ["opinion", "opini", "commentary"],
   },
@@ -491,6 +497,19 @@ export const ANALYSIS_CONFIG: AnalysisConfig[] = [
     slug: "gold-corner",
     labelKey: "goldCorner",
     matchTerms: ["gold corner", "gold-corner", "goldcorner"],
+  },
+  {
+    slug: "market-academy",
+    labelKey: "marketAcademy",
+    matchTerms: [
+      "market academy",
+      "market-academy",
+      "akademi",
+      "akademi pasar",
+      "edukasi",
+      "tutorial",
+      "belajar",
+    ],
   },
 ];
 
@@ -519,6 +538,12 @@ export const buildGoldCornerListHref = (locale: Locale) =>
 export const buildGoldCornerDetailHref = (locale: Locale, slug: string) =>
   `/${locale}/gold-corner/${encodeURIComponent(slug)}`;
 
+export const buildMarketAcademyListHref = (locale: Locale) =>
+  `/${locale}/market-academy`;
+
+export const buildMarketAcademyDetailHref = (locale: Locale, slug: string) =>
+  `/${locale}/market-academy/${encodeURIComponent(slug)}`;
+
 export const isAnalysisPortalNewsItem = (item: PortalNewsItem) => {
   const type = item.type?.trim().toLowerCase() ?? "";
   if (type === "analisis" || type === "analysis" || type === "gold-corner")
@@ -534,7 +559,9 @@ export const isAnalysisPortalNewsItem = (item: PortalNewsItem) => {
 
   if (categorySlugs.includes("market-analysis")) return true;
   if (categorySlugs.includes("analisis-opinion")) return true;
+  if (categorySlugs.includes("analysis-opinion")) return true;
   if (categorySlugs.includes("gold-corner")) return true;
+  if (categorySlugs.includes("market-academy")) return true;
 
   return ANALYSIS_CONFIG.some((config) =>
     itemMatchesTerms(item, config.matchTerms),

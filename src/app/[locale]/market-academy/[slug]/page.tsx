@@ -5,21 +5,22 @@ import { Container } from "@/components/layout/Container";
 import { NewsArticleDetail } from "@/components/organisms/news/NewsArticleDetail";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import {
-  buildAnalysisListHref,
-  getAnalysisConfig,
+  toMarketAcademyCardItems,
+  toMarketNewsCardItemsAuto,
+} from "@/lib/news-cards";
+import {
+  buildMarketAcademyListHref,
   inferAnalysisCategoryFromItem,
-  resolveAnalysisLabel,
 } from "@/lib/news-routing";
-import { toAnalysisCardItems, toAnalysisCardItemsAuto } from "@/lib/news-cards";
 import {
   fetchPortalNewsArticle,
-  fetchPortalNewsList,
   fetchPortalNewsListByCategory,
+  fetchPortalNewsList,
 } from "@/lib/portalnews";
 import { getMessages, type Locale } from "@/locales";
 
 export const metadata: Metadata = {
-  title: "Analysis",
+  title: "Market Academy",
 };
 
 const hashSeed = (value: string) => {
@@ -53,7 +54,7 @@ const resolveTitle = (
   item: Awaited<ReturnType<typeof fetchPortalNewsArticle>>["item"],
   locale: Locale,
 ) => {
-  if (!item) return locale === "en" ? "Analysis" : "Analisis";
+  if (!item) return locale === "en" ? "Market Academy" : "Market Academy";
 
   if (locale === "en") {
     return (
@@ -63,7 +64,7 @@ const resolveTitle = (
       item.title_id?.trim() ||
       item.titles?.id?.trim() ||
       item.titles?.default?.trim() ||
-      "Analysis"
+      "Market Academy"
     );
   }
 
@@ -74,7 +75,7 @@ const resolveTitle = (
     item.title_en?.trim() ||
     item.titles?.en?.trim() ||
     item.titles?.default?.trim() ||
-    "Analisis"
+    "Market Academy"
   );
 };
 
@@ -101,18 +102,14 @@ const resolveContentHtml = (
         "";
 };
 
-export default async function AnalysisDetailPage({
+export default async function MarketAcademyDetailPage({
   params,
 }: {
-  params: Promise<{ locale?: string; sub?: string; slug?: string }>;
+  params: Promise<{ locale?: string; slug?: string }>;
 }) {
-  const { locale: rawLocale, sub: rawSub, slug: rawSlug } = await params;
+  const { locale: rawLocale, slug: rawSlug } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const messages = getMessages(locale);
-
-  const sub = decodeURIComponent(rawSub ?? "").trim();
-  const config = getAnalysisConfig(sub);
-  if (!config) notFound();
 
   const slug = decodeURIComponent(rawSlug ?? "").trim();
   if (!slug) notFound();
@@ -120,46 +117,36 @@ export default async function AnalysisDetailPage({
   const { item } = await fetchPortalNewsArticle(slug);
   if (!item) notFound();
 
-  if (inferAnalysisCategoryFromItem(item) !== config.slug) notFound();
+  if (inferAnalysisCategoryFromItem(item) !== "market-academy") notFound();
 
   const title = resolveTitle(item, locale);
-  const sectionLabel = resolveAnalysisLabel(messages, sub);
-  const listHref = buildAnalysisListHref(locale, sub);
-  const publishedAt = item.updated_at ?? item.created_at ?? null;
   const contentHtml = resolveContentHtml(item, locale);
   const imageUrl = item.image_url || item.image || item.images?.[0] || null;
+  const publishedAt = item.updated_at ?? item.created_at ?? null;
   const authorLabel =
     typeof item.author === "string" ? item.author : item.author?.name || "";
   const sourceLabel = item.source || "";
 
-  const { items: allItems } = await fetchPortalNewsList();
-
-  const categoryResult = await fetchPortalNewsListByCategory(
-    config.apiSlug ?? config.slug,
+  const listHref = buildMarketAcademyListHref(locale);
+  const sectionLabel = String(
+    messages.header.siteNav.marketAcademy ?? "Market Academy",
   );
-  const relatedCandidates =
-    categoryResult.ok && categoryResult.items.length
-      ? categoryResult.items.filter((candidate) => candidate.slug !== slug)
-      : allItems
-          .filter((candidate) => candidate.slug !== slug)
-          .filter(
-            (candidate) =>
-              inferAnalysisCategoryFromItem(candidate) === config.slug,
-          );
-  const relatedItems = toAnalysisCardItems(relatedCandidates, {
-    locale,
-    sub,
-    limit: 6,
-  });
 
-  const latestItems = toAnalysisCardItemsAuto(
+  const categoryResult = await fetchPortalNewsListByCategory("market-academy");
+  const relatedItems = toMarketAcademyCardItems(
+    categoryResult.items.filter((candidate) => candidate.slug !== slug),
+    { locale, limit: 6 },
+  );
+
+  const { items: allItems } = await fetchPortalNewsList();
+  const latestItems = toMarketNewsCardItemsAuto(
     allItems.filter((candidate) => candidate.slug !== slug),
     { locale, limit: 5 },
   );
 
   const popularItems = (() => {
     const latestKeys = new Set(latestItems.map((entry) => entry.key));
-    const candidates = toAnalysisCardItemsAuto(
+    const candidates = toMarketNewsCardItemsAuto(
       allItems.filter((candidate) => candidate.slug !== slug),
       { locale, limit: 80 },
     ).filter((entry) => !latestKeys.has(entry.key));
@@ -179,14 +166,8 @@ export default async function AnalysisDetailPage({
           authorLabel={authorLabel || null}
           sourceLabel={sourceLabel || null}
           publishedAt={publishedAt}
-          shareHref={`/${locale}/analysis/${encodeURIComponent(
-            sub,
-          )}/${encodeURIComponent(slug)}`}
+          shareHref={`/${locale}/market-academy/${encodeURIComponent(slug)}`}
           breadcrumb={[
-            {
-              label: String(messages.header.siteNav.analysis ?? "Analysis"),
-              href: `/${locale}/analysis`,
-            },
             { label: sectionLabel, href: listHref },
             { label: title },
           ]}
