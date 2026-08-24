@@ -587,6 +587,13 @@ export const isAnalysisPortalNewsItem = (item: PortalNewsItem) => {
   if (categorySlugs.includes("gold-corner")) return true;
   if (categorySlugs.includes("market-academy")) return true;
 
+  // If the item already carries an explicit (non-analysis) category from the
+  // API, trust it instead of falling through to keyword matching — matchTerms
+  // like "support"/"resistance"/"opini" are generic words that show up
+  // incidentally in ordinary market news content (e.g. "supports commodities")
+  // and would otherwise misclassify normal articles as analysis pieces.
+  if (categorySlugs.length > 0) return false;
+
   return ANALYSIS_CONFIG.some((config) =>
     itemMatchesTerms(item, config.matchTerms),
   );
