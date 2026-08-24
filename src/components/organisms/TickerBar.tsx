@@ -147,8 +147,7 @@ export function TickerBar({
   const localeParam = Array.isArray(rawLocale) ? rawLocale[0] : rawLocale;
   const resolvedLocale =
     localeProp === "en" ? "en" : localeParam === "en" ? "en" : "id";
-  // const [liveTicks, setLiveTicks] = useState<LiveTick[]>([]);
-  const [, setLiveTicks] = useState<LiveTick[]>([]);
+  const [liveTicks, setLiveTicks] = useState<LiveTick[]>([]);
   const [newsTicks, setNewsTicks] = useState<LiveTick[]>([]);
 
   useEffect(() => {
@@ -319,17 +318,17 @@ export function TickerBar({
       { type: "tick"; item: LiveTick } | { type: "pipe"; key: string }
     > = [];
 
-    // liveTicks.forEach((item) => group.push({ type: "tick", item }));
-    // if (liveTicks.length && newsTicks.length) {
-    //   group.push({ type: "pipe", key: "pipe-live-news" });
-    // }
+    liveTicks.forEach((item) => group.push({ type: "tick", item }));
+    if (liveTicks.length && newsTicks.length) {
+      group.push({ type: "pipe", key: "pipe-live-news" });
+    }
     newsTicks.forEach((item) => group.push({ type: "tick", item }));
-    // if (liveTicks.length && newsTicks.length) {
-    //   group.push({ type: "pipe", key: "pipe-news-live" });
-    // }
+    if (liveTicks.length && newsTicks.length) {
+      group.push({ type: "pipe", key: "pipe-news-live" });
+    }
 
     return [...group, ...group, ...group];
-  }, [newsTicks]);
+  }, [liveTicks, newsTicks]);
 
   const renderTick = (
     item: LiveTick,
