@@ -50,6 +50,7 @@ type MarketApiItem = {
   price?: number;
   valueChange?: number;
   percentChange?: number;
+  "change%"?: string;
 };
 
 type MarketApiResponse = {
@@ -194,17 +195,31 @@ export function TickerBar({
       }
 
       const priceText = formatNumber(item.price);
+
+      // The upstream API's numeric percentChange/valueChange fields are
+      // always 0 (broken), but the "change%" string field carries the real
+      // day change, so parse that first and only fall back to the numeric
+      // fields if it's missing.
+      const parsedChangePercent =
+        typeof item["change%"] === "string"
+          ? Number.parseFloat(item["change%"].replace("%", ""))
+          : Number.NaN;
+      const effectivePercent = Number.isFinite(parsedChangePercent)
+        ? parsedChangePercent
+        : typeof item.percentChange === "number" &&
+            Number.isFinite(item.percentChange)
+          ? item.percentChange
+          : undefined;
+
       const changePercentText =
-        typeof item.percentChange === "number" &&
-        Number.isFinite(item.percentChange)
-          ? formatSignedPercent(item.percentChange)
+        effectivePercent !== undefined
+          ? formatSignedPercent(effectivePercent)
           : undefined;
       const tone =
-        typeof item.percentChange === "number" &&
-        Number.isFinite(item.percentChange)
-          ? item.percentChange > 0
+        effectivePercent !== undefined
+          ? effectivePercent > 0
             ? "up"
-            : item.percentChange < 0
+            : effectivePercent < 0
               ? "down"
               : "flat"
           : typeof item.valueChange === "number" &&
