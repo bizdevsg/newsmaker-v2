@@ -145,7 +145,7 @@ export function SiteHeader() {
           {
             key: "market-news:index",
             label: siteNavLabels.index,
-            href: newsTo("index", "nikkei"),
+            href: newsTo("index"),
             children: [
               {
                 key: "market-news:index:nikkei",
@@ -162,7 +162,7 @@ export function SiteHeader() {
           {
             key: "market-news:commodity",
             label: siteNavLabels.commodity,
-            href: newsTo("commodity", "gold"),
+            href: newsTo("commodity"),
             children: [
               {
                 key: "market-news:commodity:gold",
@@ -184,7 +184,7 @@ export function SiteHeader() {
           {
             key: "market-news:currencies",
             label: siteNavLabels.currencies,
-            href: newsTo("currencies", "eur-usd"),
+            href: newsTo("currencies"),
             children: [
               {
                 key: "market-news:currencies:eur-usd",

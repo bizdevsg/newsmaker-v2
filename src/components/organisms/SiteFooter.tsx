@@ -25,9 +25,9 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
   const resolveNewsHref = (linkKey: string) => {
     const map: Record<string, string> = {
       crypto: `${homeHref}/news/crypto`,
-      index: `${homeHref}/news/index/nikkei`,
-      commodity: `${homeHref}/news/commodity/gold`,
-      currencies: `${homeHref}/news/currencies/eur-usd`,
+      index: `${homeHref}/news/index`,
+      commodity: `${homeHref}/news/commodity`,
+      currencies: `${homeHref}/news/currencies`,
       economy: `${homeHref}/economic-news/global-economy`,
       fiscal: `${homeHref}/economic-news/fiscal-monetary`,
       "market-analysis": `${homeHref}/analysis/market-analysis`,
