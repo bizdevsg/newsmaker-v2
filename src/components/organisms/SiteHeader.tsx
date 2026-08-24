@@ -145,8 +145,13 @@ export function SiteHeader() {
           {
             key: "market-news:index",
             label: siteNavLabels.index,
-            href: newsTo("index"),
+            href: newsTo("index", "nikkei"),
             children: [
+              {
+                key: "market-news:index:all",
+                label: siteNavLabels.viewAll,
+                href: newsTo("index"),
+              },
               {
                 key: "market-news:index:nikkei",
                 label: siteNavLabels.nikkei,
@@ -162,8 +167,13 @@ export function SiteHeader() {
           {
             key: "market-news:commodity",
             label: siteNavLabels.commodity,
-            href: newsTo("commodity"),
+            href: newsTo("commodity", "gold"),
             children: [
+              {
+                key: "market-news:commodity:all",
+                label: siteNavLabels.viewAll,
+                href: newsTo("commodity"),
+              },
               {
                 key: "market-news:commodity:gold",
                 label: siteNavLabels.gold,
@@ -184,8 +194,13 @@ export function SiteHeader() {
           {
             key: "market-news:currencies",
             label: siteNavLabels.currencies,
-            href: newsTo("currencies"),
+            href: newsTo("currencies", "eur-usd"),
             children: [
+              {
+                key: "market-news:currencies:all",
+                label: siteNavLabels.viewAll,
+                href: newsTo("currencies"),
+              },
               {
                 key: "market-news:currencies:eur-usd",
                 label: siteNavLabels.eurUsd,
