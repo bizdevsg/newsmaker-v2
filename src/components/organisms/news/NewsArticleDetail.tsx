@@ -63,12 +63,14 @@ const formatArticleDateTime = (
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   }).format(parsed);
 
   const time = new Intl.DateTimeFormat(dateLocale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Asia/Jakarta",
   }).format(parsed);
 
   return `${date} ${time}`;

@@ -123,6 +123,7 @@ export function EconomicCalendarClient({
       day: "numeric",
       month: "long",
       year: "numeric",
+      timeZone: "Asia/Jakarta",
     }).format(date);
   };
 
