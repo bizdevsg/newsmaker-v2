@@ -108,7 +108,7 @@ export function SiteHeader() {
       regulation: `/${currentLocale}/regulasi-institusi`,
       stockMarket: `/${currentLocale}/indonesia-market/news/pasar-saham`,
       commodities: `/${currentLocale}/indonesia-market/news/komoditas`,
-      globalMarket: `https://newsmaker.id/index.php/${currentLocale}/`,
+      globalMarket: `https://newsmaker.id/${currentLocale}/`,
     };
   }, [currentLocale, homeHref]);
 
