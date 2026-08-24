@@ -91,12 +91,14 @@ const formatDateShort = (value: string | undefined, locale: Locale) => {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   });
   const timePart = parsed
     .toLocaleTimeString(resolvedLocale, {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
+      timeZone: "Asia/Jakarta",
     })
     .replace(":", ".");
 

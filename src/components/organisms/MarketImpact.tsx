@@ -53,6 +53,7 @@ const formatNewsDate = (value: string | undefined, locale: string) => {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   });
 };
 
