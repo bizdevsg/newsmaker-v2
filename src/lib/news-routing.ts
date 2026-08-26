@@ -11,6 +11,7 @@ export type NewsCategorySlug = "crypto" | "index" | "commodity" | "currencies";
 export type NewsSubSlug =
   | "nikkei"
   | "hangseng"
+  | "market-update"
   | "gold"
   | "silver"
   | "oil"
@@ -55,6 +56,7 @@ export const NEWS_NAV_CONFIG: NewsCategoryConfig[] = [
       "nikkei",
       "hangseng",
       "hang seng",
+      "market update",
       "dow",
       "nasdaq",
       "s&p",
@@ -72,6 +74,11 @@ export const NEWS_NAV_CONFIG: NewsCategoryConfig[] = [
         apiSlug: "hang-seng",
         labelKey: "hangseng",
         matchTerms: ["hangseng", "hang seng", "hong kong", "hk"],
+      },
+      {
+        slug: "market-update",
+        labelKey: "marketUpdate",
+        matchTerms: ["market update", "market-update"],
       },
     ],
   },

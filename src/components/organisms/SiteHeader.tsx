@@ -162,6 +162,11 @@ export function SiteHeader() {
                 label: siteNavLabels.hangseng,
                 href: newsTo("index", "hangseng"),
               },
+              {
+                key: "market-news:index:market-update",
+                label: siteNavLabels.marketUpdate,
+                href: newsTo("index", "market-update"),
+              },
             ],
           },
           {
