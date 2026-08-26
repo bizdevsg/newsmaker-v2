@@ -144,6 +144,20 @@ const getFirstArray = (value: unknown): unknown[] | null => {
   return null;
 };
 
+const readNextPageUrl = (payload: unknown): string | null => {
+  if (!isRecord(payload)) return null;
+  const meta = payload.meta;
+  if (!isRecord(meta)) return null;
+  const pagination = meta.pagination;
+  if (!isRecord(pagination)) return null;
+  if (pagination.has_more_pages !== true) return null;
+
+  const next = pagination.next_page_url;
+  if (typeof next !== "string") return null;
+  const normalized = next.trim();
+  return normalized ? normalized : null;
+};
+
 const parseImpact = (value: unknown): CalendarImpact => {
   if (typeof value === "number" && Number.isFinite(value)) {
     if (value >= 3) return 3;
@@ -345,6 +359,8 @@ export const fetchEconomicCalendarToday = async (
   return fetchEconomicCalendar("today", maxItems);
 };
 
+const ECONOMIC_CALENDAR_MAX_PAGES = 10;
+
 export const fetchEconomicCalendar = async (
   timeFrame: EconomicCalendarTimeFrame,
   maxItems: number,
@@ -354,32 +370,47 @@ export const fetchEconomicCalendar = async (
       `economic-calendar:${timeFrame}`,
       ECONOMIC_CALENDAR_CACHE_TTL_SECONDS,
       async () => {
-        const response = await fetchWithTimeout(
-          resolveEconomicCalendarUrl(timeFrame),
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              ...(TOKEN
-                ? {
-                    Authorization: `Bearer ${TOKEN}`,
-                    "X-API-TOKEN": TOKEN,
-                  }
-                : {}),
-            },
-          },
-          10_000,
-        );
+        // The upstream calendar endpoints are paginated (~20 events/page) just
+        // like the news endpoints - a busy week can span several pages, so we
+        // have to follow next_page_url instead of only reading page 1.
+        const items: unknown[] = [];
+        let url: string | null = resolveEconomicCalendarUrl(timeFrame);
+        let pageCount = 0;
 
-        if (!response.ok) {
-          throw new Error(`economic_calendar_upstream_${response.status}`);
+        while (url && pageCount < ECONOMIC_CALENDAR_MAX_PAGES) {
+          const response = await fetchWithTimeout(
+            url,
+            {
+              method: "GET",
+              headers: {
+                Accept: "application/json",
+                ...(TOKEN
+                  ? {
+                      Authorization: `Bearer ${TOKEN}`,
+                      "X-API-TOKEN": TOKEN,
+                    }
+                  : {}),
+              },
+            },
+            10_000,
+          );
+
+          if (!response.ok) {
+            if (pageCount === 0) {
+              throw new Error(`economic_calendar_upstream_${response.status}`);
+            }
+            break;
+          }
+
+          const payload = (await response.json().catch(() => null)) as unknown;
+          const list = getFirstArray(payload);
+          if (list) items.push(...list);
+
+          pageCount += 1;
+          url = readNextPageUrl(payload);
         }
 
-        const payload = (await response.json().catch(() => null)) as unknown;
-        const list = getFirstArray(payload);
-        if (!list) return [];
-
-        return list
+        return items
           .map((item, index) => toCalendarItem(item, index))
           .filter((item): item is EconomicCalendarItem => item !== null);
       },
