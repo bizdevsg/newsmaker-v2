@@ -27,7 +27,7 @@ export async function RegulatoryWatch({
             key: item.slug?.trim() ?? String(item.id ?? index),
             title: resolveRegulatoryWatchTitle(item, locale),
             date: formatRegulatoryWatchDate(
-              item.updated_at ?? item.created_at,
+              item.created_at ?? item.updated_at,
               locale,
             ),
             tag: resolveRegulatoryWatchTag(item, locale),

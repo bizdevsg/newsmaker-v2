@@ -502,7 +502,10 @@ export const getPortalNewsCategoryKeys = (
     .filter(Boolean) as string[];
 
 export const getPortalNewsItemTimestamp = (item: PortalNewsItem) => {
-  const value = item.updated_at ?? item.created_at;
+  // Sort by when the article was published, not when it was last edited -
+  // an old article touched up for a copy fix shouldn't jump ahead of
+  // genuinely new articles in "latest" lists.
+  const value = item.created_at ?? item.updated_at;
   if (!value) return 0;
 
   const timestamp = new Date(value).getTime();

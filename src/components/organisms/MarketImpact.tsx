@@ -132,7 +132,7 @@ export function MarketImpact({ messages, locale = "id" }: MarketImpactProps) {
     const summaryText = stripHtml(content || "");
 
     const formattedDate = formatNewsDate(
-      item.updated_at ?? item.created_at,
+      item.created_at ?? item.updated_at,
       locale,
     );
 

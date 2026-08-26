@@ -140,7 +140,7 @@ export default async function NewsDetailPage({
     resolveNewsSubLabel(messages, kategori, sub);
   const categoryHref = buildNewsCategoryHref(locale, kategori);
   const subHref = buildNewsSubHref(locale, kategori, sub);
-  const publishedAt = item.updated_at ?? item.created_at ?? null;
+  const publishedAt = item.created_at ?? item.updated_at ?? null;
   const contentHtml = resolveContentHtml(item, locale);
   const imageUrl = item.image_url || item.image || item.images?.[0] || null;
   const authorLabel =

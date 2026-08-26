@@ -128,7 +128,7 @@ async function getMarketAnalysisItems(
         eyebrow: "MARKET ANALYSIS",
         title: resolveTitle(article, locale),
         date: formatDateTimeShort(
-          article.updated_at ?? article.created_at,
+          article.created_at ?? article.updated_at,
           locale,
         ),
         image: resolveImage(article),

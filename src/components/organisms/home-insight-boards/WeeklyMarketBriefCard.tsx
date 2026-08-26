@@ -157,7 +157,7 @@ async function getGoldCornerBrief(
     key: String(article.id ?? slug ?? "gold-corner"),
     eyebrow: "GOLD CORNER",
     title: resolveTitle(article, locale),
-    date: formatDateTimeShort(article.updated_at ?? article.created_at, locale),
+    date: formatDateTimeShort(article.created_at ?? article.updated_at, locale),
     image:
       resolveImage(article) || "/assets/Screenshot-2024-10-29-at-11.27.48.png",
     href,

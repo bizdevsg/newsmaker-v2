@@ -168,7 +168,7 @@ export default async function EconomicNewsDetailPage({
   const title = resolveTitle(item, locale);
   const sectionLabel = resolveEconomicNewsLabel(messages, sub);
   const listHref = buildEconomicNewsListHref(locale, sub);
-  const publishedAt = item.updated_at ?? item.created_at ?? null;
+  const publishedAt = item.created_at ?? item.updated_at ?? null;
   const contentHtml = resolveContentHtml(item, locale);
   const imageUrl = item.image_url || item.image || item.images?.[0] || null;
   const authorLabel =

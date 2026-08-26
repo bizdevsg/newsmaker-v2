@@ -129,7 +129,7 @@ const toStrategicItems = (
       eyebrow,
       title: resolveTitle(article, locale),
       date: formatDateTimeShort(
-        article.updated_at ?? article.created_at,
+        article.created_at ?? article.updated_at,
         locale,
       ),
       image: resolveImage(article),

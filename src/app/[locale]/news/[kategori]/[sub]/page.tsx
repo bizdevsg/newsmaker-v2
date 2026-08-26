@@ -138,7 +138,7 @@ export default async function NewsSubPage({
     const categoryHref = buildNewsCategoryHref(locale, kategori);
     const contentHtml = resolveContentHtml(item, locale);
     const imageUrl = item.image_url || item.image || item.images?.[0] || null;
-    const publishedAt = item.updated_at ?? item.created_at ?? null;
+    const publishedAt = item.created_at ?? item.updated_at ?? null;
     const authorLabel =
       typeof item.author === "string" ? item.author : item.author?.name || "";
     const sourceLabel = item.source || "";
