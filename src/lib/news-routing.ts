@@ -646,17 +646,26 @@ export const inferAnalysisCategoryFromItem = (
   if (inferMarketNewsCategoryFromItem(item) !== null) return null;
   if (!isAnalysisPortalNewsItem(item)) return null;
 
-  const explicitCategory = [
+  const candidateSlugs = [
     item.sub_category?.slug,
     item.main_category?.slug,
     item.kategori?.slug,
   ]
     .map((value) => normalizeRouteSlug(value))
-    .filter(Boolean)
-    .find((value) => ANALYSIS_CONFIG.some((config) => config.slug === value));
+    .filter(Boolean);
 
-  if (explicitCategory) {
-    return explicitCategory as AnalysisSlug;
+  // Match against both the app-facing slug and the upstream apiSlug (they
+  // differ for e.g. analisis-opinion vs analysis-opinion) - and return the
+  // config's own slug, not whichever spelling happened to match, so the
+  // caller's `=== config.slug` route check doesn't fail on a raw API value.
+  const explicitConfig = ANALYSIS_CONFIG.find((config) =>
+    candidateSlugs.some(
+      (value) => value === config.slug || value === config.apiSlug,
+    ),
+  );
+
+  if (explicitConfig) {
+    return explicitConfig.slug;
   }
 
   let best: AnalysisSlug | null = null;
