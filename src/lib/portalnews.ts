@@ -775,78 +775,103 @@ export async function fetchPortalNewsCategories(): Promise<{
   );
 }
 
+const hasPortalNewsContent = (item: PortalNewsItem | null | undefined) =>
+  Boolean(
+    item?.content_id?.trim() ||
+      item?.content_en?.trim() ||
+      item?.content?.trim() ||
+      item?.contents?.id?.trim() ||
+      item?.contents?.en?.trim() ||
+      item?.contents?.default?.trim(),
+  );
+
 export async function fetchPortalNewsArticle(slug: string): Promise<{
   item: PortalNewsItem | null;
   source: PortalNewsSource;
 }> {
   const normalizedSlug = slug.trim();
-  return getCachedValue(
-    `portalnews:article:${normalizedSlug}`,
-    PORTALNEWS_DETAIL_CACHE_TTL_SECONDS,
-    async () => {
-      const detailRequests = [
-        {
-          url: NEWSMAKER_BERITA_SHOW_BASE_URL
-            ? `${NEWSMAKER_BERITA_SHOW_BASE_URL}/${normalizedSlug}`
-            : "",
-          source: "newsmaker" as const,
-        },
-        {
-          url: `${
-            PASAR_INDONESIA_NEWS_URL ||
-            "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita"
-          }/${normalizedSlug}`,
-          source: "newsmaker" as const,
-          token: PASAR_INDONESIA_TOKEN,
-        },
-        {
-          url: `${
-            PASAR_INDONESIA_ANALYSIS_URL ||
-            "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis"
-          }/${normalizedSlug}`,
-          source: "newsmaker" as const,
-          token: PASAR_INDONESIA_TOKEN,
-        },
-        {
-          url: PRIMARY_NEWS_DETAIL_URL
-            ? `${PRIMARY_NEWS_DETAIL_URL}/${normalizedSlug}`
-            : "",
-          source: "legacy" as const,
-        },
-        {
-          url: FALLBACK_NEWS_SHOW_URL
-            ? `${FALLBACK_NEWS_SHOW_URL}/${normalizedSlug}`
-            : "",
-          source: "newsmaker" as const,
-        },
-        {
-          url: FALLBACK_NEWS_DETAIL_URL
-            ? `${FALLBACK_NEWS_DETAIL_URL}/${normalizedSlug}`
-            : "",
-          source: "newsmaker" as const,
-        },
-      ].filter((request) => Boolean(request.url));
+  try {
+    return await getCachedValue(
+      `portalnews:article:${normalizedSlug}`,
+      PORTALNEWS_DETAIL_CACHE_TTL_SECONDS,
+      async () => {
+        const detailRequests = [
+          {
+            url: NEWSMAKER_BERITA_SHOW_BASE_URL
+              ? `${NEWSMAKER_BERITA_SHOW_BASE_URL}/${normalizedSlug}`
+              : "",
+            source: "newsmaker" as const,
+          },
+          {
+            url: `${
+              PASAR_INDONESIA_NEWS_URL ||
+              "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/berita"
+            }/${normalizedSlug}`,
+            source: "newsmaker" as const,
+            token: PASAR_INDONESIA_TOKEN,
+          },
+          {
+            url: `${
+              PASAR_INDONESIA_ANALYSIS_URL ||
+              "http://portalnews.newsmaker.test/api/v1/newsmaker/pasar-indonesia/analisis"
+            }/${normalizedSlug}`,
+            source: "newsmaker" as const,
+            token: PASAR_INDONESIA_TOKEN,
+          },
+          {
+            url: PRIMARY_NEWS_DETAIL_URL
+              ? `${PRIMARY_NEWS_DETAIL_URL}/${normalizedSlug}`
+              : "",
+            source: "legacy" as const,
+          },
+          {
+            url: FALLBACK_NEWS_SHOW_URL
+              ? `${FALLBACK_NEWS_SHOW_URL}/${normalizedSlug}`
+              : "",
+            source: "newsmaker" as const,
+          },
+          {
+            url: FALLBACK_NEWS_DETAIL_URL
+              ? `${FALLBACK_NEWS_DETAIL_URL}/${normalizedSlug}`
+              : "",
+            source: "newsmaker" as const,
+          },
+        ].filter((request) => Boolean(request.url));
 
-      for (const request of detailRequests) {
-        const result = await fetchJson(request.url, request.token);
-        const item = normalizePayloadItem(result.payload);
+        for (const request of detailRequests) {
+          const result = await fetchJson(request.url, request.token);
+          const item = normalizePayloadItem(result.payload);
 
-        if (result.ok && item) {
-          return {
-            item,
-            source: request.source,
-          };
+          if (result.ok && item) {
+            return {
+              item,
+              source: request.source,
+            };
+          }
         }
-      }
 
-      const { items, source } = await fetchPortalNewsList();
+        // None of the dedicated detail endpoints returned the article - this
+        // is usually a transient upstream hiccup (rate limit, timeout), not a
+        // genuinely missing article. The generic list doesn't carry content
+        // fields at all, so only accept it as a real fallback when it does
+        // (e.g. an item shape that happens to include content already);
+        // otherwise throw so this failure isn't cached as a false "success" -
+        // which would freeze "content not available" on the page for the
+        // full cache TTL even after the upstream recovers moments later.
+        const { items, source } = await fetchPortalNewsList();
+        const fallbackItem =
+          items.find((item) => item.slug === normalizedSlug) ?? null;
 
-      return {
-        item: items.find((item) => item.slug === normalizedSlug) ?? null,
-        source,
-      };
-    },
-  );
+        if (!hasPortalNewsContent(fallbackItem)) {
+          throw new Error(`portalnews_article_unavailable:${normalizedSlug}`);
+        }
+
+        return { item: fallbackItem, source };
+      },
+    );
+  } catch {
+    return { item: null, source: "newsmaker" };
+  }
 }
 
 export async function fetchPasarIndonesiaNews(): Promise<{
