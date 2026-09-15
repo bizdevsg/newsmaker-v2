@@ -4,15 +4,23 @@ import React, { useState } from "react";
 import Image from "next/image";
 import type { Messages } from "@/locales";
 import { Button } from "@/components/atoms/Button";
+import {
+  createNumberFormatter,
+  inferDecimalPlaces,
+} from "@/lib/number-precision";
 
 type FibonacciTabProps = {
   pfData: Messages["policy"]["pivotFibonacci"];
-  formatNum: (num: number) => string;
+  locale: string;
 };
 
-export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
+export function FibonacciTab({ pfData, locale }: FibonacciTabProps) {
   const [fiboUpInputs, setFiboUpInputs] = useState({ low: "", high: "" });
   const [fiboDownInputs, setFiboDownInputs] = useState({ high: "", low: "" });
+  // Each calculator infers its own precision from its own inputs (e.g. forex
+  // "1.1650" vs gold "4600"), rather than a fixed 2 decimals for both.
+  const [fiboUpDecimals, setFiboUpDecimals] = useState(2);
+  const [fiboDownDecimals, setFiboDownDecimals] = useState(2);
 
   const [fiboUpResults, setFiboUpResults] = useState(() => ({
     retracement: {
@@ -59,6 +67,9 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
     const l = Math.min(lowInput, highInput);
     const diff = h - l;
 
+    setFiboUpDecimals(
+      inferDecimalPlaces([fiboUpInputs.low, fiboUpInputs.high]),
+    );
     setFiboUpResults({
       retracement: {
         "23.60%": h - 0.236 * diff,
@@ -87,6 +98,9 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
     const l = Math.min(highInput, lowInput);
     const diff = h - l;
 
+    setFiboDownDecimals(
+      inferDecimalPlaces([fiboDownInputs.high, fiboDownInputs.low]),
+    );
     setFiboDownResults({
       retracement: {
         "78.60%": l + 0.786 * diff,
@@ -105,6 +119,11 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
       },
     });
   };
+
+  const formatFiboUpNum = (num: number) =>
+    createNumberFormatter(locale, fiboUpDecimals).format(num);
+  const formatFiboDownNum = (num: number) =>
+    createNumberFormatter(locale, fiboDownDecimals).format(num);
 
   return (
     <div className="grid gap-10 lg:grid-cols-2">
@@ -191,7 +210,7 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
                 >
                   <td className="px-3 py-2.5 text-slate-600">{pct}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">
-                    {formatNum(fiboUpResults.retracement[pct])}
+                    {formatFiboUpNum(fiboUpResults.retracement[pct])}
                   </td>
                 </tr>
               ))}
@@ -220,7 +239,7 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
                 >
                   <td className="px-3 py-2.5 text-slate-600">{pct}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">
-                    {formatNum(fiboUpResults.projection[pct])}
+                    {formatFiboUpNum(fiboUpResults.projection[pct])}
                   </td>
                 </tr>
               ))}
@@ -312,7 +331,7 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
                 >
                   <td className="px-3 py-2.5 text-slate-600">{pct}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">
-                    {formatNum(fiboDownResults.retracement[pct])}
+                    {formatFiboDownNum(fiboDownResults.retracement[pct])}
                   </td>
                 </tr>
               ))}
@@ -341,7 +360,7 @@ export function FibonacciTab({ pfData, formatNum }: FibonacciTabProps) {
                 >
                   <td className="px-3 py-2.5 text-slate-600">{pct}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">
-                    {formatNum(fiboDownResults.projection[pct])}
+                    {formatFiboDownNum(fiboDownResults.projection[pct])}
                   </td>
                 </tr>
               ))}

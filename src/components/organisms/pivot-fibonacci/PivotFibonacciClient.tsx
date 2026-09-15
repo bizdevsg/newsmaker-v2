@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import type { Messages } from "@/locales";
 import { PivotTab } from "@/components/organisms/pivot-fibonacci/PivotTab";
 import { FibonacciTab } from "@/components/organisms/pivot-fibonacci/FibonacciTab";
@@ -16,16 +16,6 @@ export function PivotFibonacciClient({
 }: PivotFibonacciClientProps) {
   const pfData = messages.policy.pivotFibonacci;
   const [subTab, setSubTab] = useState<"pivot" | "fibonacci">("pivot");
-
-  const numberFormatter = useMemo(() => {
-    const localeStr = locale === "id" ? "id-ID" : "en-US";
-    return new Intl.NumberFormat(localeStr, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }, [locale]);
-
-  const formatNum = (num: number) => numberFormatter.format(num);
 
   return (
     <div className="mt-6 animate-in fade-in duration-500">
@@ -58,9 +48,9 @@ export function PivotFibonacciClient({
       </div>
 
       {subTab === "pivot" ? (
-        <PivotTab pfData={pfData} formatNum={formatNum} />
+        <PivotTab pfData={pfData} locale={locale} />
       ) : (
-        <FibonacciTab pfData={pfData} formatNum={formatNum} />
+        <FibonacciTab pfData={pfData} locale={locale} />
       )}
     </div>
   );

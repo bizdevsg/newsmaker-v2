@@ -3,6 +3,10 @@
 import React, { useState } from "react";
 import type { Messages } from "@/locales";
 import { Button } from "@/components/atoms/Button";
+import {
+  createNumberFormatter,
+  inferDecimalPlaces,
+} from "@/lib/number-precision";
 
 type PivotResults = {
   classic: {
@@ -48,10 +52,10 @@ const emptyPivotResults: PivotResults = {
 
 type PivotTabProps = {
   pfData: Messages["policy"]["pivotFibonacci"];
-  formatNum: (num: number) => string;
+  locale: string;
 };
 
-export function PivotTab({ pfData, formatNum }: PivotTabProps) {
+export function PivotTab({ pfData, locale }: PivotTabProps) {
   const [pivotInputs, setPivotInputs] = useState({
     open: "",
     high: "",
@@ -60,6 +64,10 @@ export function PivotTab({ pfData, formatNum }: PivotTabProps) {
   });
   const [pivotResults, setPivotResults] =
     useState<PivotResults>(emptyPivotResults);
+  // How many decimals to show the results with - inferred from what the
+  // user actually typed (e.g. "1.1650" for forex vs "4600" for gold), not a
+  // fixed 2 decimals that would flatten forex pairs to meaningless numbers.
+  const [decimals, setDecimals] = useState(2);
 
   const calculatePivot = () => {
     const o = Number(pivotInputs.open);
@@ -67,6 +75,15 @@ export function PivotTab({ pfData, formatNum }: PivotTabProps) {
     const l = Number(pivotInputs.low);
     const c = Number(pivotInputs.close);
     if (![o, h, l, c].every(Number.isFinite)) return;
+
+    setDecimals(
+      inferDecimalPlaces([
+        pivotInputs.open,
+        pivotInputs.high,
+        pivotInputs.low,
+        pivotInputs.close,
+      ]),
+    );
 
     const range = h - l;
 
@@ -136,6 +153,9 @@ export function PivotTab({ pfData, formatNum }: PivotTabProps) {
       },
     });
   };
+
+  const formatNum = (num: number) =>
+    createNumberFormatter(locale, decimals).format(num);
 
   return (
     <div className="space-y-8">
