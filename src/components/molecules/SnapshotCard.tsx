@@ -28,6 +28,8 @@ const resolveSnapshotHref = (
       return { href: `/${locale}/regulasi-bappebti`, external: false };
     case "bbj-activity":
       return { href: `/${locale}/bbj-volume`, external: false };
+    case "icdx-activity":
+      return { href: `/${locale}/icdx-volume`, external: false };
     default:
       return { href: undefined, external: false };
   }

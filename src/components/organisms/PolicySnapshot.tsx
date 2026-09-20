@@ -6,10 +6,12 @@ import type {
   BappebtiRegulationItem,
   BappebtiRegulationResponse,
   BiRateResponse,
+  IcdxVolumeResponse,
   JfxVolumeResponse,
   OjkRegulationResponse,
 } from "@/types/indonesiaMarket";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { fetchIcdxVolume } from "@/lib/icdx-volume.server";
 import { SectionHeader } from "../molecules/SectionHeader";
 import { formatJakartaDate, formatJakartaMonthYear } from "@/lib/date-time";
 
@@ -119,6 +121,28 @@ const getJfxVolumeSummary = (
   };
 };
 
+const getIcdxVolumeSummary = (response: IcdxVolumeResponse | null | undefined) => {
+  const rows = Array.isArray(response?.data) ? response.data : [];
+  if (rows.length === 0) return undefined;
+
+  const latest = rows[rows.length - 1];
+  const previous = rows.length > 1 ? rows[rows.length - 2] : undefined;
+
+  const growthPercent =
+    typeof latest.volumeLot === "number" &&
+    typeof previous?.volumeLot === "number" &&
+    previous.volumeLot > 0
+      ? ((latest.volumeLot - previous.volumeLot) / previous.volumeLot) * 100
+      : undefined;
+
+  return {
+    periodLabel: latest.periodLabel,
+    volumeLot: latest.volumeLot,
+    notionalValueTriliun: latest.notionalValueTriliun,
+    growthPercent,
+  };
+};
+
 const getLatestBappebtiItem = (
   response?: BappebtiRegulationResponse | null,
 ) => {
@@ -169,6 +193,7 @@ const buildItems = (
   ojkRegulationResponse?: OjkRegulationResponse | null,
   bappebtiRegulationResponse?: BappebtiRegulationResponse | null,
   jfxVolumeResponse?: JfxVolumeResponse | null,
+  icdxVolumeResponse?: IcdxVolumeResponse | null,
 ) => {
   const placeholder = "—";
 
@@ -213,6 +238,13 @@ const buildItems = (
   const jfxTopLabel = jfxSummary?.topLabel;
   const jfxTopVolume = formatVolume(jfxSummary?.topVolume, locale);
 
+  const icdxSummary = getIcdxVolumeSummary(icdxVolumeResponse);
+  const icdxVolume = formatVolume(icdxSummary?.volumeLot, locale);
+  const icdxGrowth =
+    typeof icdxSummary?.growthPercent === "number"
+      ? `${icdxSummary.growthPercent >= 0 ? "+" : ""}${icdxSummary.growthPercent.toFixed(1)}%`
+      : undefined;
+
   const baseItems = messages.policySnapshot.items.map((item) => {
     if (item.key === "bi-rate") {
       return {
@@ -240,6 +272,15 @@ const buildItems = (
     }
 
     if (item.key === "bbj-activity") {
+      return {
+        ...item,
+        value: placeholder,
+        subtitle: placeholder,
+        meta: placeholder,
+      };
+    }
+
+    if (item.key === "icdx-activity") {
       return {
         ...item,
         value: placeholder,
@@ -298,6 +339,26 @@ const buildItems = (
       };
     }
 
+    if (item.key === "icdx-activity") {
+      const subtitle = icdxSummary?.periodLabel
+        ? `${locale === "en" ? "Volume" : "Volume"} ${icdxSummary.periodLabel}`
+        : item.subtitle;
+
+      const metaParts = [
+        icdxVolume ? `${icdxVolume} lot` : undefined,
+        icdxSummary?.notionalValueTriliun
+          ? `Rp ${icdxSummary.notionalValueTriliun}T`
+          : undefined,
+      ].filter((part): part is string => Boolean(part));
+
+      return {
+        ...item,
+        value: icdxGrowth ?? item.value,
+        subtitle: icdxSummary ? subtitle : item.subtitle,
+        meta: metaParts.length ? metaParts.join(" • ") : item.meta,
+      };
+    }
+
     return item;
   });
 };
@@ -311,11 +372,13 @@ export async function PolicySnapshot({
     ojkRegulationResponse,
     bappebtiRegulationResponse,
     jfxVolumeResponse,
+    icdxVolumeResponse,
   ] = await Promise.all([
     fetchJson<BiRateResponse>(API_ENDPOINTS.biRate),
     fetchJson<OjkRegulationResponse>(API_ENDPOINTS.ojkRegulation),
     fetchJson<BappebtiRegulationResponse>(API_ENDPOINTS.bappebtiRegulation),
     fetchJson<JfxVolumeResponse>(API_ENDPOINTS.jfxVolume),
+    fetchIcdxVolume(),
   ]);
   const items = buildItems(
     messages,
@@ -324,11 +387,12 @@ export async function PolicySnapshot({
     ojkRegulationResponse,
     bappebtiRegulationResponse,
     jfxVolumeResponse,
+    icdxVolumeResponse,
   );
   return (
     <Card as="section" className="">
       <SectionHeader title={messages.policySnapshot.title} />
-      <div className="grid gap-4 px-6 pb-6 pt-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 px-6 pb-6 pt-5 md:grid-cols-3 lg:grid-cols-5">
         {items.map((item) => (
           <SnapshotCard
             key={item.key}

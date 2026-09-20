@@ -136,3 +136,19 @@ export type JfxVolumeResponse = {
   fetched_at?: string;
   cache?: string;
 };
+
+export type IcdxVolumeRow = {
+  periodLabel?: string;
+  sortKey?: number;
+  volumeLot?: number;
+  notionalValueTriliun?: number;
+  sourceUrl?: string;
+  sourceTitle?: string;
+};
+
+export type IcdxVolumeResponse = {
+  data?: IcdxVolumeRow[];
+  fetched_at?: string;
+  source?: string;
+  parse_warning?: boolean;
+};

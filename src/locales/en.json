@@ -191,6 +191,14 @@
         "value": "+12.4%",
         "subtitle": "MoM Volume",
         "meta": "Rp 18.7T - Apr 23, 2024"
+      },
+      {
+        "key": "icdx-activity",
+        "icon": "ICDX",
+        "title": "ICDX Volume Activity",
+        "value": "-",
+        "subtitle": "Volume per period",
+        "meta": "-"
       }
     ]
   },
