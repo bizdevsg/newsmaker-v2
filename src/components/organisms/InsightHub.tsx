@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/atoms/Card";
 import { SectionHeader } from "@/components/molecules/SectionHeader";
+import { InsightHubMaintenanceModalCard } from "@/components/organisms/InsightHubMaintenanceModalCard";
 import type { Locale } from "@/locales";
 
 type InsightHubItem = {
@@ -10,6 +11,11 @@ type InsightHubItem = {
   imageSrc: string;
   imageAlt: string;
   bgCover: string;
+  /**
+   * When set, clicking the card opens an "under maintenance" popup instead of
+   * navigating to `href`. Remove the flag to re-enable the link.
+   */
+  maintenance?: { productName: string };
 };
 
 type InsightHubProps = {
@@ -24,6 +30,7 @@ const DEFAULT_ITEMS = (locale: Locale): InsightHubItem[] => [
     imageSrc: "/assets/nmai-logo.png",
     imageAlt: "BBJ Volume",
     bgCover: "/assets/bg-nmai.png",
+    maintenance: { productName: "NM Ai" },
   },
   {
     href: "https://ebook.newsmaker.id/login",
@@ -88,6 +95,20 @@ export function InsightHub({
 
             const classes =
               "group flex items-center justify-center rounded border border-slate-200 bg-cover bg-center shadow-sm transition-all hover:border-blue-300";
+
+            if (item.maintenance) {
+              return (
+                <InsightHubMaintenanceModalCard
+                  key={`${item.href}-${index}`}
+                  locale={locale}
+                  className={classes}
+                  bgCover={bgCover}
+                  imageSrc={imageSrc}
+                  imageAlt={item.imageAlt}
+                  productName={item.maintenance.productName}
+                />
+              );
+            }
 
             if (!href) {
               return (
