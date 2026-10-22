@@ -3,22 +3,28 @@ import { Button } from "../atoms/Button";
 import { Tag } from "../atoms/Tag";
 import Link from "next/link";
 import type { Locale, Messages } from "@/locales";
-import { itemMatchesTerms } from "@/lib/news-filter";
 import {
   buildPortalNewsImageUrl,
   fetchPortalNewsList,
 } from "@/lib/portalnews";
 import type { PortalNewsItem } from "@/lib/portalnews";
 import {
-  ANALYSIS_CONFIG,
+  buildAnalysisDetailHref,
+  buildAnalysisListHref,
   buildEconomicNewsDetailHref,
   buildEconomicNewsListHref,
+  buildGoldCornerDetailHref,
+  buildGoldCornerListHref,
+  buildMarketAcademyDetailHref,
+  buildMarketAcademyListHref,
   buildMarketNewsDetailHrefForItem,
   buildNewsCategoryHref,
   buildNewsSubHref,
+  inferAnalysisCategoryFromItem,
   inferEconomicNewsCategoryFromItem,
   inferMarketNewsCategoryFromItem,
   normalizeEconomicNewsRouteSub,
+  resolveAnalysisLabel,
   resolveEconomicNewsLabel,
 } from "@/lib/news-routing";
 
@@ -135,49 +141,26 @@ const resolvePortalNewsContent = (
   );
 };
 
-const normalizeSlug = (value?: string | null) =>
-  String(value ?? "")
-    .toLowerCase()
-    .replace(/[-_]+/g, "-")
-    .trim();
-
-const isAnalysisItem = (article: PortalNewsItem) => {
-  const type = article.type?.trim().toLowerCase() ?? "";
-  if (type === "analisis" || type === "analysis" || type === "gold-corner")
-    return true;
-
-  const categorySlugs = [
-    article.sub_category?.slug,
-    article.main_category?.slug,
-    article.kategori?.slug,
-  ]
-    .map((value) => normalizeSlug(value))
-    .filter(Boolean);
-
-  if (categorySlugs.includes("market-analysis")) return true;
-  if (categorySlugs.includes("analisis-opinion")) return true;
-  if (categorySlugs.includes("gold-corner")) return true;
-
-  return ANALYSIS_CONFIG.some((config) =>
-    itemMatchesTerms(article, config.matchTerms),
-  );
-};
-
 const toHeroArticle = (
   article: PortalNewsItem,
   locale: Locale,
   messages: Messages,
   index: number,
 ): HeroArticle | null => {
-  if (isAnalysisItem(article)) return null;
-
+  // Every category is eligible for the hero now - whichever article is
+  // most recently published wins, Analisis & Opini / Market Analysis /
+  // Gold Corner / Market Academy included.
   const slug = article.slug?.trim() || "";
   const marketKategori = inferMarketNewsCategoryFromItem(article);
-  const economicSub = !marketKategori
-    ? inferEconomicNewsCategoryFromItem(article)
+  const analysisSlug = !marketKategori
+    ? inferAnalysisCategoryFromItem(article)
     : null;
+  const economicSub =
+    !marketKategori && !analysisSlug
+      ? inferEconomicNewsCategoryFromItem(article)
+      : null;
 
-  if (!marketKategori && !economicSub) return null;
+  if (!marketKategori && !analysisSlug && !economicSub) return null;
 
   const sub =
     article.sub_category?.slug?.trim() ||
@@ -190,16 +173,52 @@ const toHeroArticle = (
       (sub
         ? buildNewsSubHref(locale, marketKategori, sub)
         : buildNewsCategoryHref(locale, marketKategori)))
-    : slug
-      ? buildEconomicNewsDetailHref(
-          locale,
-          normalizeEconomicNewsRouteSub(economicSub!),
-          slug,
-        )
-      : buildEconomicNewsListHref(
-          locale,
-          normalizeEconomicNewsRouteSub(economicSub!),
-        );
+    : analysisSlug
+      ? analysisSlug === "gold-corner"
+        ? slug
+          ? buildGoldCornerDetailHref(locale, slug)
+          : buildGoldCornerListHref(locale)
+        : analysisSlug === "market-academy"
+          ? slug
+            ? buildMarketAcademyDetailHref(locale, slug)
+            : buildMarketAcademyListHref(locale)
+          : slug
+            ? buildAnalysisDetailHref(locale, analysisSlug, slug)
+            : buildAnalysisListHref(locale, analysisSlug)
+      : slug
+        ? buildEconomicNewsDetailHref(
+            locale,
+            normalizeEconomicNewsRouteSub(economicSub!),
+            slug,
+          )
+        : buildEconomicNewsListHref(
+            locale,
+            normalizeEconomicNewsRouteSub(economicSub!),
+          );
+
+  const tag = marketKategori
+    ? (
+        article.category_label?.trim() ||
+        article.category?.trim() ||
+        article.kategori?.name?.trim() ||
+        messages.hero.bannerTag ||
+        "MARKET"
+      ).toUpperCase()
+    : analysisSlug
+      ? (
+          article.category_label?.trim() ||
+          article.category?.trim() ||
+          article.main_category?.name?.trim() ||
+          article.kategori?.name?.trim() ||
+          resolveAnalysisLabel(messages, analysisSlug) ||
+          "ANALYSIS"
+        ).toUpperCase()
+      : (
+          article.sub_category?.name?.trim() ||
+          article.main_category?.name?.trim() ||
+          resolveEconomicNewsLabel(messages, economicSub!) ||
+          "ECONOMIC"
+        ).toUpperCase();
 
   return {
     key: String(article.id ?? slug ?? `hero-${index}`),
@@ -213,20 +232,7 @@ const toHeroArticle = (
         article.image_url || article.image || article.images?.[0],
       ) ?? FALLBACK_HERO_IMAGE,
     ),
-    tag: marketKategori
-      ? (
-          article.category_label?.trim() ||
-          article.category?.trim() ||
-          article.kategori?.name?.trim() ||
-          messages.hero.bannerTag ||
-          "MARKET"
-        ).toUpperCase()
-      : (
-          article.sub_category?.name?.trim() ||
-          article.main_category?.name?.trim() ||
-          resolveEconomicNewsLabel(messages, economicSub!) ||
-          "ECONOMIC"
-        ).toUpperCase(),
+    tag,
     date: formatDate(article.created_at ?? article.updated_at, locale),
     href,
   };
