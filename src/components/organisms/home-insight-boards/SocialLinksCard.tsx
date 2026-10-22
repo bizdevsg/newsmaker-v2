@@ -9,9 +9,9 @@ type SocialLinksCardProps = {
 export function SocialLinksCard({ className = "" }: SocialLinksCardProps) {
   return (
     <Card
-      className={`flex h-full flex-col justify-between ${className}`.trim()}
+      className={`flex flex-col justify-between ${className}`.trim()}
     >
-      <div className="flex h-full items-center justify-between gap-3 p-4">
+      <div className="flex items-center justify-between gap-3 p-4">
         <SocialCircle
           label="Facebook"
           iconClassName="fa-brands fa-facebook-f"

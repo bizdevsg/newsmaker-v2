@@ -1,13 +1,15 @@
 import React from "react";
 import type { Locale, Messages } from "@/locales";
 import type { StrategicItem } from "@/components/organisms/home-insight-boards/types";
-import { fetchTikToks } from "@/components/organisms/home-insight-boards/fetchLatestTikTok";
+import { MaintenanceCard } from "@/components/organisms/MaintenanceCard";
 import { fetchVideoBriefings } from "@/components/organisms/home-insight-boards/fetchLatestVideoBriefing";
 import { StrategicInsightBoard } from "@/components/organisms/home-insight-boards/StrategicInsightBoard";
 import { WeeklyMarketBriefCard } from "@/components/organisms/home-insight-boards/WeeklyMarketBriefCard";
 import { VideoBriefingCard } from "@/components/organisms/home-insight-boards/VideoBriefingCard";
-import { MarketPulseCard } from "@/components/organisms/home-insight-boards/MarketPulseCard";
 import { SocialLinksCard } from "@/components/organisms/home-insight-boards/SocialLinksCard";
+import { HistoricalDataMiniCard } from "@/components/organisms/home-insight-boards/HistoricalDataMiniCard";
+import { pickLatestHistoricalRows } from "@/components/organisms/home-insight-boards/historicalMini";
+import { fetchHistoricalData } from "@/lib/historical-data";
 import type { PortalNewsItem } from "@/lib/portalnews";
 import {
   buildPortalNewsImageUrl,
@@ -205,8 +207,10 @@ export async function HomeInsightBoards({
   messages,
 }: HomeInsightBoardsProps) {
   const readMoreLabel = messages.common?.readMore ?? "Read More";
-  const tiktokItems = await fetchTikToks(3);
   const videoBriefingItems = await fetchVideoBriefings(3);
+  const historicalItems = pickLatestHistoricalRows(
+    await fetchHistoricalData(),
+  );
   const apiStrategicItems = await getStrategicInsightItems(locale);
   const strategicItems = (
     apiStrategicItems ?? DEFAULT_STRATEGIC_ITEMS(locale)
@@ -224,8 +228,9 @@ export async function HomeInsightBoards({
         <VideoBriefingCard videoBriefingItems={videoBriefingItems} />
       </div>
 
-      <div className="flex flex-col justify-between gap-4 md:col-span-2 lg:col-span-1">
-        <MarketPulseCard tiktokItems={tiktokItems} />
+      <div className="flex flex-col gap-4 md:col-span-2 lg:col-span-1">
+        <MaintenanceCard locale={locale} title="Market Pulse" />
+        <HistoricalDataMiniCard locale={locale} items={historicalItems} />
         <SocialLinksCard />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import type { Locale, Messages } from "@/locales";
-import { TechnicalAnalysisIndicatorCard } from "./home-panels/TechnicalAnalysisIndicatorCard";
+import { MaintenanceCard } from "./MaintenanceCard";
 import { EconomicCalendarCard } from "./home-panels/EconomicCalendarCard";
 import { MarketOutlookCard } from "./home-panels/MarketOutlookCard";
 import { DigitalAssetsCard } from "./home-panels/DigitalAssetsCard";
@@ -16,7 +16,7 @@ export function HomeMenuPanels({ locale, messages }: HomeMenuPanelsProps) {
   return (
     <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr_1.25fr]">
       <div className="flex flex-col gap-4">
-        <TechnicalAnalysisIndicatorCard symbol="XAUUSD" />
+        <MaintenanceCard locale={locale} title="Technical Analysis" />
         <EconomicCalendarCard locale={locale} messages={messages} />
       </div>
       <MarketOutlookCard locale={locale} readMoreLabel={readMoreLabel} />
