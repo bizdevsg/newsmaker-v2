@@ -1,19 +1,25 @@
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 export type TikTokItem = {
-  id?: number;
-  title?: string;
-  embed_code?: string;
-  backup_video_url?: string | null;
-  created_at?: string;
-  updated_at?: string;
+  id: number;
+  title: string | null;
+  /** Relative path, e.g. uploads/tiktok/xxx.mp4 */
+  video: string;
+  /** Absolute mp4 URL, ready for <video src>. */
+  video_url: string;
+  created_at: string;
+  updated_at: string;
 };
 
 type TikTokResponse = {
-  data?: TikTokItem[];
+  status?: string;
+  message?: string;
+  /** Single latest video, or null when none has been uploaded yet. */
+  data?: TikTokItem | null;
+  generated_at?: string;
 };
 
-const buildTikTokUrl = () => {
+export const buildTikTokUrl = () => {
   const legacyNewsListUrl =
     process.env.PORTALNEWS_API_URL ??
     process.env.NEXT_PUBLIC_PORTALNEWS_API_URL ??
@@ -33,29 +39,10 @@ const buildTikTokUrl = () => {
   );
 };
 
-const sortByNewest = (items: TikTokItem[]) => {
-  const parse = (value?: string) => {
-    if (!value) return Number.NaN;
-    const parsed = new Date(value).getTime();
-    return Number.isFinite(parsed) ? parsed : Number.NaN;
-  };
-
-  return [...items].sort((a, b) => {
-    const aTime = parse(a.updated_at ?? a.created_at);
-    const bTime = parse(b.updated_at ?? b.created_at);
-    const aMissing = Number.isNaN(aTime);
-    const bMissing = Number.isNaN(bTime);
-    if (aMissing && bMissing) return 0;
-    if (aMissing) return 1;
-    if (bMissing) return -1;
-    return bTime - aTime;
-  });
-};
-
-export async function fetchTikToks(limit = 3): Promise<TikTokItem[]> {
+export async function fetchLatestTikTok(): Promise<TikTokItem | null> {
   try {
     const tiktokApi = buildTikTokUrl();
-    if (!tiktokApi) return [];
+    if (!tiktokApi) return null;
 
     const token =
       process.env.PORTALNEWS_TOKEN ??
@@ -71,32 +58,17 @@ export async function fetchTikToks(limit = 3): Promise<TikTokItem[]> {
       },
       10_000,
     );
-    if (!response.ok) return [];
+    if (!response.ok) return null;
 
     const json = (await response
       .json()
       .catch(() => null)) as TikTokResponse | null;
-    const items = Array.isArray(json?.data) ? json?.data : [];
+    const item = json?.data;
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    if (!item.video_url) return null;
 
-    const unique: TikTokItem[] = [];
-    const seen = new Set<string>();
-    for (const item of items) {
-      const key = String(item?.id ?? "").trim();
-      if (key) {
-        if (seen.has(key)) continue;
-        seen.add(key);
-      }
-      unique.push(item);
-    }
-
-    const sorted = sortByNewest(unique);
-    return sorted.slice(0, Math.max(0, limit));
+    return item;
   } catch {
-    return [];
+    return null;
   }
-}
-
-export async function fetchLatestTikTok(): Promise<TikTokItem | null> {
-  const items = await fetchTikToks(1);
-  return items[0] ?? null;
 }

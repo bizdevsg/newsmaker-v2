@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import type { TikTokItem } from "@/components/organisms/home-insight-boards/fetchLatestTikTok";
 
 // Cache the response for 5 minutes (300s) to avoid hammering the external API
 export const revalidate = 300;
@@ -25,22 +26,14 @@ const NEWS_TOKEN =
   process.env.NEXT_PUBLIC_PORTALNEWS_TOKEN ??
   "";
 
-type TikTokItem = {
-  id?: number;
-  title?: string;
-  embed_code?: string;
-  backup_video_url?: string | null;
-  created_at?: string;
-  updated_at?: string;
-};
-
 type TikTokResponse = {
-  status?: number | string;
+  status?: string;
   message?: string;
-  data?: TikTokItem[];
+  data?: TikTokItem | null;
+  generated_at?: string;
 };
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     if (!TIKTOK_API) {
       return NextResponse.json(
@@ -48,10 +41,6 @@ export async function GET(request: Request) {
         { status: 500 }
       );
     }
-
-    const { searchParams } = new URL(request.url);
-    const limitParam = Number(searchParams.get("limit") || "6");
-    const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 6;
 
     const res = await fetchWithTimeout(TIKTOK_API, {
       headers: NEWS_TOKEN ? { Authorization: `Bearer ${NEWS_TOKEN}` } : undefined,
@@ -64,18 +53,17 @@ export async function GET(request: Request) {
       );
     }
     const json = (await res.json()) as TikTokResponse;
-    const data = Array.isArray(json?.data) ? json.data : [];
-
-    const sortedData = [...data].sort((a, b) => {
-      const dateA = Date.parse(a.updated_at ?? a.created_at ?? "") || 0;
-      const dateB = Date.parse(b.updated_at ?? b.created_at ?? "") || 0;
-      return dateB - dateA;
-    });
+    // Upstream now returns the single latest video (or null), not an array.
+    const data =
+      json?.data && typeof json.data === "object" && !Array.isArray(json.data)
+        ? json.data
+        : null;
 
     return NextResponse.json({
       status: json?.status ?? "success",
       message: json?.message,
-      data: sortedData.slice(0, limit),
+      data,
+      generated_at: json?.generated_at,
     });
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error("Unknown error");
