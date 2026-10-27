@@ -254,8 +254,8 @@ export function FedRateMonitorCard({
 
             <p className="text-sm leading-relaxed text-slate-600">
               {locale === "en"
-                ? "Probabilities are calculated automatically from CME 30-Day Fed Funds futures prices, which reflect market expectations for changes to the US interest rate at each upcoming FOMC meeting."
-                : "Probabilitas dihitung otomatis dari harga CME 30-Day Fed Funds futures, yang mencerminkan ekspektasi pasar terhadap perubahan suku bunga AS di setiap meeting FOMC berikutnya."}{" "}
+                ? "Probabilities are based on CME 30-Day Fed Funds futures prices, which reflect market expectations for changes to the US interest rate at each upcoming FOMC meeting."
+                : "Probabilitas berdasarkan harga CME 30-Day Fed Funds futures, yang mencerminkan ekspektasi pasar terhadap perubahan suku bunga AS di setiap meeting FOMC berikutnya."}{" "}
               {locale === "en" ? "Current target rate:" : "Suku bunga acuan saat ini:"}{" "}
               <span className="font-semibold text-slate-900">
                 {formatRange(data.currentTarget.lower, data.currentTarget.upper)}%
