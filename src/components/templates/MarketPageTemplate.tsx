@@ -12,6 +12,9 @@ type MarketPageTemplateProps = {
   locale: Locale;
   messages: Messages;
   showPopupBanner?: boolean;
+  /** Lock the page to the viewport and let `children` fill the space below
+   * the header, for embedded apps that scroll on their own. Hides the footer. */
+  fullHeight?: boolean;
 };
 
 export function MarketPageTemplate({
@@ -19,10 +22,19 @@ export function MarketPageTemplate({
   locale,
   messages,
   showPopupBanner = false,
+  fullHeight = false,
 }: MarketPageTemplateProps) {
   return (
-    <div className="relative min-h-screen overflow-x-clip text-slate-800">
-      <div className="relative z-10 nm-bg-cover bg-cover bg-center bg-no-repeat bg-fixed">
+    <div
+      className={`relative overflow-x-clip text-slate-800 ${
+        fullHeight ? "h-dvh overflow-hidden" : "min-h-screen"
+      }`}
+    >
+      <div
+        className={`relative z-10 nm-bg-cover bg-cover bg-center bg-no-repeat bg-fixed ${
+          fullHeight ? "flex h-full flex-col" : ""
+        }`}
+      >
         {/* <WorldTimeBar className="hidden md:block" /> */}
         <StickyNav>
           <nav>
@@ -39,13 +51,19 @@ export function MarketPageTemplate({
             />
           </div>
         </div>
-        {children}
+        {fullHeight ? (
+          <div className="min-h-0 flex-1">{children}</div>
+        ) : (
+          children
+        )}
         {/* <FloatingPartnerButtons /> */}
-        <ScrollUpButton />
+        {fullHeight ? null : <ScrollUpButton />}
         {showPopupBanner ? <PopupBannerModal /> : null}
-        <div className="mt-5">
-          <SiteFooter locale={locale} messages={messages} />
-        </div>
+        {fullHeight ? null : (
+          <div className="mt-5">
+            <SiteFooter locale={locale} messages={messages} />
+          </div>
+        )}
       </div>
     </div>
   );
