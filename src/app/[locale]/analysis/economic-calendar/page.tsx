@@ -3,9 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/layout/Container";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { EconomicCalendarClient } from "@/components/organisms/economic-calendar/EconomicCalendarClient";
-import { FedRateMonitorCard } from "@/components/organisms/economic-calendar/FedRateMonitorCard";
 import { fetchEconomicCalendar } from "@/lib/economic-calendar";
-import { fetchFedRateMonitor } from "@/lib/fed-rate-monitor";
 import { getMessages, type Locale } from "@/locales";
 import { Card } from "@/components/atoms/Card";
 
@@ -21,11 +19,7 @@ export default async function EconomicCalendarPage({
   const { locale: rawLocale } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const messages = getMessages(locale);
-  const [calendarItems, fedRateMonitor] = await Promise.all([
-    fetchEconomicCalendar("today", 50),
-    fetchFedRateMonitor(),
-  ]);
-  const items = calendarItems ?? [];
+  const items = (await fetchEconomicCalendar("today", 50)) ?? [];
   const warningText = messages.policy.quickData.economicCalendar.warningText;
 
   return (
@@ -43,12 +37,6 @@ export default async function EconomicCalendarPage({
             <p className="text-sm">{warningText}</p>
           </div>
         </Card>
-
-        <FedRateMonitorCard
-          data={fedRateMonitor}
-          locale={locale}
-          className="mt-8"
-        />
       </Container>
     </MarketPageTemplate>
   );

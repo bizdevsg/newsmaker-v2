@@ -64,6 +64,9 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
     if (columnKey === "tools" && linkKey === "riskguard") {
       return `${homeHref}/tools/riskguard`;
     }
+    if (columnKey === "tools" && linkKey === "fed-rate-monitor") {
+      return `${homeHref}/tools/fed-rate-monitor`;
+    }
     if (columnKey === "tools" && linkKey === "education") {
       return "https://ebook.newsmaker.id/";
     }

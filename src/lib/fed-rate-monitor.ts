@@ -138,9 +138,13 @@ const loadFedRateMonitor = async (): Promise<FedRateMonitorData | null> => {
   const upper = toNumber(data.current_target?.upper);
   if (lower === null || upper === null) return null;
 
+  // The API keeps a meeting for its whole New York day; drop it once the
+  // decision is out so the countdown moves on to the next one.
+  const now = Date.now();
   const meetings = (data.meetings ?? [])
     .map(normalizeMeeting)
     .filter((meeting): meeting is FedRateMonitorMeeting => meeting !== null)
+    .filter((meeting) => !(Date.parse(meeting.decisionAt) <= now))
     .sort((a, b) => a.date.localeCompare(b.date));
   if (!meetings.length) return null;
 

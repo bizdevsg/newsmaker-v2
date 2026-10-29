@@ -316,6 +316,11 @@ export function SiteHeader() {
             label: siteNavLabels.riskguard,
             href: routeTo("tools/riskguard"),
           },
+          {
+            key: "tools:fed-rate-monitor",
+            label: siteNavLabels.fedRateMonitor,
+            href: routeTo("tools/fed-rate-monitor"),
+          },
         ],
       },
     ];

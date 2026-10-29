@@ -181,7 +181,8 @@
       "education": "Education",
       "historicalData": "Historical Data",
       "pivotFibonacci": "Pivot & Fibonacci",
-      "riskguard": "RiskGuard"
+      "riskguard": "RiskGuard",
+      "fedRateMonitor": "Fed Rate Monitor"
     }
   },
   "hero": {
@@ -486,6 +487,11 @@
           {
             "key": "riskguard",
             "label": "RiskGuard",
+            "href": "#"
+          },
+          {
+            "key": "fed-rate-monitor",
+            "label": "Fed Rate Monitor",
             "href": "#"
           },
           {
