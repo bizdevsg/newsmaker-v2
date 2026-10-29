@@ -176,7 +176,8 @@
       "liveChart": "Live Chart",
       "education": "Edukasi",
       "historicalData": "Data Historis",
-      "pivotFibonacci": "RiskGuard"
+      "pivotFibonacci": "Pivot & Fibonacci",
+      "riskguard": "RiskGuard"
     }
   },
   "hero": {
@@ -475,6 +476,11 @@
           },
           {
             "key": "pivot-fibonacci",
+            "label": "Pivot & Fibonacci",
+            "href": "#"
+          },
+          {
+            "key": "riskguard",
             "label": "RiskGuard",
             "href": "#"
           },
@@ -709,7 +715,7 @@
         },
         {
           "key": "fibonacci",
-          "label": "RiskGuard"
+          "label": "Pivot & Fibonacci"
         },
         {
           "key": "forex",
@@ -771,7 +777,7 @@
       },
       "actions": {
         "economicCalendar": "Kalender Ekonomi",
-        "pivotFibonacci": "RiskGuard",
+        "pivotFibonacci": "Pivot & Fibonacci",
         "liveChart": "Grafik Langsung",
         "historic": "Data Historis"
       }

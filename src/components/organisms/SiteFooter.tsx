@@ -61,6 +61,9 @@ export function SiteFooter({ locale, messages }: SiteFooterProps) {
     if (columnKey === "tools" && linkKey === "pivot-fibonacci") {
       return `${homeHref}/tools/pivot-fibonacci`;
     }
+    if (columnKey === "tools" && linkKey === "riskguard") {
+      return `${homeHref}/tools/riskguard`;
+    }
     if (columnKey === "tools" && linkKey === "education") {
       return "https://ebook.newsmaker.id/";
     }

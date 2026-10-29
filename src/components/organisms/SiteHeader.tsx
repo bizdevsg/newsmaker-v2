@@ -311,6 +311,11 @@ export function SiteHeader() {
             label: siteNavLabels.pivotFibonacci,
             href: routeTo("tools/pivot-fibonacci"),
           },
+          {
+            key: "tools:riskguard",
+            label: siteNavLabels.riskguard,
+            href: routeTo("tools/riskguard"),
+          },
         ],
       },
     ];
