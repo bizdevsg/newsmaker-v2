@@ -26,11 +26,10 @@ type InsightHubProps = {
 
 const DEFAULT_ITEMS = (locale: Locale): InsightHubItem[] => [
   {
-    href: "https://gwenstacy.newsmaker.id/",
-    imageSrc: "/assets/nmai-logo.png",
-    imageAlt: "BBJ Volume",
+    href: `/${locale}/tools/riskguard`,
+    imageSrc: "/assets/NewsMaker-23-logo.png",
+    imageAlt: "RiskGuard",
     bgCover: "/assets/bg-nmai.png",
-    maintenance: { productName: "NM Ai" },
   },
   {
     href: "https://ebook.newsmaker.id/login",
