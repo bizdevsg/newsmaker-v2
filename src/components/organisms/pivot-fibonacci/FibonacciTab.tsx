@@ -11,10 +11,9 @@ import {
 
 type FibonacciTabProps = {
   pfData: Messages["policy"]["pivotFibonacci"];
-  locale: string;
 };
 
-export function FibonacciTab({ pfData, locale }: FibonacciTabProps) {
+export function FibonacciTab({ pfData }: FibonacciTabProps) {
   const [fiboUpInputs, setFiboUpInputs] = useState({ low: "", high: "" });
   const [fiboDownInputs, setFiboDownInputs] = useState({ high: "", low: "" });
   // Each calculator infers its own precision from its own inputs (e.g. forex
@@ -121,9 +120,9 @@ export function FibonacciTab({ pfData, locale }: FibonacciTabProps) {
   };
 
   const formatFiboUpNum = (num: number) =>
-    createNumberFormatter(locale, fiboUpDecimals).format(num);
+    createNumberFormatter(fiboUpDecimals).format(num);
   const formatFiboDownNum = (num: number) =>
-    createNumberFormatter(locale, fiboDownDecimals).format(num);
+    createNumberFormatter(fiboDownDecimals).format(num);
 
   return (
     <div className="grid gap-10 lg:grid-cols-2">

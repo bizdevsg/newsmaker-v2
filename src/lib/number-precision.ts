@@ -22,10 +22,11 @@ export const inferDecimalPlaces = (
   return Math.min(max, Math.max(min, decimals));
 };
 
-export const createNumberFormatter = (locale: string, decimals: number) => {
-  const localeStr = locale === "id" ? "id-ID" : "en-US";
-  return new Intl.NumberFormat(localeStr, {
+// Always a dot decimal and no thousands separator, whatever the page locale,
+// so results read like the prices in the OHLC table (e.g. 4027.67).
+export const createNumberFormatter = (decimals: number) =>
+  new Intl.NumberFormat("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
+    useGrouping: false,
   });
-};

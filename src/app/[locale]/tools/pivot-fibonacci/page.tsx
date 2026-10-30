@@ -36,7 +36,7 @@ export default async function PivotFibonacciPage({
         <Card className="overflow-hidden">
           <SectionHeader title={pageTitle} />
           <div className="px-4 pb-6">
-            <PivotFibonacciClient messages={messages} locale={locale} />
+            <PivotFibonacciClient messages={messages} />
           </div>
 
           <div className="p-4 pt-0">

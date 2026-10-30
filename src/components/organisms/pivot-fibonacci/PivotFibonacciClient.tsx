@@ -7,13 +7,9 @@ import { FibonacciTab } from "@/components/organisms/pivot-fibonacci/FibonacciTa
 
 type PivotFibonacciClientProps = {
   messages: Messages;
-  locale: string;
 };
 
-export function PivotFibonacciClient({
-  messages,
-  locale,
-}: PivotFibonacciClientProps) {
+export function PivotFibonacciClient({ messages }: PivotFibonacciClientProps) {
   const pfData = messages.policy.pivotFibonacci;
   const [subTab, setSubTab] = useState<"pivot" | "fibonacci">("pivot");
 
@@ -48,9 +44,9 @@ export function PivotFibonacciClient({
       </div>
 
       {subTab === "pivot" ? (
-        <PivotTab pfData={pfData} locale={locale} />
+        <PivotTab pfData={pfData} />
       ) : (
-        <FibonacciTab pfData={pfData} locale={locale} />
+        <FibonacciTab pfData={pfData} />
       )}
     </div>
   );

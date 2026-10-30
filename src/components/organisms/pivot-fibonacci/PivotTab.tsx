@@ -52,10 +52,9 @@ const emptyPivotResults: PivotResults = {
 
 type PivotTabProps = {
   pfData: Messages["policy"]["pivotFibonacci"];
-  locale: string;
 };
 
-export function PivotTab({ pfData, locale }: PivotTabProps) {
+export function PivotTab({ pfData }: PivotTabProps) {
   const [pivotInputs, setPivotInputs] = useState({
     open: "",
     high: "",
@@ -155,7 +154,7 @@ export function PivotTab({ pfData, locale }: PivotTabProps) {
   };
 
   const formatNum = (num: number) =>
-    createNumberFormatter(locale, decimals).format(num);
+    createNumberFormatter(decimals).format(num);
 
   return (
     <div className="space-y-8">
