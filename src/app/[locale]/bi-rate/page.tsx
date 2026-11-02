@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BiFxRatesTable } from "@/components/organisms/BiFxRatesTable";
 import { BiRateTable } from "@/components/organisms/BiRateTable";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { getMessages, type Locale } from "@/locales";
@@ -40,6 +41,7 @@ export default async function BiRatePage({
   return (
     <MarketPageTemplate locale={locale} messages={customMessages}>
       <BiRateTable messages={customMessages} locale={locale} page={page} />
+      <BiFxRatesTable locale={locale} />
     </MarketPageTemplate>
   );
 }

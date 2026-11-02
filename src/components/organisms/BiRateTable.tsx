@@ -1,9 +1,9 @@
 import Link from "next/link";
 import React from "react";
 import type { Locale, Messages } from "@/locales";
-import type { BiRateResponse, BiRateRow } from "@/types/indonesiaMarket";
-import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import type { BiRateRow } from "@/types/indonesiaMarket";
 import { formatJakartaDate } from "@/lib/date-time";
+import { getBiRate } from "@/lib/endpo.server";
 
 type BiRateTableProps = {
   messages: Messages;
@@ -11,31 +11,7 @@ type BiRateTableProps = {
   page: number;
 };
 
-const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
-const API_BASE =
-  process.env.ENDPO_NM23_BASE ??
-  process.env.NEXT_PUBLIC_ENDPOAPI_BASE ??
-  "https://endpo-nm23.vercel.app";
-
-const API_ENDPOINT = `${API_BASE.replace(/\/$/, "")}/api/newsmaker-v2/bi-rate`;
 const PAGE_SIZE = 20;
-
-const fetchJson = async <T,>(url: string): Promise<T | null> => {
-  try {
-    const response = await fetchWithTimeout(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
-      },
-      next: { revalidate: 60 },
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-};
 
 const parseRateNumber = (value: unknown) => {
   if (typeof value === "number") return value;
@@ -97,7 +73,7 @@ export async function BiRateTable({
   locale,
   page,
 }: BiRateTableProps) {
-  const biRateResponse = await fetchJson<BiRateResponse>(API_ENDPOINT);
+  const { data: biRateResponse } = await getBiRate();
   const rows = Array.isArray(biRateResponse?.data) ? biRateResponse.data : [];
 
   const sortedRows = [...rows].sort(
