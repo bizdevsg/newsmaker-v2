@@ -3,7 +3,7 @@ import "server-only";
 import type { IcdxVolumeResponse, IcdxVolumeRow } from "@/types/indonesiaMarket";
 
 // ICDX does not publish a public API or a regular per-period volume feed
-// (unlike JFX/BBJ's `jfx-volume.server.ts`, which reads a live chart
+// (unlike JFX/BBJ's `getJfxVolume` in `endpo.server.ts`, which reads a live chart
 // endpoint). Its press releases are irregular in both cadence and
 // phrasing, and neither plain regex nor an LLM reader could reliably tell
 // a combined (Multilateral + Sistem Perdagangan Alternatif/ATS) total

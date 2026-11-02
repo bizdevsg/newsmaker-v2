@@ -5,8 +5,6 @@ const upstreamUrls = [
   process.env.NEXT_PUBLIC_PORTALNEWS_API_URL,
   process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE,
   process.env.NEXT_PUBLIC_PORTALNEWS_TIKTOK_URL,
-  process.env.NEXT_PUBLIC_ENDPOAPI_BASE,
-  process.env.ENDPO_NM23_BASE,
   process.env.FRANKFURTER_BASE_URL,
   process.env.PORTALNEWS_PIVOT_HISTORY_URL,
   "https://archive.org",
@@ -42,7 +40,6 @@ const nextConfig: NextConfig = {
       process.env.NEXT_PUBLIC_PORTALNEWS_IMAGE_BASE,
     NEXT_PUBLIC_PORTALNEWS_TIKTOK_URL:
       process.env.NEXT_PUBLIC_PORTALNEWS_TIKTOK_URL,
-    NEXT_PUBLIC_ENDPOAPI_BASE: process.env.NEXT_PUBLIC_ENDPOAPI_BASE,
   },
   images: {
     remotePatterns,

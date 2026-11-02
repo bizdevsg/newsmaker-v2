@@ -1,33 +1,11 @@
 import React from "react";
 import type { Locale } from "@/locales";
-import type {
-  OjkRegulationResponse,
-  OjkRegulationRow,
-} from "@/types/indonesiaMarket";
-import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import type { OjkRegulationRow } from "@/types/indonesiaMarket";
 import { formatJakartaDateTime } from "@/lib/date-time";
+import { getOjkRegulations } from "@/lib/endpo.server";
 
 type OjkRegulationTableProps = {
   locale: Locale;
-};
-
-const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
-const API_BASE = process.env.ENDPO_NM23_BASE ?? "";
-
-const API_ENDPOINT = `${API_BASE}/api/newsmaker-v2/ojk/regulasi`;
-
-const fetchJson = async <T,>(url: string): Promise<T | null> => {
-  try {
-    const response = await fetchWithTimeout(url, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${API_TOKEN}` },
-      next: { revalidate: 60 },
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
 };
 
 const normalizeText = (value: unknown) => {
@@ -101,7 +79,7 @@ const getLabels = (locale: Locale) => {
 };
 
 export async function OjkRegulationTable({ locale }: OjkRegulationTableProps) {
-  const response = await fetchJson<OjkRegulationResponse>(API_ENDPOINT);
+  const { data: response } = await getOjkRegulations();
   const rows = response?.data ?? [];
   const labels = getLabels(locale);
   const sourceHref = normalizeText(response?.source);

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { getMessages, type Locale } from "@/locales";
-import { fetchJfxVolume } from "@/lib/jfx-volume.server";
+import { getJfxVolume } from "@/lib/endpo.server";
 import { BbjVolumeChart } from "@/components/organisms/BbjVolumeChart";
 
 export async function generateMetadata({
@@ -28,7 +28,7 @@ export default async function BbjVolumePage({
   const { locale: rawLocale } = await params;
   const locale: Locale = rawLocale === "en" ? "en" : "id";
   const messages = getMessages(locale);
-  const data = await fetchJfxVolume();
+  const { data } = await getJfxVolume();
 
   const customMessages = {
     ...messages,

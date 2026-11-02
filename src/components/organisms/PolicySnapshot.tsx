@@ -10,7 +10,12 @@ import type {
   JfxVolumeResponse,
   OjkRegulationResponse,
 } from "@/types/indonesiaMarket";
-import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import {
+  getBappebti,
+  getBiRate,
+  getJfxVolume,
+  getOjkRegulations,
+} from "@/lib/endpo.server";
 import { fetchIcdxVolume } from "@/lib/icdx-volume.server";
 import { SectionHeader } from "../molecules/SectionHeader";
 import { formatJakartaDate, formatJakartaMonthYear } from "@/lib/date-time";
@@ -18,35 +23,6 @@ import { formatJakartaDate, formatJakartaMonthYear } from "@/lib/date-time";
 type PolicySnapshotProps = {
   messages: Messages;
   locale?: Locale;
-};
-
-const API_TOKEN = process.env.ENDPO_NM23_TOKEN ?? "";
-const API_BASE =
-  process.env.ENDPO_NM23_BASE ??
-  process.env.NEXT_PUBLIC_ENDPOAPI_BASE ??
-  "https://endpo-nm23.vercel.app";
-
-const API_ENDPOINTS = {
-  biRate: `${API_BASE}/api/newsmaker-v2/bi-rate`,
-  ojkRegulation: `${API_BASE}/api/newsmaker-v2/ojk/regulasi`,
-  bappebtiRegulation: `${API_BASE}/api/newsmaker-v2/bappebti`,
-  jfxVolume: `${API_BASE}/api/newsmaker-v2/jfx/volume`,
-};
-
-const fetchJson = async <T,>(url: string): Promise<T | null> => {
-  try {
-    const response = await fetchWithTimeout(url, {
-      method: "GET",
-      headers: {
-        ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
-      },
-      next: { revalidate: 60 },
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
 };
 
 const formatPercent = (value: number | undefined) => {
@@ -368,16 +344,16 @@ export async function PolicySnapshot({
   locale = "id",
 }: PolicySnapshotProps) {
   const [
-    biRateResponse,
-    ojkRegulationResponse,
-    bappebtiRegulationResponse,
-    jfxVolumeResponse,
+    { data: biRateResponse },
+    { data: ojkRegulationResponse },
+    { data: bappebtiRegulationResponse },
+    { data: jfxVolumeResponse },
     icdxVolumeResponse,
   ] = await Promise.all([
-    fetchJson<BiRateResponse>(API_ENDPOINTS.biRate),
-    fetchJson<OjkRegulationResponse>(API_ENDPOINTS.ojkRegulation),
-    fetchJson<BappebtiRegulationResponse>(API_ENDPOINTS.bappebtiRegulation),
-    fetchJson<JfxVolumeResponse>(API_ENDPOINTS.jfxVolume),
+    getBiRate(),
+    getOjkRegulations(),
+    getBappebti(),
+    getJfxVolume(),
     fetchIcdxVolume(),
   ]);
   const items = buildItems(
