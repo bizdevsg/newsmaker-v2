@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../atoms/Button";
 import { Tag } from "../atoms/Tag";
+import { HeroBreakingNews } from "./HeroBreakingNews";
 import Link from "next/link";
 import type { Locale, Messages } from "@/locales";
 import {
@@ -8,6 +9,7 @@ import {
   fetchPortalNewsList,
 } from "@/lib/portalnews";
 import type { PortalNewsItem } from "@/lib/portalnews";
+import { getActiveBreakingNews } from "@/lib/breaking-news.server";
 import {
   buildAnalysisDetailHref,
   buildAnalysisListHref,
@@ -272,7 +274,10 @@ async function getHeroArticles(locale: Locale, messages: Messages) {
 }
 
 export async function HeroSection({ messages, locale }: HeroSectionProps) {
-  const heroArticles = await getHeroArticles(locale, messages);
+  const [heroArticles, breakingNews] = await Promise.all([
+    getHeroArticles(locale, messages),
+    getActiveBreakingNews(locale),
+  ]);
   const readMoreLabel = locale === "en" ? "Read More" : "Read More";
 
   const fallbackFeatured: HeroArticle = {
@@ -291,41 +296,47 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
   return (
     <section className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <Link
-          href={featured.href}
-          className="group relative block overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
+        <HeroBreakingNews
+          locale={locale}
+          initial={breakingNews}
+          fallbackImage={normalizeAssetUrl(FALLBACK_HERO_IMAGE)}
         >
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-            style={{ backgroundImage: `url('${featured.image}')` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0b2f63] via-[#0b2f63]/70 to-[#0b2f63]/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-          <div className="relative flex min-h-[310px] h-full flex-col justify-between gap-4 p-7 sm:min-h-[340px]">
-            <div className="space-y-3">
-              <Tag tone="slate" className="bg-white/15 text-white uppercase">
-                MARKET DEVELOPMENT
-              </Tag>
-              <h2 className="max-w-2xl text-2xl font-semibold leading-snug sm:text-3xl">
-                {featured.title}
-              </h2>
-              {featured.date ? (
-                <p className="text-sm font-semibold text-white/80">
-                  {featured.date}
-                </p>
-              ) : null}
-            </div>
+          <Link
+            href={featured.href}
+            className="group relative block overflow-hidden rounded-xl border border-slate-200 text-white shadow-lg no-underline"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+              style={{ backgroundImage: `url('${featured.image}')` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0b2f63] via-[#0b2f63]/70 to-[#0b2f63]/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+            <div className="relative flex min-h-[310px] h-full flex-col justify-between gap-4 p-7 sm:min-h-[340px]">
+              <div className="space-y-3">
+                <Tag tone="slate" className="bg-white/15 text-white uppercase">
+                  MARKET DEVELOPMENT
+                </Tag>
+                <h2 className="max-w-2xl text-2xl font-semibold leading-snug sm:text-3xl">
+                  {featured.title}
+                </h2>
+                {featured.date ? (
+                  <p className="text-sm font-semibold text-white/80">
+                    {featured.date}
+                  </p>
+                ) : null}
+              </div>
 
-            <Button
-              as="span"
-              variant="outline"
-              size="sm"
-              className="border-white/60 bg-white text-slate-900 hover:bg-white/95 w-fit"
-            >
-              {messages.hero.bannerCta}
-            </Button>
-          </div>
-        </Link>
+              <Button
+                as="span"
+                variant="outline"
+                size="sm"
+                className="border-white/60 bg-white text-slate-900 hover:bg-white/95 w-fit"
+              >
+                {messages.hero.bannerCta}
+              </Button>
+            </div>
+          </Link>
+        </HeroBreakingNews>
 
         <div className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
