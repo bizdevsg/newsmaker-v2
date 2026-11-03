@@ -13,6 +13,55 @@ type FibonacciTabProps = {
   pfData: Messages["policy"]["pivotFibonacci"];
 };
 
+type FiboAnchors = { high: number; low: number };
+
+// Posisi garis level di gambar, dalam persen tinggi gambar. Diukur dari
+// fibonacci (1).png dan (3).png; ubah kalau gambarnya diganti. Angkanya
+// ditaruh di kolom kanan gambar, sejajar label persen bawaan gambar.
+const FIBO_UP_LINES = [
+  { ratio: 0, top: 52.8 },
+  { ratio: 0.236, top: 59.3 },
+  { ratio: 0.382, top: 64.9 },
+  { ratio: 0.5, top: 71.4 },
+  { ratio: 0.618, top: 77.5 },
+  { ratio: 0.786, top: 83.1 },
+  { ratio: 1, top: 89.1 },
+];
+
+const FIBO_DOWN_LINES = [
+  { ratio: 1, top: 34.9 },
+  { ratio: 0.786, top: 41.6 },
+  { ratio: 0.618, top: 47.3 },
+  { ratio: 0.5, top: 53.9 },
+  { ratio: 0.382, top: 60.1 },
+  { ratio: 0.236, top: 65.7 },
+  { ratio: 0, top: 72.5 },
+];
+
+function FiboChartLabels({
+  lines,
+  priceAt,
+  format,
+}: {
+  lines: { ratio: number; top: number }[];
+  priceAt: (ratio: number) => number;
+  format: (num: number) => string;
+}) {
+  return (
+    <>
+      {lines.map(({ ratio, top }) => (
+        <span
+          key={ratio}
+          className="absolute -translate-y-1/2 whitespace-nowrap text-[10px] font-bold leading-none text-slate-800 tabular-nums sm:text-[11px]"
+          style={{ top: `${top}%`, left: "100%" }}
+        >
+          {format(priceAt(ratio))}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function FibonacciTab({ pfData }: FibonacciTabProps) {
   const [fiboUpInputs, setFiboUpInputs] = useState({ low: "", high: "" });
   const [fiboDownInputs, setFiboDownInputs] = useState({ high: "", low: "" });
@@ -20,6 +69,12 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
   // "1.1650" vs gold "4600"), rather than a fixed 2 decimals for both.
   const [fiboUpDecimals, setFiboUpDecimals] = useState(2);
   const [fiboDownDecimals, setFiboDownDecimals] = useState(2);
+  const [fiboUpAnchors, setFiboUpAnchors] = useState<FiboAnchors | null>(
+    null,
+  );
+  const [fiboDownAnchors, setFiboDownAnchors] = useState<FiboAnchors | null>(
+    null,
+  );
 
   const [fiboUpResults, setFiboUpResults] = useState(() => ({
     retracement: {
@@ -69,6 +124,7 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
     setFiboUpDecimals(
       inferDecimalPlaces([fiboUpInputs.low, fiboUpInputs.high]),
     );
+    setFiboUpAnchors({ high: h, low: l });
     setFiboUpResults({
       retracement: {
         "23.60%": h - 0.236 * diff,
@@ -100,6 +156,7 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
     setFiboDownDecimals(
       inferDecimalPlaces([fiboDownInputs.high, fiboDownInputs.low]),
     );
+    setFiboDownAnchors({ high: h, low: l });
     setFiboDownResults({
       retracement: {
         "78.60%": l + 0.786 * diff,
@@ -128,8 +185,8 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
     <div className="grid gap-10 lg:grid-cols-2">
       <div className="space-y-6">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-stretch">
-          <div className="flex min-h-55 w-full aspect-square flex-1 flex-col items-center justify-center rounded-md border border-slate-100 bg-slate-50">
-            <div className="relative h-full w-full">
+          <div className="flex w-full flex-1 items-center rounded-md border border-slate-100 bg-slate-50 pr-14">
+            <div className="relative aspect-square w-full">
               <Image
                 src="/assets/fibonacci (1).png"
                 alt={pfData.tabs.fibonacci}
@@ -137,6 +194,16 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-contain"
               />
+              {fiboUpAnchors ? (
+                <FiboChartLabels
+                  lines={FIBO_UP_LINES}
+                  priceAt={(ratio) =>
+                    fiboUpAnchors.high -
+                    ratio * (fiboUpAnchors.high - fiboUpAnchors.low)
+                  }
+                  format={formatFiboUpNum}
+                />
+              ) : null}
             </div>
           </div>
 
@@ -249,8 +316,8 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
 
       <div className="space-y-6">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-stretch">
-          <div className="flex min-h-55 w-full aspect-square flex-1 flex-col items-center justify-center rounded-md border border-slate-100 bg-slate-50">
-            <div className="relative h-full w-full">
+          <div className="flex w-full flex-1 items-center rounded-md border border-slate-100 bg-slate-50 pr-14">
+            <div className="relative aspect-square w-full">
               <Image
                 src="/assets/fibonacci (3).png"
                 alt={pfData.tabs.fibonacci}
@@ -258,6 +325,16 @@ export function FibonacciTab({ pfData }: FibonacciTabProps) {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-contain"
               />
+              {fiboDownAnchors ? (
+                <FiboChartLabels
+                  lines={FIBO_DOWN_LINES}
+                  priceAt={(ratio) =>
+                    fiboDownAnchors.low +
+                    ratio * (fiboDownAnchors.high - fiboDownAnchors.low)
+                  }
+                  format={formatFiboDownNum}
+                />
+              ) : null}
             </div>
           </div>
 
