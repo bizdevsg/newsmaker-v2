@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   title: "Home",
 };
 
+const SHOW_NM_AI_STATEMENT = false;
+
 export default async function Home({
   params,
 }: {
@@ -55,7 +57,8 @@ export default async function Home({
           <div className="flex flex-col gap-4">
             <InsightHub locale={locale} />
             <DisclaimerCard />
-            <NmAi />
+            {/* Pernyataan Tambahan NM Ai disembunyikan sementara. */}
+            {SHOW_NM_AI_STATEMENT ? <NmAi /> : null}
             <Tagline />
           </div>
         </Container>
