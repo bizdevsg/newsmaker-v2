@@ -24,13 +24,12 @@ type InsightHubProps = {
   items?: InsightHubItem[];
 };
 
-const DEFAULT_ITEMS: InsightHubItem[] = [
+const DEFAULT_ITEMS = (locale: Locale): InsightHubItem[] => [
   {
-    href: "https://gwenstacy.newsmaker.id/",
-    imageSrc: "/assets/nmai-logo.png",
-    imageAlt: "BBJ Volume",
+    href: `/${locale}/tools/riskguard`,
+    imageSrc: "/assets/NewsMaker-23-logo.png",
+    imageAlt: "RiskGuard",
     bgCover: "/assets/bg-nmai.png",
-    maintenance: true,
   },
   {
     href: "https://ebook.newsmaker.id/login",
@@ -78,7 +77,10 @@ export function InsightHub({
   title = "Insight Hub",
   items,
 }: InsightHubProps) {
-  const resolvedItems = (items?.length ? items : DEFAULT_ITEMS).slice(0, 4);
+  const resolvedItems = (items?.length ? items : DEFAULT_ITEMS(locale)).slice(
+    0,
+    4,
+  );
 
   return (
     <Card>

@@ -7,6 +7,7 @@ import { MarketImpact } from "@/components/organisms/MarketImpact";
 import { FocusReport } from "@/components/organisms/FocusReport";
 import { RecentAnalysis } from "@/components/organisms/RecentAnalysis";
 import { InsightHub } from "@/components/organisms/InsightHub";
+import { DisclaimerCard } from "@/components/organisms/DisclaimerCard";
 import { INDONESIA_MARKET_ANALYSIS_DETAIL_BASE_PATH } from "@/lib/indonesia-market-sections";
 import { getMessages, type Locale } from "@/locales";
 
@@ -54,6 +55,7 @@ export default async function Home({
         </div>
       </div>
       <InsightHub locale={locale} />
+      <DisclaimerCard />
     </MarketPageTemplate>
   );
 }
