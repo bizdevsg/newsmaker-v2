@@ -27,7 +27,7 @@ const TRADINGVIEW_WIDGET_URL =
 const QUOTE_SYMBOLS: Record<QuoteCategory, QuoteSymbol[]> = {
   futures: [
     { symbol: "OANDA:XAUUSD", label: "Gold" },
-    { symbol: "OANDA:XAGUSD", label: "Silver" },
+    { symbol: "OANDA:BCOUSD", label: "Brent" },
     { symbol: "HSI:HSI", label: "Hang Seng" },
     { symbol: "SPREADEX:NIKKEI", label: "Nikkei 225" },
     { symbol: "OSE:DJIA1!", label: "DJIA1!" },

@@ -27,9 +27,15 @@ type InsightHubProps = {
 const DEFAULT_ITEMS = (locale: Locale): InsightHubItem[] => [
   {
     href: `/${locale}/tools/riskguard`,
-    imageSrc: "/assets/NewsMaker-23-logo.png",
+    imageSrc: "/assets/Logo MRG23.png",
     imageAlt: "RiskGuard",
     bgCover: "/assets/bg-nmai.png",
+  },
+  {
+    href: "https://tradepilot.id/",
+    imageSrc: "/assets/Logo Trade Pilot-Land-3.png",
+    imageAlt: "Trade Pilot",
+    bgCover: "/assets/bc_tp_nm.png",
   },
   {
     href: "https://ebook.newsmaker.id/login",
@@ -60,7 +66,7 @@ export function InsightHub({
 }: InsightHubProps) {
   const resolvedItems = (items?.length ? items : DEFAULT_ITEMS(locale)).slice(
     0,
-    4,
+    5,
   );
 
   const isExternalHref = (href: string) =>
@@ -70,7 +76,7 @@ export function InsightHub({
     <Card>
       <SectionHeader title={title} />
       <div className="px-4 py-4">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {resolvedItems.map((item, index) => {
             const href = String(item.href ?? "").trim();
             const bgCover = normalizeAssetUrl(String(item.bgCover ?? ""));

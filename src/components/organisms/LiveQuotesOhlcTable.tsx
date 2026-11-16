@@ -47,7 +47,6 @@ const SYMBOL_LABELS = new Map<string, string>([
   ["^JKLQ45", "LQ45"],
   ["XUL10", "Gold"],
   ["XAUUSD", "Gold"],
-  ["XAGUSD", "Silver"],
   ["BCO10_BBJ", "Brent"],
   ["UKOIL", "Brent"],
   ["HKK50_BBJ", "Hang Seng"],
@@ -64,7 +63,6 @@ const SYMBOL_LABELS = new Map<string, string>([
 const CANONICAL_SYMBOLS = new Map<string, string>([
   ["XUL10", "XAUUSD"],
   ["XAUUSD", "XAUUSD"],
-  ["XAGUSD", "XAGUSD"],
   ["BCO10_BBJ", "BCOUSD"],
   ["UKOIL", "UKOIL"],
   ["HKK50_BBJ", "HSI"],
@@ -221,7 +219,9 @@ export function LiveQuotesOhlcTable({
   }, [pollIntervalMs]);
 
   const tableRows = React.useMemo(() => {
-    const capped = rows.slice(0, Math.max(0, limit));
+    const capped = rows
+      .filter((row) => !normalizeSymbol(row.symbol).includes("XAG"))
+      .slice(0, Math.max(0, limit));
     return capped.map((row, index) => {
       const symbol = normalizeSymbol(row.symbol);
       const canonicalSymbol = resolveCanonicalSymbol(symbol);

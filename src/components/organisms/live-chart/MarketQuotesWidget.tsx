@@ -59,11 +59,7 @@ function MarketQuotesWidget({
               displayName: "Gold",
             },
             {
-              name: "OANDA:XAGUSD",
-              displayName: "Silver",
-            },
-            {
-              name: "ACTIVTRADES:BRENTM2026",
+              name: "OANDA:BCOUSD",
               displayName: "Brent Oil",
             },
             {

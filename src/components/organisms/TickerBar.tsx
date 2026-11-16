@@ -76,7 +76,6 @@ const MARKET_SYMBOL_LABELS = new Map<string, string>([
   ["^JKLQ45", "LQ45"],
   ["XUL10", "Gold"],
   ["XAUUSD", "Gold"],
-  ["XAGUSD", "Silver"],
   ["BCO10_BBJ", "Brent"],
   ["DX10F_BBJ", "DXY"],
   ["UKOIL", "Brent"],
@@ -106,10 +105,6 @@ const resolveTickerSymbol = (symbol: string, shortName?: string) => {
   const predefinedLabel = MARKET_SYMBOL_LABELS.get(symbol);
   if (predefinedLabel) {
     return predefinedLabel;
-  }
-
-  if (symbol.includes("XAG")) {
-    return "Silver";
   }
 
   if (symbol.includes("XAU") || symbol.includes("XUL")) {
@@ -187,6 +182,10 @@ export function TickerBar({
 
     const toTick = (item: MarketApiItem): LiveTick | null => {
       if (typeof item.symbol !== "string" || !item.symbol) {
+        return null;
+      }
+
+      if (item.symbol.toUpperCase().includes("XAG")) {
         return null;
       }
 
