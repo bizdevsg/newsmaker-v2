@@ -453,7 +453,7 @@ const scoreItemTerms = (item: PortalNewsItem, terms: string[]) => {
 export const ECONOMIC_NEWS_API_SLUGS: Record<EconomicNewsSlug, string[]> = {
   global: ["global"],
   economy: ["economy"],
-  "global-economy": ["global", "economy", "global-economy"],
+  "global-economy": ["global", "economy", "global-economy", "teknologi"],
   "fiscal-monetary": ["fiscal-monetary"],
 };
 
@@ -606,6 +606,18 @@ export const isAnalysisPortalNewsItem = (item: PortalNewsItem) => {
   );
 };
 
+const TECHNOLOGY_SLUGS = new Set(["teknologi", "technology"]);
+
+/** True when the article is filed under the "Teknologi" category. */
+export const isTechnologyPortalNewsItem = (
+  item: Pick<PortalNewsItem, "kategori" | "main_category" | "sub_category">,
+) =>
+  [
+    item.sub_category?.slug,
+    item.main_category?.slug,
+    item.kategori?.slug,
+  ].some((value) => TECHNOLOGY_SLUGS.has(normalizeRouteSlug(value)));
+
 export const inferEconomicNewsCategoryFromItem = (
   item: PortalNewsItem,
 ): EconomicNewsSlug | null => {
@@ -619,6 +631,11 @@ export const inferEconomicNewsCategoryFromItem = (
   ]
     .map((value) => normalizeRouteSlug(value))
     .filter(Boolean);
+
+  // "Teknologi" is shown inside the Global & Economy group.
+  if (explicitSlugs.some((slug) => TECHNOLOGY_SLUGS.has(slug))) {
+    return "global-economy";
+  }
 
   for (const slug of explicitSlugs) {
     const direct = getEconomicNewsConfig(slug)?.slug ?? null;

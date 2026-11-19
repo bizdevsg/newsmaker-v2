@@ -24,6 +24,7 @@ import {
   buildNewsSubHref,
   inferAnalysisCategoryFromItem,
   inferEconomicNewsCategoryFromItem,
+  isTechnologyPortalNewsItem,
   inferMarketNewsCategoryFromItem,
   normalizeEconomicNewsRouteSub,
   resolveAnalysisLabel,
@@ -216,6 +217,7 @@ const toHeroArticle = (
           "ANALYSIS"
         ).toUpperCase()
       : (
+          (isTechnologyPortalNewsItem(article) ? "Technology" : undefined) ||
           article.sub_category?.name?.trim() ||
           article.main_category?.name?.trim() ||
           resolveEconomicNewsLabel(messages, economicSub!) ||
@@ -314,7 +316,7 @@ export async function HeroSection({ messages, locale }: HeroSectionProps) {
             <div className="relative flex min-h-[310px] h-full flex-col justify-between gap-4 p-7 sm:min-h-[340px]">
               <div className="space-y-3">
                 <Tag tone="slate" className="bg-white/15 text-white uppercase">
-                  MARKET DEVELOPMENT
+                  {featured.tag}
                 </Tag>
                 <h2 className="max-w-2xl text-2xl font-semibold leading-snug sm:text-3xl">
                   {featured.title}
