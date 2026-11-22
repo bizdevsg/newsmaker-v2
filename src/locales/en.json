@@ -182,7 +182,8 @@
       "historicalData": "Historical Data",
       "pivotFibonacci": "Pivot & Fibonacci",
       "riskguard": "RiskGuard",
-      "fedRateMonitor": "Fed Rate Monitor"
+      "fedRateMonitor": "Fed Rate Monitor",
+      "tradepilot": "Trade Pilot"
     }
   },
   "hero": {
@@ -492,6 +493,11 @@
           {
             "key": "fed-rate-monitor",
             "label": "Fed Rate Monitor",
+            "href": "#"
+          },
+          {
+            "key": "tradepilot",
+            "label": "Trade Pilot",
             "href": "#"
           },
           {

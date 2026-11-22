@@ -321,6 +321,11 @@ export function SiteHeader() {
             label: siteNavLabels.fedRateMonitor,
             href: routeTo("tools/fed-rate-monitor"),
           },
+          {
+            key: "tools:tradepilot",
+            label: siteNavLabels.tradepilot,
+            href: routeTo("tools/tradepilot"),
+          },
         ],
       },
     ];
