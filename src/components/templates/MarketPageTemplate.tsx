@@ -42,15 +42,13 @@ export function MarketPageTemplate({
               <SiteHeader />
             </div>
           </nav>
-        </StickyNav>
-        <div className="">
           <div className="mx-auto w-full">
             <TickerBar
               locale={locale}
               topNews={messages.widgets?.tickerBar?.topNews}
             />
           </div>
-        </div>
+        </StickyNav>
         {fullHeight ? (
           <div className="min-h-0 flex-1">{children}</div>
         ) : (

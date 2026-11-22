@@ -420,7 +420,7 @@ export function SiteHeader() {
   return (
     <header className="bg-[#1061B3] text-white shadow-xl">
       <div className="bg-[url(/assets/bg-cover.pg)]" />
-      <div className="px-4">
+      <div className="px-4" data-header-collapsible>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-4">
           <div className="flex items-center gap-4">
             <Link href={homeHref}>
