@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { MarketPageTemplate } from "@/components/templates/MarketPageTemplate";
 import { getMessages, type Locale } from "@/locales";
 
-const TRADEPILOT_URL = "https://tradepilot.id/";
+const TRADEPILOT_URL = "https://tradepilot.id/?embed=1";
 
 export const metadata: Metadata = {
   title: "Trade Pilot",
